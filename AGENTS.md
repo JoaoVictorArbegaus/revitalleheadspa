@@ -66,7 +66,10 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 ## Estado dos arquivos de acompanhamento
 
 - `TASKS.md` pode crescer como backlog, mas deve conter itens coesos e critérios verificáveis.
-- `SESSION.md` deve permanecer curto, sem diário, datas, comandos executados ou histórico acumulado. Substitua seu conteúdo quando o foco mudar.
+- `SESSION.md` é um snapshot curto e substituível para continuidade, não um histórico.
+- Mantenha em `SESSION.md` apenas baseline, trabalho ativo, decisões abertas, bloqueios e próximo ponto de continuidade; prefira menos de 100 linhas.
+- Ao mudar o foco, substitua, funda ou remova informações superadas. Não acrescente diário, datas, números de sessão, comandos, diffs, hashes ou relatos de tarefas encerradas.
+- Não duplique no `SESSION.md` requisitos do `sdd_kit/`, backlog de `TASKS.md` ou histórico preservado pelo Git.
 - Decisões aceitas devem sair de `SESSION.md` e ser registradas em `sdd_kit/`.
 
 ## Encerramento de tarefa
@@ -75,5 +78,5 @@ Ao concluir uma tarefa:
 
 1. registre o resultado e a validação em `TASKS.md`;
 2. atualize as especificações afetadas;
-3. deixe em `SESSION.md` somente o próximo contexto necessário;
+3. atualize `SESSION.md` somente quando o estado de continuidade mudar e deixe nele apenas o próximo contexto necessário;
 4. informe limitações ou validações não executadas de forma explícita.
