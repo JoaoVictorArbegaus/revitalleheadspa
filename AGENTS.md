@@ -65,7 +65,9 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 
 ## Estado dos arquivos de acompanhamento
 
-- `TASKS.md` pode crescer como backlog, mas deve conter itens coesos e critérios verificáveis.
+- `TASKS.md` é o quadro operacional atual: contém somente trabalho ativo ou realmente aguardando execução, com estado, dependências, fonte do SDD e reservas de migration.
+- Detalhe apenas a tarefa liberada ou em andamento. Remova tarefas concluídas após integração; o Git preserva o histórico e o SDD preserva requisitos.
+- Não use `DONE` como arquivo permanente, não replique toda a especificação no quadro e não transforme intenção futura em tarefa ativa.
 - `SESSION.md` é um snapshot curto e substituível para continuidade, não um histórico.
 - Mantenha em `SESSION.md` apenas baseline, trabalho ativo, decisões abertas, bloqueios e próximo ponto de continuidade; prefira menos de 100 linhas.
 - Ao mudar o foco, substitua, funda ou remova informações superadas. Não acrescente diário, datas, números de sessão, comandos, diffs, hashes ou relatos de tarefas encerradas.
