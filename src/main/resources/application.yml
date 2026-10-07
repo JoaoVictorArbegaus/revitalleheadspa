@@ -13,8 +13,29 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
+aplicacao:
+  acesso:
+    bootstrap:
+      nome: ${BOOTSTRAP_PROPRIETARIO_NOME:}
+      email: ${BOOTSTRAP_PROPRIETARIO_EMAIL:}
+      senha: ${BOOTSTRAP_PROPRIETARIO_SENHA:}
+    recuperacao:
+      email: ${RECUPERACAO_PROPRIETARIO_EMAIL:}
+      nova-senha: ${RECUPERACAO_PROPRIETARIO_NOVA_SENHA:}
+    limite-tentativas:
+      maximo: ${LOGIN_TENTATIVAS_MAXIMO:5}
+      janela: ${LOGIN_TENTATIVAS_JANELA:15m}
+
 server:
   shutdown: graceful
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:NONE}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+        path: /api
 
 management:
   endpoint:

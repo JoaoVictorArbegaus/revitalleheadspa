@@ -22,6 +22,9 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/service_scheduling
       DATABASE_USERNAME: service_scheduling
       DATABASE_PASSWORD: service_scheduling
+      BOOTSTRAP_PROPRIETARIO_NOME: ${BOOTSTRAP_PROPRIETARIO_NOME:?informe o nome do proprietario}
+      BOOTSTRAP_PROPRIETARIO_EMAIL: ${BOOTSTRAP_PROPRIETARIO_EMAIL:?informe o email do proprietario}
+      BOOTSTRAP_PROPRIETARIO_SENHA: ${BOOTSTRAP_PROPRIETARIO_SENHA:?informe a senha do proprietario}
     ports:
       - "8080:8080"
     depends_on:

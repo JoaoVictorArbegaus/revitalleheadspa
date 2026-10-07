@@ -48,6 +48,10 @@ No Linux ou macOS:
 Para iniciar a API e o PostgreSQL com valores exclusivamente locais:
 
 ```bash
+export BOOTSTRAP_PROPRIETARIO_NOME='Proprietario Local'
+export BOOTSTRAP_PROPRIETARIO_EMAIL='proprietario@example.test'
+read -r -s -p 'Senha inicial: ' BOOTSTRAP_PROPRIETARIO_SENHA; echo
+export BOOTSTRAP_PROPRIETARIO_SENHA
 docker compose up --build
 ```
 
@@ -67,6 +71,25 @@ deve fornecer `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` por meio
 protegido. OpenAPI e Swagger UI ficam desabilitados por padrão no perfil `prod` e
 podem ser habilitados conscientemente com `OPENAPI_HABILITADA` e
 `SWAGGER_UI_HABILITADA`.
+
+Na primeira inicialização de um banco sem usuários administrativos, também são
+obrigatórias `BOOTSTRAP_PROPRIETARIO_NOME`, `BOOTSTRAP_PROPRIETARIO_EMAIL` e
+`BOOTSTRAP_PROPRIETARIO_SENHA`. Elas criam uma única conta `PROPRIETARIO`; quando
+já existe qualquer usuário, o bootstrap não cria conta nem redefine senha. Remova
+a senha do ambiente depois da inicialização. Toda senha administrativa deve ter
+entre 12 e 72 bytes em UTF-8.
+
+O limite de login é configurado por `LOGIN_TENTATIVAS_MAXIMO` (padrão `5`) e
+`LOGIN_TENTATIVAS_JANELA` (padrão `15m`). A autenticação usa sessão HTTP e CSRF,
+não JWT. Consulte o [guia de autenticação administrativa](docs/autenticacao-administrativa.md)
+para os exemplos `curl`, a gestão de usuários e o procedimento de recuperação do
+proprietário.
+
+`FORWARD_HEADERS_STRATEGY` permanece `NONE` por padrão. Uma instalação atrás de
+proxy só deve habilitar cabeçalhos encaminhados depois de configurar a plataforma
+para remover valores enviados diretamente pelo cliente e confiar apenas no proxy.
+Nesse cenário, use `FORWARD_HEADERS_STRATEGY=NATIVE` para que o limite de login
+identifique a origem do cliente em vez do endereço do proxy.
 
 ## Organização do código
 
@@ -92,6 +115,7 @@ HTTP, JPA e provedores externos. A fundação atual possui somente classes reais
 - [sdd_kit/13-release-and-client-derivation.md](sdd_kit/13-release-and-client-derivation.md): processo para publicar a API e iniciar projetos de clientes.
 - [sdd_kit/15-api-consumer-documentation.md](sdd_kit/15-api-consumer-documentation.md): padrão obrigatório para que outros projetos consumam a API.
 - [sdd_kit/18-technical-foundation.md](sdd_kit/18-technical-foundation.md): identidade, stack e convenções para iniciar o código.
+- [docs/autenticacao-administrativa.md](docs/autenticacao-administrativa.md): bootstrap, sessão, CSRF, usuários e recuperação administrativa.
 
 Antes de codificar, resolva as decisões bloqueantes registradas em `sdd_kit/11-open-decisions.md` e atualize os documentos afetados.
 

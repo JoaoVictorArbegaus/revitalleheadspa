@@ -52,7 +52,7 @@ Documentos afetados: `AGENTS.md`, `SESSION.md`, `TASKS.md` e todo o `sdd_kit/`, 
 
 ### D-004 — Autenticação administrativa — `DECIDED`
 
-Decisão: seguir o modelo do KiProdutos, adaptado para email. Spring Security com email e senha, BCrypt custo 12, sessão HTTP em memória por 30 minutos, cookie de sessão `HttpOnly`, `SameSite=Lax`, caminho `/api` e `Secure` em produção. CSRF usa cookie e cabeçalho próprios. CORS fica desabilitado para frontend na mesma origem.
+Decisão: seguir o modelo do KiProdutos, adaptado para email. Spring Security com email e senha, BCrypt custo 12, sessão HTTP em memória por 30 minutos, cookie de sessão `HttpOnly`, `SameSite=Lax`, caminho `/api` e `Secure` em produção. CSRF usa cookie e cabeçalho próprios. CORS fica desabilitado para frontend na mesma origem. A senha possui entre 12 e 72 bytes em UTF-8, sem regra obrigatória de composição e sem truncamento.
 
 O primeiro `PROPRIETARIO` é criado uma única vez por variáveis de ambiente quando não existe usuário. Bootstrap repetido não duplica conta nem redefine senha. Login previne session fixation; mudança de senha exige a atual, invalida todas as sessões e força novo login. Tentativas de login são limitadas em memória. Rotas públicas são allowlist explícita, rotas administrativas exigem autenticação e as restantes são negadas.
 
@@ -189,6 +189,10 @@ Decisão: haverá somente `PROPRIETARIO` e `FUNCIONARIO`; não existe `GERENTE` 
 Todo `FUNCIONARIO` é vinculado obrigatoriamente a um único profissional e opera somente seus serviços, agenda e reservas. Dados do cliente são visíveis apenas no contexto desses atendimentos. Recursos compartilhados podem ser consultados e alocados, mas somente `PROPRIETARIO` altera seu cadastro ou capacidade. O backend deriva o escopo da sessão e não confia em identificadores enviados pelo cliente.
 
 Consequências: vínculo de profissional é único por conta; acesso cruzado é ocultado; profissional pode existir sem usuário; `PROPRIETARIO` tem visão global e pode opcionalmente estar vinculado a um profissional.
+
+Sequenciamento: F2 cria a tabela mínima de profissional, limitada aos campos já
+aprovados `id`, `nome` e `ativo`, apenas para garantir a integridade do vínculo de
+acesso. Endpoints e casos de uso de cadastro continuam pertencendo a B1.
 
 ### D-015 — Confirmação automática ou manual — `DECIDED`
 

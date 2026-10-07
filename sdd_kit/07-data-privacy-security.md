@@ -76,6 +76,8 @@ Perda do token exige contato com o estabelecimento na V1. Recuperação por mens
 - Spring Security com sessão HTTP armazenada em memória.
 - Email normalizado como identificador único.
 - Senhas armazenadas somente como hash BCrypt com custo 12.
+- A política comum aceita senhas entre 12 e 72 bytes em UTF-8, sem exigir classes
+  específicas de caracteres; a senha nunca é truncada para caber no BCrypt.
 - Cookie de sessão `HttpOnly`, `SameSite=Lax`, limitado a `/api` e `Secure` em produção.
 - Timeout de 30 minutos de inatividade; reinício da aplicação encerra as sessões.
 - Proteção contra session fixation no login.
@@ -103,6 +105,9 @@ O cookie que transporta o token CSRF precisa ser legível pelo frontend; ele nã
 - A redefinição administrativa invalida todas as sessões do funcionário.
 - Contas são desativadas, não apagadas, para preservar auditoria.
 - O último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado.
+- F2 persiste somente a identidade mínima de `Profissional` necessária para a chave
+  estrangeira e para a unicidade do vínculo. Cadastro e gestão de profissionais
+  permanecem em B1.
 
 ## Recuperação do proprietário
 

@@ -38,7 +38,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "aplicacao.acesso.bootstrap.nome=Proprietario Teste",
+        "aplicacao.acesso.bootstrap.email=proprietario@example.test",
+        "aplicacao.acesso.bootstrap.senha=senha-teste-segura"
+})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers

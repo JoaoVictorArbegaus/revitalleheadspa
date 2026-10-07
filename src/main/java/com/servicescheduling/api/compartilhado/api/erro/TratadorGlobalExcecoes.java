@@ -1,5 +1,6 @@
 package com.servicescheduling.api.compartilhado.api.erro;
 
+import com.servicescheduling.api.compartilhado.aplicacao.ExcecaoRegraNegocio;
 import com.servicescheduling.api.compartilhado.infraestrutura.web.FiltroRastreio;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.csrf.CsrfException;
@@ -225,5 +227,49 @@ public class TratadorGlobalExcecoes extends ResponseEntityExceptionHandler {
 
     private String primeiroCodigo(String[] codigos) {
         return codigos == null || codigos.length == 0 ? "" : codigos[0];
+    }
+
+    @ExceptionHandler(ExcecaoRegraNegocio.class)
+    ResponseEntity<Object> tratarRegraNegocio(ExcecaoRegraNegocio excecao, WebRequest requisicao) {
+        String identificador = excecao.getCodigo().toLowerCase().replace('_', '-');
+        HttpStatus status = switch (excecao.getTipo()) {
+            case ENTRADA_INVALIDA -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case CONFLITO -> HttpStatus.CONFLICT;
+            case NAO_ENCONTRADO -> HttpStatus.NOT_FOUND;
+            case LIMITE_EXCEDIDO -> HttpStatus.TOO_MANY_REQUESTS;
+        };
+        ProblemDetail problema = criarProblema(
+                status, identificador, "Operacao nao permitida",
+                excecao.getMessage(), excecao.getCodigo(), requisicao);
+        HttpHeaders cabecalhos = new HttpHeaders();
+        if (status == HttpStatus.TOO_MANY_REQUESTS) {
+            cabecalhos.set(HttpHeaders.RETRY_AFTER, String.valueOf(excecao.getRetryAfterSegundos()));
+        }
+        return resposta(problema, cabecalhos);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<Object> tratarConflitoIntegridade(DataIntegrityViolationException excecao, WebRequest requisicao) {
+        String mensagemInterna = excecao.getMostSpecificCause().getMessage();
+        String codigo = "CONFLITO_DADOS";
+        String identificador = "conflito-dados";
+        String detalhe = "A operacao conflita com dados existentes";
+        if (mensagemInterna != null && mensagemInterna.contains("uq_usuario_administrativo_email")) {
+            codigo = "EMAIL_JA_UTILIZADO";
+            identificador = "email-ja-utilizado";
+            detalhe = "O email ja esta em uso";
+        } else if (mensagemInterna != null && mensagemInterna.contains("uq_usuario_profissional")) {
+            codigo = "PROFISSIONAL_JA_VINCULADO";
+            identificador = "profissional-ja-vinculado";
+            detalhe = "O profissional ja possui usuario vinculado";
+        }
+        ProblemDetail problema = criarProblema(
+                HttpStatus.CONFLICT,
+                identificador,
+                "Conflito de dados",
+                detalhe,
+                codigo,
+                requisicao);
+        return resposta(problema, new HttpHeaders());
     }
 }

@@ -2,6 +2,7 @@ package com.servicescheduling.api.compartilhado.infraestrutura.documentacao;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
@@ -10,6 +11,9 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,11 +45,27 @@ public class ConfiguracaoOpenApi {
                 .description("A solicitacao viola validacoes de entrada")
                 .content(new io.swagger.v3.oas.models.media.Content()
                         .addMediaType("application/problem+json", tipoProblema));
+        ApiResponse problemaGenerico = new ApiResponse()
+                .description("Falha no processamento da operacao")
+                .content(new io.swagger.v3.oas.models.media.Content()
+                        .addMediaType("application/problem+json", tipoProblema));
 
         Components componentes = new Components()
                 .addSchemas("ErroCampo", erroCampo)
                 .addSchemas("Problema", problema)
-                .responses(new ApiResponses().addApiResponse("FalhaValidacao", falhaValidacao));
+                .addSecuritySchemes("sessao", new SecurityScheme()
+                        .type(SecurityScheme.Type.APIKEY)
+                        .in(SecurityScheme.In.COOKIE)
+                        .name("JSESSIONID")
+                        .description("Sessao HTTP administrativa"))
+                .addSecuritySchemes("csrf", new SecurityScheme()
+                        .type(SecurityScheme.Type.APIKEY)
+                        .in(SecurityScheme.In.HEADER)
+                        .name("X-CSRF-TOKEN")
+                        .description("Token obtido em /api/v1/administracao/autenticacao/csrf"))
+                .responses(new ApiResponses()
+                        .addApiResponse("FalhaValidacao", falhaValidacao)
+                        .addApiResponse("Problema", problemaGenerico));
 
         return new OpenAPI()
                 .info(new Info()
@@ -53,5 +73,81 @@ public class ConfiguracaoOpenApi {
                         .description("API generica para agendamento de servicos")
                         .version("v1"))
                 .components(componentes);
+    }
+
+    @Bean
+    OpenApiCustomizer documentarSegurancaAcesso() {
+        return openApi -> {
+            configurar(openApi, "/api/v1/administracao/autenticacao/entrar", "post", false, true,
+                    "204", "400", "401", "403", "415", "422", "429", "500");
+            configurar(openApi, "/api/v1/administracao/autenticacao/eu", "get", true, false,
+                    "200", "401", "500");
+            configurar(openApi, "/api/v1/administracao/autenticacao/senha", "put", true, true,
+                    "204", "400", "401", "403", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/autenticacao/sair", "post", true, true,
+                    "204", "401", "403", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios", "get", true, false,
+                    "200", "401", "403", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios", "post", true, true,
+                    "201", "400", "401", "403", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}", "put", true, true,
+                    "200", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}", "patch", true, true,
+                    "200", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}/senha-temporaria", "post", true, true,
+                    "204", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}/ativar", "post", true, true,
+                    "204", "400", "401", "403", "404", "409", "422", "500");
+            configurar(openApi, "/api/v1/administracao/usuarios/{id}/desativar", "post", true, true,
+                    "204", "400", "401", "403", "404", "409", "422", "500");
+        };
+    }
+
+    private void configurar(
+            OpenAPI openApi,
+            String caminho,
+            String metodo,
+            boolean sessao,
+            boolean csrf,
+            String... respostas) {
+        if (openApi.getPaths() == null || openApi.getPaths().get(caminho) == null) {
+            return;
+        }
+        Operation operacao = openApi.getPaths().get(caminho)
+                .readOperationsMap().get(io.swagger.v3.oas.models.PathItem.HttpMethod.valueOf(metodo.toUpperCase()));
+        if (operacao == null) {
+            return;
+        }
+        SecurityRequirement requisito = new SecurityRequirement();
+        if (sessao) {
+            requisito.addList("sessao");
+        }
+        if (csrf) {
+            requisito.addList("csrf");
+        }
+        operacao.setSecurity(java.util.List.of(requisito));
+        ApiResponse sucessoGerado = operacao.getResponses().entrySet().stream()
+                .filter(entrada -> entrada.getKey().startsWith("2"))
+                .map(java.util.Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+        if (sucessoGerado != null
+                && sucessoGerado.getContent() != null
+                && sucessoGerado.getContent().containsKey("*/*")) {
+            io.swagger.v3.oas.models.media.MediaType tipo = sucessoGerado.getContent().remove("*/*");
+            sucessoGerado.getContent().addMediaType("application/json", tipo);
+        }
+        operacao.setResponses(new ApiResponses());
+        for (String resposta : respostas) {
+            ApiResponse documentada = resposta.startsWith("2") && sucessoGerado != null
+                    ? sucessoGerado.description("Operacao concluida")
+                    : new ApiResponse().$ref("#/components/responses/Problema");
+            if ("204".equals(resposta)) {
+                documentada = new ApiResponse().description("Operacao concluida");
+            }
+            operacao.getResponses().addApiResponse(resposta, documentada);
+        }
     }
 }
