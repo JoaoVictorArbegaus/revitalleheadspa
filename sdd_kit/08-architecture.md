@@ -21,6 +21,11 @@ O artefato de entrega é uma imagem Docker da API. Docker Compose inicia API e P
 
 ## Módulos
 
+Cada módulo funcional é organizado internamente em `api`, `aplicacao`, `dominio` e
+`infraestrutura`, criados conforme existam entradas, casos de uso, regras ou
+adaptadores reais. A separação preserva as dependências em direção ao domínio sem
+transformar o monólito em múltiplos projetos ou criar camadas vazias.
+
 ### Acesso e identidade
 
 Autenticação administrativa por Spring Security, sessão HTTP em memória, CSRF, bootstrap inicial e autorização por papéis. Não representa o cliente final.

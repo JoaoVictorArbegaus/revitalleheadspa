@@ -71,7 +71,13 @@ Responsabilidades:
 | `notificacoes` | outbox, worker e porta de entrega |
 | `compartilhado` | erros HTTP, relógio, configuração técnica e utilidades realmente compartilhadas |
 
-Cada funcionalidade cria subpacotes como `api`, `aplicacao`, `dominio` e `infraestrutura` somente quando houver classes reais para eles. Não criar camadas vazias, um projeto Maven por módulo, interfaces que apenas repetem uma classe ou um pacote `comum` genérico.
+Cada funcionalidade é um módulo interno e organiza suas classes nos subpacotes
+`api`, `aplicacao`, `dominio` e `infraestrutura`. `api` contém as entradas HTTP e
+seus DTOs; `aplicacao` coordena casos de uso; `dominio` concentra entidades,
+valores e regras de negócio; `infraestrutura` contém persistência e adaptadores
+externos. Esses subpacotes são criados somente quando houver classes reais para
+eles. Não criar camadas vazias, um projeto Maven por módulo, interfaces que apenas
+repetem uma classe ou um pacote `comum` genérico.
 
 Controladores dependem de casos de uso da própria funcionalidade. Repositórios JPA e detalhes de integração permanecem internos. Uma funcionalidade não acessa diretamente o repositório de outra; a coordenação acontece por um caso de uso explícito. `compartilhado` não contém regras de negócio.
 
@@ -126,7 +132,8 @@ Não criar um perfil por cliente. As diferenças simples entram por configuraç�
 
 - logs estruturados incluem `idRastreio`, método, rota, estado e duração, sem corpo de requisição por padrão;
 - CPF, celular, email, senha, cookie, token e chave de idempotência nunca são registrados;
-- um filtro aceita ou cria identificador de correlação e o devolve na resposta;
+- um filtro aceita ou cria identificador de correlação no cabeçalho
+  `X-Id-Rastreio` no formato UUID e o devolve no mesmo cabeçalho da resposta;
 - Actuator expõe somente os endpoints necessários;
 - liveness verifica o processo; readiness verifica a capacidade de atender, inclusive banco;
 - métricas e logs do worker distinguem `PENDENTE`, `ENTREGUE`, `IGNORADO` e `FALHA_DEFINITIVA` sem copiar conteúdo ou destinatário.

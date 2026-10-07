@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+springdoc:
+  api-docs:
+    enabled: ${OPENAPI_HABILITADA:false}
+  swagger-ui:
+    enabled: ${SWAGGER_UI_HABILITADA:false}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true

@@ -26,6 +26,63 @@ A V1 termina com contrato OpenAPI, banco versionado, segurança administrativa, 
 - Docker Compose no desenvolvimento e imagem Docker como artefato executável.
 - linguagem ubíqua em português no domínio, código, JSON, rotas e banco.
 
+## Executar localmente
+
+Pré-requisitos:
+
+- JDK 21 disponível em `JAVA_HOME`;
+- Docker em execução para os testes de integração e para o ambiente completo.
+
+Para compilar e executar toda a validação automatizada no Windows:
+
+```powershell
+.\mvnw.cmd clean verify
+```
+
+No Linux ou macOS:
+
+```bash
+./mvnw clean verify
+```
+
+Para iniciar a API e o PostgreSQL com valores exclusivamente locais:
+
+```bash
+docker compose up --build
+```
+
+Depois da inicialização:
+
+- liveness: `http://localhost:8080/actuator/health/liveness`;
+- readiness: `http://localhost:8080/actuator/health/readiness`;
+- OpenAPI: `http://localhost:8080/api-docs`;
+- Swagger UI: `http://localhost:8080/swagger-ui.html`.
+
+Para encerrar e preservar os dados locais, execute `docker compose down`. Para
+recriar também o banco vazio e reaplicar todas as migrations, execute
+`docker compose down --volumes` antes de subir o ambiente novamente.
+
+As credenciais de `compose.yml` são apenas padrões locais. Uma instalação externa
+deve fornecer `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` por meio
+protegido. OpenAPI e Swagger UI ficam desabilitados por padrão no perfil `prod` e
+podem ser habilitados conscientemente com `OPENAPI_HABILITADA` e
+`SWAGGER_UI_HABILITADA`.
+
+## Organização do código
+
+O sistema é um monólito modular organizado primeiro por domínio funcional. Cada
+domínio cria, conforme a necessidade real, os pacotes:
+
+- `api`: controladores HTTP e DTOs de entrada e saída;
+- `aplicacao`: coordenação dos casos de uso;
+- `dominio`: entidades, valores e regras de negócio;
+- `infraestrutura`: persistência, configuração e adaptadores externos.
+
+Uma funcionalidade não acessa diretamente o repositório de outra. A coordenação
+ocorre por casos de uso explícitos, mantendo regras de negócio independentes de
+HTTP, JPA e provedores externos. A fundação atual possui somente classes reais em
+`compartilhado`; os demais módulos serão criados nas tarefas funcionais.
+
 ## Como a documentação está organizada
 
 - [AGENTS.md](AGENTS.md): regras obrigatórias para qualquer LLM que trabalhe no projeto.

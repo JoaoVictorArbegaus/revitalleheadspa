@@ -139,6 +139,11 @@ Eventos de notificação são visíveis somente ao `PROPRIETARIO`, paginados e f
 
 ## Modelo de erro
 
+Toda requisição pode enviar um identificador de correlação no cabeçalho
+`X-Id-Rastreio`, no formato UUID. A API valida esse identificador ou cria um novo
+quando ele estiver ausente ou for inválido, devolvendo o valor efetivamente usado
+no mesmo cabeçalho da resposta.
+
 Toda falha usa `Content-Type: application/problem+json`, conforme RFC 9457, e deve conter:
 
 - `type`: URI relativa estável no formato `/problemas/{identificador}`;

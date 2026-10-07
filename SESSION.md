@@ -13,24 +13,26 @@ concluídas pertencem ao Git; requisitos e decisões pertencem ao `sdd_kit/`.
   OpenAPI, Testcontainers e Docker.
 - O repositório local acompanha `origin/main`. Commits e pushes registram o
   desenvolvimento; GitHub Release e tag `v1.0.0` pertencem somente a R2.
-- Ainda não existe código executável. Não presuma que aplicação, banco, Docker ou
-  suíte de testes já foram validados.
+- A fundação executável usa Java 21 e Spring Boot 4.1.1, com PostgreSQL, Flyway,
+  segurança de negação padrão, RFC 9457, OpenAPI, Testcontainers e Docker Compose.
+- O monólito é organizado primeiro por domínio funcional e, dentro de cada módulo,
+  por `api`, `aplicacao`, `dominio` e `infraestrutura`, somente quando houver classes
+  reais.
 
 ## Trabalho ativo
 
-- A próxima tarefa liberada é F1 — criar a base executável conforme `TASKS.md` e
-  `sdd_kit/18-technical-foundation.md`.
-- Não há decisão de produto aberta nem bloqueio conhecido para iniciar F1.
+- A fundação F1 está concluída e validada.
+- A próxima tarefa liberada é F2 — autenticação e autorização administrativa.
+- Não há decisão aberta nem bloqueio conhecido para iniciar F2.
 
 ## Continuidade
 
-- Implementar somente F1 antes de avançar para autenticação ou regras do domínio.
-- Validar Java, Maven Wrapper, Docker, PostgreSQL/Flyway, inicialização, saúde,
-  formato RFC 9457 e testes básicos definidos nos critérios de F1.
+- Implementar somente F2 antes de avançar para catálogo ou regras de agendamento.
+- Antes de criar migration, marcar F2 em andamento e reservar `V2` em `TASKS.md`.
+- Aplicar D-004, D-014 e D-021 junto ao contrato e às regras de segurança citados
+  no item liberado.
 - Preservar o núcleo sem multitenancy, frontend, marca Revitalle ou provedor
   concreto de comunicação.
-- Ao concluir F1, atualizar seu estado em `TASKS.md`, substituir este snapshot pelo
-  próximo contexto necessário e criar um commit coeso em `main`.
 
 ## Manutenção deste snapshot
 

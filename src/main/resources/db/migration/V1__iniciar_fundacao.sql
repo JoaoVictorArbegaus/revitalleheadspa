@@ -1,0 +1,2 @@
+-- A fundacao ainda nao possui tabelas de negocio. Esta migration estabelece a
+-- linha de base do Flyway sem antecipar o modelo das proximas tarefas.
