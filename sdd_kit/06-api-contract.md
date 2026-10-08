@@ -11,7 +11,7 @@ Prefixo definitivo: `/api/v1`.
 - Datas locais em `YYYY-MM-DD`.
 - Horas locais em `HH:mm` quando não representam um instante.
 - Instantes em ISO 8601 com offset ou `Z`.
-- Valores monetários como decimal e código de moeda explícito no contrato.
+- Valores monetários como decimal com duas casas e código de moeda explícito no contrato.
 - Durações e intervalos como quantidades inteiras de minutos.
 - Paginação obrigatória em coleções administrativas potencialmente grandes.
 - Cabeçalho `Chave-Idempotencia` obrigatório na criação pública.
@@ -75,13 +75,13 @@ rotas desta seção descrevem entregas posteriores da V1.
 - `POST /api/v1/administracao/usuarios/{id}/ativar`;
 - `POST /api/v1/administracao/usuarios/{id}/desativar`;
 - `GET|POST /api/v1/administracao/profissionais`;
-- `GET|PUT|PATCH /api/v1/administracao/profissionais/{id}`;
+- `GET|PUT /api/v1/administracao/profissionais/{id}`;
 - `GET /api/v1/administracao/clientes/{id}`;
 - `POST /api/v1/administracao/clientes/{id}/anonimizar`;
 - `GET|POST /api/v1/administracao/recursos`;
-- `GET|PUT|PATCH /api/v1/administracao/recursos/{id}`;
+- `GET|PUT /api/v1/administracao/recursos/{id}`;
 - `GET|POST /api/v1/administracao/servicos`;
-- `GET|PUT|PATCH /api/v1/administracao/servicos/{id}`;
+- `GET|PUT /api/v1/administracao/servicos/{id}`;
 - `GET|PUT /api/v1/administracao/agenda/semanal`;
 - `GET|POST /api/v1/administracao/agenda/bloqueios`;
 - `DELETE /api/v1/administracao/agenda/bloqueios/{id}`;
@@ -223,15 +223,15 @@ desativar uma conta invalida suas sessões. Cada funcionário exige um profissio
 ativo com vínculo exclusivo, e o último proprietário ativo não pode ser
 desativado nem convertido em funcionário.
 
-Recursos administrativos expõem somente nome, estado ativo e capacidade, além do identificador. Serviços aceitam uma coleção de requisitos fixos com `recursoId` e `quantidade`. A criação pública ou administrativa determina as alocações automaticamente a partir desses requisitos; o contrato de reserva não aceita alocações informadas ou editadas pelo consumidor.
+Recursos administrativos expõem somente nome, estado ativo e capacidade, além do identificador. Serviços aceitam preço com duas casas e uma coleção de requisitos fixos com `recursoId` e `quantidade`. A criação pública ou administrativa determina as alocações automaticamente a partir desses requisitos; o contrato de reserva não aceita alocações informadas ou editadas pelo consumidor.
 
 A criação administrativa de reserva também recebe `versaoAvisoPrivacidade` e `cienteAvisoPrivacidade=true`. O usuário autorizado confirma que o cliente teve ciência da versão apresentada; versão desatualizada é rejeitada da mesma forma que no fluxo público.
 
-A configuração administrativa expõe `intervaloGradeMinutos`, `antecedenciaMinimaReservaMinutos` e `horizonteReservaDias`. O contrato de serviço usa `duracaoMinutos` e `intervaloLimpezaMinutos`; não expõe quantidade persistida de unidades de grade. A disponibilidade retorna início e fim reais de cada opção.
+A instalação fornece moeda e `intervaloGradeMinutos` por variáveis de ambiente, com padrões `BRL` e `15`; esses valores não são alterados pelos endpoints de catálogo. O contrato de serviço usa `duracaoMinutos` e `intervaloLimpezaMinutos`, não expõe quantidade persistida de unidades de grade e devolve a moeda junto dos preços. A disponibilidade retorna início e fim reais de cada opção.
 
 O expediente recorrente e os bloqueios administrativos pertencem sempre a um profissional. Recursos não possuem agenda, e não existe bloqueio de recurso ou abertura extraordinária. A API rejeita criação no passado. Operações administrativas fora dos limites públicos continuam sujeitas a expediente, bloqueios, conflito e capacidade.
 
-A preferência entre comandos explícitos e atualização genérica de estado é por comandos explícitos, pois eles tornam permissões e transições mais claras.
+O `PUT` de profissionais, recursos e serviços substitui todos os campos mutáveis, inclusive `ativo`. Não existe atualização parcial por `PATCH` nem comando separado de ativação.
 
 Reservas públicas e administrativas são criadas diretamente como `CONFIRMADO`. As únicas operações administrativas do ciclo da reserva são criar, cancelar, concluir e registrar ausência. Não existe confirmação, rejeição ou reagendamento na API V1.
 
@@ -247,10 +247,12 @@ Anonimização manual de cliente exige `PROPRIETARIO`, recebe motivo obrigatóri
 - A mudança de senha exige a senha atual, invalida todas as sessões do usuário e exige novo login.
 - Usuário com `deveAlterarSenha` só pode consultar sua identidade, trocar a senha ou encerrar a sessão.
 - Gestão de usuários exige papel `PROPRIETARIO`; `FUNCIONARIO` não acessa esses endpoints.
-- Gestão de profissionais, serviços, recursos e requisitos de recursos exige `PROPRIETARIO`.
+- `PROPRIETARIO` gerencia profissionais, recursos e serviços em toda a instalação.
+- `FUNCIONARIO` pode listar recursos e criar, listar, buscar, alterar por `PUT`, ativar e desativar somente serviços do profissional vinculado, inclusive seus requisitos de recursos.
+- Para `FUNCIONARIO`, somente `GET /api/v1/administracao/recursos` é permitido no cadastro de recursos; ele não acessa a gestão de profissionais nem busca, cria ou altera cadastro, capacidade ou estado de recursos.
 - Endpoints de agendas e reservas aplicam o escopo do profissional vinculado quando o papel é `FUNCIONARIO`.
-- `FUNCIONARIO` pode visualizar recursos alocados automaticamente em suas reservas, mas não altera catálogo, capacidade, requisitos ou alocações.
-- A API não aceita `profissionalId` arbitrário para ampliar o escopo do funcionário; o backend deriva o profissional da sessão.
+- `FUNCIONARIO` pode visualizar recursos alocados automaticamente em suas reservas, mas não altera essas alocações.
+- A API deriva da sessão o profissional do `FUNCIONARIO`: ignora filtros de consulta que tentem ampliar o escopo e rejeita `profissionalId` divergente em comandos de serviço.
 - Agenda ou reserva fora do escopo do funcionário responde como não encontrada, sem confirmar sua existência.
 - CORS permanece desabilitado na V1 porque o frontend é servido na mesma origem.
 - Rotas públicas são autorizadas por método e caminho; `/api/v1/administracao/**` exige autenticação; qualquer rota restante é negada.
@@ -313,6 +315,20 @@ Para F2, os principais códigos adicionais são:
 | profissional já vinculado | `409` | `PROFISSIONAL_JA_VINCULADO` |
 | tentativa de alterar o último proprietário ativo | `409` | `ULTIMO_PROPRIETARIO_ATIVO` |
 | senha temporária aplicada a proprietário | `422` | `SENHA_TEMPORARIA_APENAS_FUNCIONARIO` |
+
+Para B1, os códigos adicionais do catálogo são:
+
+| Situação | Status | `codigo` |
+|---|---:|---|
+| profissional inexistente | `404` | `PROFISSIONAL_NAO_ENCONTRADO` |
+| recurso inexistente | `404` | `RECURSO_NAO_ENCONTRADO` |
+| serviço inexistente ou ocultado pelo escopo | `404` | `SERVICO_NAO_ENCONTRADO` |
+| profissional inválido no serviço | `422` | `PROFISSIONAL_INVALIDO` |
+| duração ocupada incompatível com a grade | `422` | `DURACAO_INCOMPATIVEL_COM_GRADE` |
+| recurso repetido no mesmo serviço | `422` | `RECURSO_REPETIDO_NO_SERVICO` |
+| recurso informado inexistente | `422` | `RECURSO_INVALIDO` |
+| quantidade exigida acima da capacidade | `422` | `QUANTIDADE_SUPERIOR_A_CAPACIDADE` |
+| redução de capacidade abaixo de requisito existente | `409` | `CAPACIDADE_INFERIOR_AO_REQUISITO` |
 
 Mensagens podem evoluir. `status`, `codigo` e a estrutura documentada são o contrato estável. Os campos `type`, `title`, `status`, `detail` e `instance` preservam os nomes definidos pela RFC 9457; as extensões próprias usam português. Respostas nunca expõem stack trace, mensagem SQL, nomes de tabelas ou detalhes de exceções internas.
 

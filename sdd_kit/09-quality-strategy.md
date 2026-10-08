@@ -69,10 +69,14 @@ Cobrem poucos fluxos críticos completos:
 - último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado;
 - desativação e redefinição de senha invalidam as sessões afetadas;
 - criação de `FUNCIONARIO` sem profissional ou com profissional já vinculado é rejeitada;
-- `FUNCIONARIO` não administra serviços e não lê nem altera agenda ou reserva de outro profissional;
+- `FUNCIONARIO` mantém somente serviços do profissional vinculado e não lê nem altera serviço, agenda ou reserva de outro profissional;
 - identificador de profissional no payload não amplia o escopo derivado da sessão;
 - `FUNCIONARIO` não vê histórico do cliente com outros profissionais;
-- `FUNCIONARIO` não altera recursos, requisitos de recursos ou alocações de reservas;
+- `FUNCIONARIO` lista recursos e associa quantidades válidas aos próprios serviços, mas não altera cadastro, capacidade ou estado de recursos nem alocações de reservas;
+- filtro ou payload não amplia o escopo profissional derivado da sessão;
+- profissionais, recursos e serviços aceitam alteração completa por `PUT`, mas não `PATCH`;
+- catálogo público retorna somente serviços e profissionais ativos;
+- preços são armazenados e expostos com duas casas, e moeda e grade assumem `BRL` e `15` quando as variáveis da instalação não são informadas;
 - recuperação não inicia servidor web e rejeita conta inexistente, inativa ou que não seja `PROPRIETARIO`;
 - recuperação não expõe senha em logs e retorna código de saída coerente;
 - senha recuperada autentica após reinício e a senha anterior deixa de funcionar;

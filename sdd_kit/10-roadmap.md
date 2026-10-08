@@ -4,7 +4,7 @@ O roadmap descreve resultados. A execução detalhada e o estado ficam em `TASKS
 
 ## B1 — Catálogo simples
 
-Resultado: administração autenticada mantém profissionais, serviços e recursos simples com capacidade e quantidade fixa por serviço.
+Resultado: administração autenticada mantém profissionais, serviços e recursos simples com capacidade e quantidade fixa por serviço, respeitando o escopo do funcionário, e o público consulta serviços ativos.
 
 ## B2 — Agenda
 
@@ -20,9 +20,9 @@ Não há confirmação manual, estado `PENDENTE`, expiração de solicitação o
 
 Resultado: usuários autenticados operam o ciclo das reservas dentro do próprio escopo, e `PROPRIETARIO` pode anonimizar manualmente um cliente elegível.
 
-## R1 — Documentação para consumidores
+## R1 — Contrato da API para desenvolvimento do frontend
 
-Resultado: contrato OpenAPI, catálogo de erros, configuração e exemplos executáveis permitem consumir e operar a API sem ler sua implementação.
+Resultado: OpenAPI fiel, guia curto de autenticação, CSRF, permissões, estados, erros e idempotência e exemplos `.http` permitem desenvolver o frontend sem ler a implementação.
 
 ## R2 — Release da API V1
 

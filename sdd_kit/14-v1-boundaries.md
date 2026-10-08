@@ -8,6 +8,7 @@ Entregar uma API de agendamento funcional, instalável e reutilizável como cód
 
 - autenticação administrativa por email, sessão HTTP e CSRF, com autorização simples;
 - profissionais com serviços próprios, preço, duração e agenda;
+- consulta pública de serviços ativos;
 - recursos operacionais opcionais com capacidade e quantidade fixa definida por serviço;
 - expediente recorrente e bloqueios do profissional;
 - disponibilidade por grade configurável;
@@ -17,6 +18,11 @@ Entregar uma API de agendamento funcional, instalável e reutilizável como cód
 - concorrência e idempotência;
 - anonimização manual de clientes pelo `PROPRIETARIO`;
 - OpenAPI, migrações, testes e imagem Docker.
+
+`PROPRIETARIO` gerencia todo o catálogo. `FUNCIONARIO` lista recursos e mantém
+somente os serviços do profissional derivado da sessão, inclusive quantidades de
+recursos existentes, sem gerenciar profissionais nem cadastro, capacidade ou estado
+dos recursos.
 
 ## Fora da V1
 

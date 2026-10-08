@@ -100,6 +100,32 @@ public class ConfiguracaoOpenApi {
                     "204", "400", "401", "403", "404", "409", "422", "500");
             configurar(openApi, "/api/v1/administracao/usuarios/{id}/desativar", "post", true, true,
                     "204", "400", "401", "403", "404", "409", "422", "500");
+            configurar(openApi, "/api/v1/administracao/profissionais", "get", true, false,
+                    "200", "401", "403", "500");
+            configurar(openApi, "/api/v1/administracao/profissionais", "post", true, true,
+                    "201", "400", "401", "403", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/profissionais/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/profissionais/{id}", "put", true, true,
+                    "200", "400", "401", "403", "404", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/recursos", "get", true, false,
+                    "200", "401", "403", "500");
+            configurar(openApi, "/api/v1/administracao/recursos", "post", true, true,
+                    "201", "400", "401", "403", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/recursos/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/recursos/{id}", "put", true, true,
+                    "200", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/servicos", "get", true, false,
+                    "200", "401", "403", "500");
+            configurar(openApi, "/api/v1/administracao/servicos", "post", true, true,
+                    "201", "400", "401", "403", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/servicos/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/servicos/{id}", "put", true, true,
+                    "200", "400", "401", "403", "404", "415", "422", "500");
+            configurar(openApi, "/api/v1/publico/servicos", "get", false, false,
+                    "200", "500");
         };
     }
 

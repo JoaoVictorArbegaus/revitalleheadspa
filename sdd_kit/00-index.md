@@ -18,7 +18,7 @@ Leia este arquivo primeiro e abra apenas os documentos necessários para a taref
 | [12-glossary.md](12-glossary.md) | linguagem comum do projeto |
 | [13-release-and-client-derivation.md](13-release-and-client-derivation.md) | publicação da API V1 e criação de projetos por cliente |
 | [14-v1-boundaries.md](14-v1-boundaries.md) | limites funcionais, técnicos e de atuação da LLM na V1 |
-| [15-api-consumer-documentation.md](15-api-consumer-documentation.md) | entregáveis e critérios da documentação para consumidores da API |
+| [15-api-consumer-documentation.md](15-api-consumer-documentation.md) | contrato e guia necessários ao desenvolvimento do frontend |
 | [16-scheduling-and-availability.md](16-scheduling-and-availability.md) | persistência da agenda, cálculo de horários, concorrência e integração do calendário |
 | [17-notifications-outbox.md](17-notifications-outbox.md) | referência histórica fora da V1; comunicação futura exige nova decisão e provedor concreto |
 | [18-technical-foundation.md](18-technical-foundation.md) | identidade do produto-base, stack, pacotes, convenções e configuração inicial |

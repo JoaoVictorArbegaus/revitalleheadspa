@@ -102,7 +102,7 @@ Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/06-api-contract.md`, `sd
 
 ### D-007 — Grade e duração dos serviços — `DECIDED`
 
-Decisão: cada instalação define uma granularidade de início em minutos, como 10 ou 15. Serviços armazenam `duracaoMinutos` e `intervaloLimpezaMinutos`, sem persistir quantidade de unidades de grade. O calendário oferece inícios alinhados à grade e bloqueia o intervalo contínuo completo no profissional e nos recursos.
+Decisão: cada instalação define a granularidade de início pela variável `NEGOCIO_INTERVALO_GRADE_MINUTOS`, com padrão `15`. Serviços armazenam `duracaoMinutos` e `intervaloLimpezaMinutos`, sem persistir quantidade de unidades de grade. O calendário oferece inícios alinhados à grade e bloqueia o intervalo contínuo completo no profissional e nos recursos.
 
 Consequências: a duração ocupada deve ser múltipla da granularidade; valores incompatíveis são rejeitados sem arredondamento; a grade só pode mudar se os serviços existentes continuarem compatíveis.
 
@@ -182,13 +182,33 @@ Documentos afetados: `AGENTS.md`, `SESSION.md`, `TASKS.md`, `sdd_kit/00-index.md
 
 Decisão: haverá somente `PROPRIETARIO` e `FUNCIONARIO`; não existe `GERENTE` na V1. O primeiro `PROPRIETARIO` vem do bootstrap. Somente ele cria, altera, ativa, desativa ou redefine a senha temporária de funcionários. O último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado.
 
-Todo `FUNCIONARIO` é vinculado obrigatoriamente a um único profissional e opera somente a agenda e as reservas desse profissional. Não administra profissionais, serviços, recursos ou requisitos de recursos. Dados do cliente são visíveis apenas no contexto desses atendimentos. O backend deriva o escopo da sessão e não confia em identificadores enviados pelo cliente.
+Todo `FUNCIONARIO` é vinculado obrigatoriamente a um único profissional. Pode listar recursos e criar, listar, buscar, alterar, ativar e desativar somente os serviços desse profissional, associando recursos existentes e quantidades. Também opera somente a agenda e as reservas do profissional vinculado. Não administra profissionais nem cria ou altera cadastro, capacidade ou estado de recursos. Dados do cliente são visíveis apenas no contexto desses atendimentos. O backend deriva o escopo da sessão, ignora filtros que tentem ampliá-lo e rejeita identificador divergente em comandos.
 
 Consequências: vínculo de profissional é único por conta; acesso cruzado é ocultado; profissional pode existir sem usuário; `PROPRIETARIO` tem visão global e pode opcionalmente estar vinculado a um profissional.
 
 Sequenciamento: F2 cria a tabela mínima de profissional, limitada aos campos já
 aprovados `id`, `nome` e `ativo`, apenas para garantir a integridade do vínculo de
 acesso. Endpoints e casos de uso de cadastro continuam pertencendo a B1.
+
+### D-028 — Contrato e configuração do catálogo — `DECIDED`
+
+Contexto: B1 precisa fechar a superfície HTTP e a representação de preço antes da implementação do catálogo.
+
+Decisão: B1 inclui `GET /api/v1/publico/servicos`. Profissionais, recursos e serviços usam `PUT` para alteração completa, incluindo o estado ativo, e não possuem `PATCH` nem comandos separados de ativação. `PROPRIETARIO` gerencia todo o catálogo. Preços possuem duas casas decimais e usam a moeda definida pela variável `NEGOCIO_MOEDA`, cujo padrão é `BRL`.
+
+Consequências: o catálogo público mostra somente serviços e profissionais ativos; preço nunca usa ponto flutuante binário; moeda e grade são configuração da instalação, não campos mutáveis do catálogo; clientes HTTP não precisam conciliar semântica parcial de atualização.
+
+Documentos afetados: `README.md`, `TASKS.md`, `sdd_kit/02-scope-and-requirements.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/14-v1-boundaries.md` e `sdd_kit/18-technical-foundation.md`.
+
+### D-029 — Escopo da documentação para frontend — `DECIDED`
+
+Contexto: R1 deve entregar o material necessário para desenvolver o frontend, sem repetir como critério a documentação operacional já entregue pela fundação.
+
+Decisão: R1 é “Contrato da API para desenvolvimento do frontend” e entrega OpenAPI fiel, guia curto de autenticação, CSRF, permissões, estados, erros e idempotência e exemplos executáveis `.http`.
+
+Consequências: instalação, banco, Flyway, Docker, backup, rollback e documentação para terceiros não são critérios de R1. A documentação operacional existente de F1 e F2 permanece válida e não é removida.
+
+Documentos afetados: `README.md`, `TASKS.md`, `sdd_kit/00-index.md`, `sdd_kit/10-roadmap.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/15-api-consumer-documentation.md` e `sdd_kit/18-technical-foundation.md`.
 
 ### D-015 — Confirmação automática — `DECIDED`
 

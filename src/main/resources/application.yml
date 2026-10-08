@@ -14,6 +14,9 @@ spring:
     open-in-view: false
 
 aplicacao:
+  negocio:
+    moeda: ${NEGOCIO_MOEDA:BRL}
+    intervalo-grade-minutos: ${NEGOCIO_INTERVALO_GRADE_MINUTOS:15}
   acesso:
     bootstrap:
       nome: ${BOOTSTRAP_PROPRIETARIO_NOME:}

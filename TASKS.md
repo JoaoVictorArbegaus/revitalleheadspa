@@ -7,9 +7,10 @@ de trabalho concluído no Git.
 ## Estado
 
 - O escopo reduzido da API V1 está consolidado e não possui decisão bloqueante aberta.
-- F1 e F2 foram concluídas e são preservadas no histórico do Git. A revisão de
-  escopo e contrato passou por revisão de qualidade e `clean verify` com 24 testes.
-- B1 é a única tarefa liberada para implementação.
+- F1, F2 e B1 foram concluídas e são preservadas no histórico do Git. B1 passou
+  pelos gates de código, desempenho e conformidade documental, além de `clean verify`
+  com 32 testes.
+- Não há tarefa em implementação; B2 é a próxima tarefa liberada.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -20,19 +21,19 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | B1 | Catálogo simples de profissionais, recursos e serviços | TODO | liberada | `sdd_kit/03-domain-model.md` e `sdd_kit/04-business-rules.md` |
-| 2 | B2 | Agenda, bloqueios e disponibilidade | TODO | B1 | `sdd_kit/16-scheduling-and-availability.md` |
-| 3 | B3 | Reserva pública auto-confirmada | TODO | B1 e B2 | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
-| 4 | B4 | Operação administrativa e anonimização manual | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
-| 5 | R1 | Contrato e documentação para consumidores | TODO | F2 e B1 a B4 | `sdd_kit/15-api-consumer-documentation.md` |
-| 6 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
-| 7 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | B2 | Agenda, bloqueios e disponibilidade | TODO | liberada | `sdd_kit/16-scheduling-and-availability.md` |
+| 2 | B3 | Reserva pública auto-confirmada | TODO | B2 | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
+| 3 | B4 | Operação administrativa e anonimização manual | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
+| 4 | R1 | Contrato da API para desenvolvimento do frontend | TODO | B2 a B4 | `sdd_kit/15-api-consumer-documentation.md` |
+| 5 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
+| 6 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 
 - `V1` está ocupada pela fundação criada em F1.
 - `V2` está ocupada por F2 com acesso administrativo e a referência mínima de
   profissional.
+- `V3` está ocupada pelo catálogo implementado em B1.
 - Toda reserva ou mudança de número deve aparecer aqui antes da criação do arquivo.
 
 ## Regras de manutenção

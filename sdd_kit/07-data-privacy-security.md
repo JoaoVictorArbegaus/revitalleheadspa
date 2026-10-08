@@ -96,10 +96,11 @@ O cookie que transporta o token CSRF precisa ser legível pelo frontend; ele nã
 
 - Toda conta `FUNCIONARIO` possui vínculo obrigatório e único com um profissional.
 - O backend deriva esse vínculo da sessão e nunca confia em identificador de profissional enviado para ampliar acesso.
+- O funcionário lista recursos e mantém somente serviços do profissional vinculado, sem alterar cadastro, capacidade ou estado dos recursos.
 - Agenda, reservas e ações administrativas são filtradas pelo profissional vinculado.
 - Dados de cliente são exibidos somente no contexto das reservas daquele profissional.
 - Histórico de atendimentos do mesmo cliente com outros profissionais não é exposto.
-- Alocações automáticas podem ser visualizadas somente no contexto das reservas autorizadas; `FUNCIONARIO` não administra catálogo, requisitos ou alocações.
+- Alocações automáticas podem ser visualizadas somente no contexto das reservas autorizadas; `FUNCIONARIO` não as altera.
 - Tentativa de acessar entidade fora do escopo não confirma sua existência.
 
 ## Aviso de privacidade e anonimização manual

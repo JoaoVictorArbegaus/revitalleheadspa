@@ -16,6 +16,16 @@ Entregar uma API completa para que o responsável por um negócio administre pro
 
 A V1 termina com contrato OpenAPI, banco versionado, segurança administrativa, testes, documentação de execução e uma versão estável publicada. Frontends, identidade visual e regras próprias da Revitalle começam depois, em um projeto de cliente derivado da V1.
 
+O catálogo público expõe os serviços ativos. Na administração, `PROPRIETARIO`
+gerencia todo o catálogo; `FUNCIONARIO` mantém somente os serviços do profissional
+vinculado e pode associar recursos existentes, sem administrar profissionais nem a
+capacidade ou o estado dos recursos. O backend sempre deriva esse escopo da sessão.
+
+A moeda e a grade de horários são configurações da instalação, com padrões `BRL` e
+`15` minutos, e preços usam duas casas decimais. A etapa R1 documentará o contrato
+necessário ao desenvolvimento do frontend; a documentação operacional da fundação
+permanece independente desse critério.
+
 ## Stack definida
 
 - Java 21 e Spring Boot 4.1.1 em monólito modular;
@@ -113,7 +123,7 @@ HTTP, JPA e provedores externos. A fundação atual possui somente classes reais
 - [SESSION.md](SESSION.md): fotografia curta do contexto atual.
 - [sdd_kit/00-index.md](sdd_kit/00-index.md): índice das especificações duráveis do produto.
 - [sdd_kit/13-release-and-client-derivation.md](sdd_kit/13-release-and-client-derivation.md): processo para publicar a API e iniciar projetos de clientes.
-- [sdd_kit/15-api-consumer-documentation.md](sdd_kit/15-api-consumer-documentation.md): padrão obrigatório para que outros projetos consumam a API.
+- [sdd_kit/15-api-consumer-documentation.md](sdd_kit/15-api-consumer-documentation.md): contrato e guia para desenvolvimento do frontend.
 - [sdd_kit/18-technical-foundation.md](sdd_kit/18-technical-foundation.md): identidade, stack e convenções para iniciar o código.
 - [docs/autenticacao-administrativa.md](docs/autenticacao-administrativa.md): bootstrap, sessão, CSRF, usuários e recuperação administrativa.
 

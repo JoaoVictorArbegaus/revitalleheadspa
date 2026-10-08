@@ -36,11 +36,13 @@ Exportação, correção e anonimização automática não fazem parte da API V1
 
 ## Gestão de serviços
 
-1. `PROPRIETARIO` autenticado abre o catálogo.
-2. Seleciona o profissional proprietário e cria ou edita nome, descrição, duração, intervalo, preço, estado, ordem e requisitos fixos de recursos.
-3. Sistema valida e salva.
-4. Alterações passam a valer para novas consultas e reservas.
-5. Reservas antigas mantêm sua fotografia histórica.
+1. Usuário autenticado abre o catálogo dentro de sua permissão.
+2. `PROPRIETARIO` seleciona qualquer profissional; `FUNCIONARIO` usa obrigatoriamente o profissional derivado da sessão.
+3. Cria ou altera por `PUT` nome, descrição, duração, intervalo, preço, ordem e requisitos fixos de recursos, associando recursos existentes.
+4. A substituição completa por `PUT` inclui o estado ativo; não existe alteração por `PATCH`.
+5. Sistema valida e salva.
+6. Alterações passam a valer para novas consultas e reservas.
+7. Reservas antigas mantêm sua fotografia histórica.
 
 ## Gestão de usuários
 
@@ -50,16 +52,19 @@ Exportação, correção e anonimização automática não fazem parte da API V1
 4. `PROPRIETARIO` pode alterar o vínculo profissional, redefinir uma senha temporária ou desativar a conta.
 5. Contas desativadas permanecem no histórico de auditoria.
 
-`FUNCIONARIO` não cria usuários, altera papéis, eleva as próprias permissões ou administra profissionais, serviços e recursos.
+`FUNCIONARIO` não cria usuários, altera papéis, eleva as próprias permissões,
+administra profissionais ou altera cadastro, capacidade e estado de recursos. Pode
+listar recursos e manter somente os serviços do profissional vinculado.
 
 ## Operação do funcionário
 
 1. `FUNCIONARIO` acessa somente a agenda e as reservas do profissional ao qual sua conta está vinculada.
-2. Pode manter o expediente recorrente e os bloqueios desse profissional.
-3. Pode consultar e criar reservas somente para esse profissional.
-4. Pode cancelar, concluir ou registrar ausência somente nessas reservas.
-5. Pode consultar os dados de contato necessários ao atendimento, sem acessar reservas do cliente com outros profissionais.
-6. Pode visualizar os recursos alocados automaticamente nas próprias reservas, mas não altera catálogos, requisitos ou alocações.
+2. Pode listar recursos e criar, listar, buscar, alterar, ativar e desativar serviços desse profissional, incluindo seus requisitos de recursos.
+3. Pode manter o expediente recorrente e os bloqueios desse profissional.
+4. Pode consultar e criar reservas somente para esse profissional.
+5. Pode cancelar, concluir ou registrar ausência somente nessas reservas.
+6. Pode consultar os dados de contato necessários ao atendimento, sem acessar reservas do cliente com outros profissionais.
+7. Pode visualizar os recursos alocados automaticamente nas próprias reservas, mas não altera essas alocações nem o cadastro dos recursos.
 
 ## Configuração da agenda
 

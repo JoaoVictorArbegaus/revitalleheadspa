@@ -8,8 +8,9 @@ Este documento descreve comportamentos oferecidos pela API. Interfaces visuais s
 
 - autenticar o responsável pelo negócio;
 - administrar contas com os papéis `PROPRIETARIO` e `FUNCIONARIO`;
-- restringir cada `FUNCIONARIO` à agenda, às reservas e aos dados necessários aos atendimentos do profissional vinculado;
-- cadastrar e manter profissionais e seus serviços, com preço e duração;
+- restringir cada `FUNCIONARIO` ao profissional vinculado, incluindo seus serviços, agenda, reservas e dados necessários aos atendimentos;
+- permitir ao `PROPRIETARIO` cadastrar e manter profissionais e todo o catálogo;
+- permitir ao `FUNCIONARIO` criar e manter somente serviços do profissional vinculado, usando recursos existentes;
 - cadastrar recursos operacionais opcionais com nome, estado ativo e capacidade;
 - definir por serviço os recursos exigidos e a quantidade fixa de cada um;
 - configurar expediente recorrente e bloqueios do profissional;
@@ -36,6 +37,8 @@ Este documento descreve comportamentos oferecidos pela API. Interfaces visuais s
 ## Requisitos não funcionais
 
 - API independente do frontend e documentada por contrato versionado.
+- Moeda e grade de horários definidas por variáveis da instalação, com padrões `BRL` e `15` minutos.
+- Preços com representação decimal de duas casas.
 - Datas e horários tratados com um fuso explícito por instalação.
 - Operações públicas protegidas contra abuso e enumeração de dados.
 - Logs sem telefone completo ou segredos.
@@ -74,6 +77,7 @@ Itens fora da API V1 podem ser priorizados depois. Eles não devem ser antecipad
 ## Premissas da V1
 
 - cada profissional possui seus próprios serviços, preços e durações;
+- o backend deriva da sessão o profissional do `FUNCIONARIO` e não aceita ampliação desse escopo pelo cliente;
 - a instalação pode operar com vários profissionais, salas ou equipamentos;
 - toda reserva ocupa obrigatoriamente o profissional do serviço e, quando aplicável, a quantidade fixa dos recursos operacionais exigidos;
 - cada serviço ocupa um período contínuo;

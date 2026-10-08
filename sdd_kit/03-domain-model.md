@@ -14,7 +14,7 @@ Representa um serviço próprio de um profissional. Não existe catálogo compar
 | descricao | opcional |
 | duracaoMinutos | duração positiva em minutos |
 | intervaloLimpezaMinutos | intervalo opcional após o atendimento |
-| preco | valor não negativo com moeda definida pela instalação |
+| preco | valor não negativo com duas casas decimais e moeda definida pela instalação |
 | ativo | controla novas reservas |
 | ordemExibicao | ordenação pública estável |
 
@@ -75,7 +75,7 @@ Representa uma conta autenticada da instalação. Conta de acesso e profissional
 Papéis existentes na V1:
 
 - `PROPRIETARIO`: proprietário com administração global e gestão de usuários; pode também representar um profissional;
-- `FUNCIONARIO`: funcionário obrigatoriamente vinculado a um único profissional, sem gestão de usuários ou catálogos e limitado à agenda e às reservas desse profissional.
+- `FUNCIONARIO`: funcionário obrigatoriamente vinculado a um único profissional; mantém os serviços desse profissional e opera sua agenda e reservas, sem gestão de usuários, profissionais ou cadastro, capacidade e estado de recursos.
 
 Não existe papel `GERENTE` na V1. O último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado.
 
@@ -86,8 +86,8 @@ Configuração única da instalação com políticas transversais do agendamento
 | Campo conceitual | Regra |
 |---|---|
 | fusoHorario | fuso IANA |
-| moeda | moeda usada nos preços |
-| intervaloGradeMinutos | granularidade positiva dos horários de início |
+| moeda | moeda usada nos preços, recebida por variável da instalação; padrão `BRL` |
+| intervaloGradeMinutos | granularidade positiva dos horários de início, recebida por variável da instalação; padrão `15` |
 | antecedenciaMinimaReservaMinutos | de 0 a 43200; padrão 60 |
 | horizonteReservaDias | de 1 a 365; padrão 90 |
 | versaoAvisoPrivacidade | versão vigente apresentada antes da reserva |
@@ -194,7 +194,7 @@ Não há reagendamento nem reabertura de estados terminais na API V1.
 ## Valores do domínio
 
 - `NumeroCelular`: país, DDD e número em formato canônico.
-- `Dinheiro`: valor decimal e moeda; nunca ponto flutuante binário.
+- `Dinheiro`: valor decimal com duas casas e moeda; nunca ponto flutuante binário.
 - `IntervaloTempo`: início anterior ao fim e comparação de sobreposição.
 - `FusoHorarioNegocio`: fuso IANA configurado por instalação.
 

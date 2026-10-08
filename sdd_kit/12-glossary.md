@@ -12,7 +12,7 @@
 | alocação de recurso | recurso e quantidade fixa do serviço efetivamente bloqueados por uma reserva |
 | usuário administrativo | conta autenticada; pode ou não estar vinculada a um profissional |
 | `PROPRIETARIO` | proprietário com acesso global e gestão de usuários |
-| `FUNCIONARIO` | funcionário vinculado a um profissional e limitado à agenda, às reservas e ao contexto de clientes desse profissional |
+| `FUNCIONARIO` | funcionário vinculado a um profissional e limitado aos serviços, à agenda, às reservas e ao contexto de clientes desse profissional |
 | cliente final | pessoa que agenda ou recebe o serviço, sem conta na API V1 |
 | serviço | oferta reservável com nome, duração e preço |
 | expediente | janelas recorrentes em que o negócio normalmente atende |

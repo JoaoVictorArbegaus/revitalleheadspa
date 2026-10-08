@@ -11,11 +11,14 @@
 7. Um serviço pode exigir recursos específicos, cada um com uma quantidade fixa positiva.
 8. Duração e intervalo são armazenados em minutos; quantidade de unidades de grade nunca é persistida no serviço.
 9. A duração ocupada deve ser múltipla de `intervaloGradeMinutos`.
-10. Somente `PROPRIETARIO` administra profissionais, serviços, recursos e requisitos de recursos.
+10. `PROPRIETARIO` administra todos os profissionais, serviços, recursos e requisitos de recursos.
+11. `FUNCIONARIO` cria, lista, busca, altera, ativa e desativa somente serviços do profissional vinculado e pode associar recursos existentes com quantidades válidas.
+12. `FUNCIONARIO` pode listar recursos, mas não administra profissionais nem cria ou altera cadastro, capacidade ou estado de recursos.
+13. O preço possui duas casas decimais e usa a moeda configurada para a instalação.
 
 ## Grade de horários
 
-- Cada instalação define uma única granularidade em minutos.
+- Cada instalação define uma única granularidade em minutos por variável de ambiente, com padrão `15`.
 - Horários oferecidos começam somente em posições alinhadas à grade no fuso da instalação.
 - A ocupação é um intervalo contínuo calculado por `duracaoMinutos + intervaloLimpezaMinutos`.
 - A quantidade de unidades exibida pelo frontend é derivada da ocupação dividida pela granularidade.

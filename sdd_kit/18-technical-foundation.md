@@ -95,14 +95,14 @@ Controladores dependem de casos de uso da própria funcionalidade. Repositórios
 
 Swagger UI e a descrição OpenAPI ficam habilitados em desenvolvimento e teste. Em produção, sua exposição é desabilitada por padrão e pode ser habilitada conscientemente pela instalação.
 
-O contrato fonte é gerado e validado junto da aplicação. Antes da V1, R1 também grava no repositório uma representação OpenAPI consumível e exemplos executáveis, para que outro frontend possa ser criado sem ler o código Java.
+O contrato fonte é gerado e validado junto da aplicação. Antes da V1, R1 também grava no repositório uma representação OpenAPI fiel, um guia curto para frontend e exemplos `.http` executáveis, para que o frontend possa ser criado sem ler o código Java.
 
 ## Persistência e tipos
 
 - chaves internas usam UUID gerado pela aplicação;
 - instantes absolutos usam `Instant` no domínio e `timestamptz` no PostgreSQL;
 - datas e horas recorrentes de expediente usam tipos locais acompanhados do fuso IANA da instalação;
-- dinheiro usa decimal, nunca `double` ou `float`, e sempre trafega com moeda explícita;
+- dinheiro usa decimal com duas casas, nunca `double` ou `float`, e sempre trafega com moeda explícita;
 - durações e intervalos usam minutos inteiros;
 - enums persistem nomes textuais estáveis, nunca posições ordinais;
 - nomes de tabela e coluna usam `snake_case` em português sem acentos;
@@ -125,6 +125,16 @@ Perfis previstos:
 | `prod` | produção; exige segredos e configurações obrigatórias e usa cookies seguros |
 
 Não criar um perfil por cliente. As diferenças simples entram por configuração; extensões próprias vivem no repositório derivado.
+
+Configurações do catálogo e da agenda:
+
+| Variável | Finalidade | Padrão |
+|---|---|---|
+| `NEGOCIO_MOEDA` | código de moeda aplicado a todos os preços da instalação | `BRL` |
+| `NEGOCIO_INTERVALO_GRADE_MINUTOS` | granularidade dos horários de início | `15` |
+
+Ambas são configurações comuns da instalação, validadas no início, e não podem ser
+alteradas por endpoints de catálogo.
 
 ## Observabilidade
 

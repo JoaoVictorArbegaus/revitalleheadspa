@@ -1,0 +1,68 @@
+@baseUrl = http://localhost:8080
+@email = proprietario@example.test
+@senha = substitua-por-uma-senha-local
+
+### Obter CSRF e cookies
+GET {{baseUrl}}/api/v1/administracao/autenticacao/csrf
+
+> {% client.global.set("csrf", response.body.token); %}
+
+### Entrar
+POST {{baseUrl}}/api/v1/administracao/autenticacao/entrar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "email": "{{email}}",
+  "senha": "{{senha}}"
+}
+
+### Criar profissional
+POST {{baseUrl}}/api/v1/administracao/profissionais
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "nome": "Profissional Exemplo",
+  "ativo": true
+}
+
+> {% client.global.set("profissionalId", response.body.id); %}
+
+### Criar recurso
+POST {{baseUrl}}/api/v1/administracao/recursos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "nome": "Sala Exemplo",
+  "capacidade": 1,
+  "ativo": true
+}
+
+> {% client.global.set("recursoId", response.body.id); %}
+
+### Criar serviço
+POST {{baseUrl}}/api/v1/administracao/servicos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "profissionalId": "{{profissionalId}}",
+  "nome": "Serviço Exemplo",
+  "descricao": "Descrição pública opcional",
+  "duracaoMinutos": 60,
+  "intervaloLimpezaMinutos": 0,
+  "preco": 120.00,
+  "ativo": true,
+  "ordemExibicao": 0,
+  "requisitosRecursos": [
+    {
+      "recursoId": "{{recursoId}}",
+      "quantidade": 1
+    }
+  ]
+}
+
+### Catálogo público
+GET {{baseUrl}}/api/v1/publico/servicos
