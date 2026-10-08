@@ -110,7 +110,13 @@ Consequências: a duração ocupada deve ser múltipla da granularidade; valores
 
 Contexto: consultas e comandos precisam aplicar limites previsíveis sem impedir que a administração resolva exceções reais do negócio.
 
-Decisão: configurar por instalação `antecedenciaMinimaReservaMinutos` entre 0 e 43200, padrão 60, e `horizonteReservaDias` entre 1 e 365, padrão 90. Consultas públicas aceitam no máximo 31 dias por requisição e nunca retornam opções fora da antecedência ou do horizonte.
+Decisão: configurar `fusoHorario` por `NEGOCIO_FUSO_HORARIO`, com padrão
+`America/Sao_Paulo`; `antecedenciaMinimaReservaMinutos` por
+`NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS`, entre 0 e 43200 e padrão 60; e
+`horizonteReservaDias` por `NEGOCIO_HORIZONTE_RESERVA_DIAS`, entre 1 e 365 e padrão
+90. Consultas públicas aceitam no máximo 31 datas locais inclusivas. A antecedência
+usa instante absoluto; com horizonte `N`, hoje e os `N - 1` dias locais seguintes são
+elegíveis.
 
 Esses limites se aplicam à criação pelo cliente final. A criação administrativa também respeita expediente, bloqueios, conflitos e capacidade. A V1 não oferece abertura extraordinária.
 
@@ -209,6 +215,40 @@ Decisão: R1 é “Contrato da API para desenvolvimento do frontend” e entrega
 Consequências: instalação, banco, Flyway, Docker, backup, rollback e documentação para terceiros não são critérios de R1. A documentação operacional existente de F1 e F2 permanece válida e não é removida.
 
 Documentos afetados: `README.md`, `TASKS.md`, `sdd_kit/00-index.md`, `sdd_kit/10-roadmap.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/15-api-consumer-documentation.md` e `sdd_kit/18-technical-foundation.md`.
+
+### D-030 — Contrato administrativo da agenda e recorte de B2 — `DECIDED`
+
+Contexto: B2 precisa definir agenda e disponibilidade sem antecipar a persistência de reservas de B3.
+
+Decisão: expediente semanal é substituído integralmente por `PUT`; cada janela fica
+no mesmo dia local, aceita adjacência e rejeita sobreposição. Bloqueios possuem
+somente profissional, início e fim, aceitam adjacência e rejeitam sobreposição.
+Leituras recebem o profissional por query e escritas no corpo; o backend sempre
+aplica o escopo derivado da sessão. Listagens temporais cobrem no máximo 31 datas
+locais inclusivas. B2 calcula disponibilidade com catálogo, recursos ativos, grade,
+expediente, bloqueios e limites temporais, sem criar reserva, alocação ou abstração
+preparatória de ocupações.
+
+Consequências: B3 incorpora reservas confirmadas e capacidade consumida ao cálculo
+sem alterar o contrato público. Lista vazia limpa o expediente; períodos válidos sem
+horários retornam sucesso com lista vazia.
+
+Documentos afetados: `TASKS.md`, `SESSION.md`, `README.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/16-scheduling-and-availability.md` e `sdd_kit/18-technical-foundation.md`.
+
+### D-031 — Limite compartilhado das rotas públicas — `DECIDED`
+
+Contexto: catálogo e disponibilidade são públicos e precisam atender ao requisito de proteção contra abuso sem introduzir infraestrutura incompatível com o perfil da V1.
+
+Decisão: todas as rotas em `/api/v1/publico/**` compartilham um limite em memória
+por origem. `PUBLICO_REQUISICOES_MAXIMO` define a quantidade por janela, padrão 120,
+e `PUBLICO_REQUISICOES_JANELA` define a janela, padrão um minuto. Excesso retorna
+`429 LIMITE_REQUISICOES_PUBLICAS` e `Retry-After`.
+
+Consequências: o mecanismo é local à única instância prevista para a V1, limpa
+janelas vencidas sem job e não usa Redis ou armazenamento distribuído. Instalações
+atrás de proxy seguem a política de cabeçalhos encaminhados já definida.
+
+Documentos afetados: `README.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/18-technical-foundation.md`.
 
 ### D-015 — Confirmação automática — `DECIDED`
 

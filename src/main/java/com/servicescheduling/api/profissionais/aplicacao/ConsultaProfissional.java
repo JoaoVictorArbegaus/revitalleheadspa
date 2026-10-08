@@ -27,4 +27,8 @@ public class ConsultaProfissional {
     public List<Profissional> obterTodos(Collection<UUID> ids) {
         return repositorio.findAllByIdIn(ids);
     }
+
+    public Profissional bloquear(UUID id) {
+        return repositorio.bloquearPorId(id).orElse(null);
+    }
 }

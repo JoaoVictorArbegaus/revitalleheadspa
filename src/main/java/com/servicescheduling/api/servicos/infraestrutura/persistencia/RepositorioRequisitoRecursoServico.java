@@ -15,6 +15,8 @@ public interface RepositorioRequisitoRecursoServico
 
     List<RequisitoRecursoServico> findAllByServicoIdIn(Collection<UUID> servicosIds);
 
+    List<RequisitoRecursoServico> findAllByServicoId(UUID servicoId);
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from RequisitoRecursoServico r where r.servicoId = :servicoId")
     void excluirPorServicoId(@Param("servicoId") UUID servicoId);

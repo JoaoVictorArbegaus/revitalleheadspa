@@ -85,11 +85,11 @@ Configuração única da instalação com políticas transversais do agendamento
 
 | Campo conceitual | Regra |
 |---|---|
-| fusoHorario | fuso IANA |
+| fusoHorario | fuso IANA recebido por `NEGOCIO_FUSO_HORARIO`; padrão `America/Sao_Paulo` |
 | moeda | moeda usada nos preços, recebida por variável da instalação; padrão `BRL` |
 | intervaloGradeMinutos | granularidade positiva dos horários de início, recebida por variável da instalação; padrão `15` |
-| antecedenciaMinimaReservaMinutos | de 0 a 43200; padrão 60 |
-| horizonteReservaDias | de 1 a 365; padrão 90 |
+| antecedenciaMinimaReservaMinutos | recebido por `NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS`; de 0 a 43200; padrão 60 |
+| horizonteReservaDias | recebido por `NEGOCIO_HORIZONTE_RESERVA_DIAS`; de 1 a 365; padrão 90 |
 | versaoAvisoPrivacidade | versão vigente apresentada antes da reserva |
 
 Os limites públicos são avaliados pelo relógio do servidor e pelo fuso IANA da instalação.
@@ -110,11 +110,18 @@ Cliente não é usuário autenticado na API V1. Reservas repetidas com o mesmo c
 
 ### ExpedienteSemanal
 
-Define janelas recorrentes de disponibilidade de um `Profissional` por dia da semana. Um dia pode ter mais de uma janela, desde que não haja sobreposição.
+Define janelas recorrentes de disponibilidade de um `Profissional` por dia da
+semana. Cada janela possui `profissionalId`, `diaSemana`, `inicio` inclusivo e `fim`
+exclusivo, com `inicio < fim` no mesmo dia local. Um dia pode ter várias janelas sem
+sobreposição; adjacência é permitida. O conjunto inteiro é substituído atomicamente.
 
 ### BloqueioAgenda
 
-Remove a disponibilidade de um `Profissional` em uma data ou intervalo específico. Um bloqueio prevalece sobre o expediente recorrente. A API V1 não oferece abertura extraordinária.
+Remove a disponibilidade de um `Profissional` em um intervalo específico. Possui
+`id`, `profissionalId`, `inicioEm` inclusivo e `fimEm` exclusivo, sem motivo,
+descrição, categoria ou estado. Bloqueios do mesmo profissional podem ser adjacentes,
+mas não sobrepostos. Um bloqueio prevalece sobre o expediente recorrente. A API V1
+não oferece abertura extraordinária.
 
 ### Agendamento
 
@@ -196,7 +203,7 @@ Não há reagendamento nem reabertura de estados terminais na API V1.
 - `NumeroCelular`: país, DDD e número em formato canônico.
 - `Dinheiro`: valor decimal com duas casas e moeda; nunca ponto flutuante binário.
 - `IntervaloTempo`: início anterior ao fim e comparação de sobreposição.
-- `FusoHorarioNegocio`: fuso IANA configurado por instalação.
+- `FusoHorarioNegocio`: fuso IANA configurado por instalação, com padrão `America/Sao_Paulo`.
 
 ## Evoluções previstas, ainda fora do modelo
 

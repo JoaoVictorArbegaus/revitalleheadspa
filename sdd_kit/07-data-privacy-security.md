@@ -40,6 +40,12 @@ O cliente final informa somente nome e celular. CPF, email de cliente, documento
 - validar tamanho e formato de toda entrada;
 - devolver somente os dados necessários à confirmação da criação.
 
+Na V1, todas as rotas sob `/api/v1/publico/**` compartilham um limite em memória por
+origem. O padrão é 120 requisições por minuto, configurável por
+`PUBLICO_REQUISICOES_MAXIMO` e `PUBLICO_REQUISICOES_JANELA`. Excesso responde `429`
+com `Retry-After`. O limite é compatível com o perfil de uma instância da V1 e não
+introduz armazenamento distribuído.
+
 A V1 não emite referência ou token de acesso e não oferece consulta, cancelamento ou reagendamento público depois da criação. A operação posterior pertence à administração autenticada.
 
 ## Autenticação administrativa

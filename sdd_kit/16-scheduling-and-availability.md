@@ -4,6 +4,13 @@
 
 Definir como horários de trabalho, bloqueios e reservas são armazenados e como o frontend obtém um calendário seguro. A V1 usa confirmação automática, agenda exclusiva do profissional e quantidades fixas de recursos por serviço, sem introduzir unidades de grade persistidas.
 
+## Recorte de B2
+
+B2 persiste somente expediente semanal e bloqueios e entrega disponibilidade sem
+reservas. `Agendamento`, `AlocacaoRecursoAgendamento`, idempotência, locks e
+revalidação transacional pertencem a B3. Não se cria porta ou implementação vazia de
+ocupações em B2.
+
 ## Fonte de verdade
 
 O PostgreSQL é a autoridade sobre disponibilidade. O frontend recebe opções calculadas pela API e nunca decide sozinho que um horário está livre.
@@ -19,8 +26,8 @@ Uma consulta de disponibilidade é uma fotografia momentânea. Ela não cria blo
 | bloqueio de agenda | `BloqueioAgenda` | intervalo indisponível pertencente a um profissional |
 | serviço | `Servico` | profissional, duração e intervalo de limpeza em minutos |
 | requisitos de recursos | `RequisitoRecursoServico` | recurso e quantidade positiva fixa usada em toda reserva do serviço |
-| reserva | `Agendamento` | cliente, serviço, profissional, instantes, estado confirmado e fotografias históricas |
-| alocação | `AlocacaoRecursoAgendamento` | fotografia automática e não editável do recurso e da quantidade reservada |
+| reserva | `Agendamento` | persistida em B3 com cliente, serviço, profissional, instantes, estado e fotografias |
+| alocação | `AlocacaoRecursoAgendamento` | persistida em B3 como fotografia automática e não editável |
 
 Recursos operacionais possuem capacidade, mas não possuem expediente ou bloqueios próprios. Sua disponibilidade resulta do estado ativo, da capacidade e das alocações sobrepostas. A quantidade exigida pelo serviço não pode ser alterada na criação nem depois dela, e uma alocação não pode ser editada, removida, acrescentada ou realocada.
 
@@ -38,6 +45,11 @@ O cliente vê o intervalo de `inicioEm` até `fimServicoEm`. O profissional e os
 
 Instantes são persistidos em UTC com `timestamptz`. Expedientes recorrentes usam dia da semana e hora local. O cálculo converte usando o fuso IANA da instalação e a resposta pública inclui offset.
 
+O expediente de um profissional é uma representação integral de janelas no mesmo
+dia local. `PUT` substitui o conjunto atomicamente; lista vazia limpa a agenda.
+Janelas e bloqueios usam intervalos semiabertos, aceitam adjacência e rejeitam
+sobreposição dentro do mesmo tipo e profissional. Bloqueios não possuem motivo.
+
 ## Cálculo da disponibilidade
 
 Para cada serviço e período solicitado, a API:
@@ -47,10 +59,12 @@ Para cada serviço e período solicitado, a API:
 3. monta candidatos alinhados a `intervaloGradeMinutos` no fuso da instalação;
 4. mantém apenas candidatos totalmente contidos no expediente do profissional;
 5. remove qualquer trecho coberto por bloqueio do profissional;
-6. remove intervalos que sobreponham reservas `CONFIRMADO` do profissional;
-7. para cada recurso, soma quantidades de alocações confirmadas sobrepostas e mantém o candidato somente quando a capacidade restante atende à quantidade fixa exigida;
-8. aplica antecedência mínima de 60 minutos e horizonte de 90 dias por padrão, usando os valores configurados;
-9. agrupa os horários restantes por data local e os devolve ordenados.
+6. confirma que todos os recursos exigidos estão ativos e possuem capacidade nominal suficiente;
+7. aplica antecedência mínima de 60 minutos e horizonte de 90 dias por padrão, usando os valores configurados;
+8. agrupa os horários restantes por data local e os devolve ordenados.
+
+B3 acrescenta a remoção de reservas `CONFIRMADO` sobrepostas e a soma das alocações
+confirmadas de recursos. Essa extensão não altera a rota nem a resposta pública.
 
 Reservas `CANCELADO`, `CONCLUIDO` e `NAO_COMPARECEU` não bloqueiam novos horários.
 
@@ -59,6 +73,10 @@ Reservas `CANCELADO`, `CONCLUIDO` e `NAO_COMPARECEU` não bloqueiam novos horár
 O frontend consulta:
 
 `GET /api/v1/publico/servicos/{servicoId}/disponibilidade?dataInicial=YYYY-MM-DD&dataFinal=YYYY-MM-DD`
+
+As duas datas são locais, inclusivas e obrigatórias. Uma consulta contém no máximo
+31 datas. Períodos válidos sem opções retornam `dias` vazio; limites de antecedência
+e horizonte filtram opções, sem recortar silenciosamente o período informado.
 
 Resposta conceitual:
 
@@ -97,7 +115,7 @@ O frontend segue estas regras:
 
 O frontend envia o `inicioEm` escolhido e uma `Chave-Idempotencia` ao criar a reserva. A mesma chave é reutilizada somente se essa tentativa precisar ser repetida. A API ignora qualquer término calculado pelo navegador e usa as durações vigentes do serviço.
 
-## Criação atômica da reserva
+## Extensão de B3: criação atômica da reserva
 
 Dentro de uma única transação, a aplicação:
 
@@ -139,6 +157,11 @@ sequenceDiagram
 
 ## Índices e garantias mínimas
 
+- índice em `ExpedienteSemanal(profissionalId, diaSemana, inicio)`;
+- índice em `BloqueioAgenda(profissionalId, inicioEm, fimEm)`;
+- checks de início anterior ao fim para expediente e bloqueio;
+- substituição integral de expediente e criação de bloqueio serializadas pelo profissional;
+- as garantias seguintes pertencem a B3:
 - índice em `Agendamento(profissionalId, inicioEm, ocupadoAte, estado)`;
 - índice em `AlocacaoRecursoAgendamento(recursoOperacionalId, agendamentoId)`;
 - unicidade da chave de idempotência da criação pública no escopo definido;

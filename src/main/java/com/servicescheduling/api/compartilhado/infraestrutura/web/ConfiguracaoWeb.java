@@ -8,13 +8,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ConfiguracaoWeb implements WebMvcConfigurer {
 
     private final RegistroRequisicaoInterceptor registroRequisicaoInterceptor;
+    private final LimitePublicoInterceptor limitePublicoInterceptor;
 
-    public ConfiguracaoWeb(RegistroRequisicaoInterceptor registroRequisicaoInterceptor) {
+    public ConfiguracaoWeb(
+            RegistroRequisicaoInterceptor registroRequisicaoInterceptor,
+            LimitePublicoInterceptor limitePublicoInterceptor) {
         this.registroRequisicaoInterceptor = registroRequisicaoInterceptor;
+        this.limitePublicoInterceptor = limitePublicoInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registro) {
         registro.addInterceptor(registroRequisicaoInterceptor);
+        registro.addInterceptor(limitePublicoInterceptor).addPathPatterns("/api/v1/publico/**");
     }
 }

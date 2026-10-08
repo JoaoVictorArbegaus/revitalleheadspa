@@ -41,7 +41,20 @@ Um horário é reservável somente quando todas as condições forem verdadeiras
 
 Para o fluxo público, a antecedência padrão é 60 minutos e o horizonte padrão é 90 dias. Ambos são configuráveis conforme D-019. Cada consulta pública cobre no máximo 31 dias.
 
+`dataInicial` e `dataFinal` são datas locais inclusivas. O período é válido quando
+`dataInicial <= dataFinal` e contém no máximo 31 datas. A antecedência usa instante
+absoluto: `inicioEm >= agora + antecedenciaMinimaReservaMinutos`. O horizonte usa o
+calendário local: com valor `N`, hoje e os `N - 1` dias seguintes são elegíveis.
+Consultas válidas podem incluir datas fora desses limites, mas não recebem horários
+fora deles.
+
 Um bloqueio remove disponibilidade e prevalece sobre o expediente recorrente. Recursos operacionais não possuem expediente ou bloqueios próprios, e a API V1 não oferece abertura extraordinária.
+
+O `PUT` do expediente substitui atomicamente todas as janelas semanais do
+profissional. Janelas omitidas são removidas e lista vazia limpa a agenda. Cada
+janela fica no mesmo dia local; adjacência é permitida e sobreposição é rejeitada.
+Bloqueios são intervalos semiabertos sem motivo; podem ser adjacentes, mas não
+sobrepostos para o mesmo profissional.
 
 A consulta de disponibilidade é informativa. A criação da reserva deve repetir as validações dentro da proteção transacional, pois outro cliente pode ocupar o horário entre consulta e confirmação.
 
@@ -111,7 +124,7 @@ A criação pública exige `Chave-Idempotencia` com 16 a 128 caracteres seguros.
 
 ## Datas e fuso
 
-- Cada instalação define um fuso IANA. O projeto de cliente da Revitalle poderá usar `America/Sao_Paulo`, sem tornar esse valor fixo no produto-base.
+- Cada instalação define o fuso IANA por `NEGOCIO_FUSO_HORARIO`, com padrão `America/Sao_Paulo`.
 - Instantes persistidos usam UTC quando a tecnologia oferece instantes absolutos.
 - Regras de expediente usam data, dia da semana e hora local do negócio.
 - O contrato deve diferenciar explicitamente data local, hora local e instante com offset.

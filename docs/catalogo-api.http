@@ -64,5 +64,46 @@ X-CSRF-TOKEN: {{csrf}}
   ]
 }
 
+> {% client.global.set("servicoId", response.body.id); %}
+
 ### Catálogo público
 GET {{baseUrl}}/api/v1/publico/servicos
+
+### Substituir expediente semanal
+PUT {{baseUrl}}/api/v1/administracao/agenda/semanal
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "profissionalId": "{{profissionalId}}",
+  "janelas": [
+    {"diaSemana": "SEGUNDA_FEIRA", "inicio": "09:00", "fim": "12:00"},
+    {"diaSemana": "SEGUNDA_FEIRA", "inicio": "13:00", "fim": "18:00"}
+  ]
+}
+
+### Consultar expediente semanal
+GET {{baseUrl}}/api/v1/administracao/agenda/semanal?profissionalId={{profissionalId}}
+
+### Criar bloqueio
+POST {{baseUrl}}/api/v1/administracao/agenda/bloqueios
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "profissionalId": "{{profissionalId}}",
+  "inicioEm": "2026-10-12T13:00:00-03:00",
+  "fimEm": "2026-10-12T14:00:00-03:00"
+}
+
+> {% client.global.set("bloqueioId", response.body.id); %}
+
+### Listar bloqueios
+GET {{baseUrl}}/api/v1/administracao/agenda/bloqueios?profissionalId={{profissionalId}}&dataInicial=2026-10-01&dataFinal=2026-10-31
+
+### Consultar disponibilidade pública
+GET {{baseUrl}}/api/v1/publico/servicos/{{servicoId}}/disponibilidade?dataInicial=2026-10-12&dataFinal=2026-10-18
+
+### Remover bloqueio
+DELETE {{baseUrl}}/api/v1/administracao/agenda/bloqueios/{{bloqueioId}}
+X-CSRF-TOKEN: {{csrf}}

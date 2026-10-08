@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
@@ -49,6 +50,13 @@ public class ConfiguracaoOpenApi {
                 .description("Falha no processamento da operacao")
                 .content(new io.swagger.v3.oas.models.media.Content()
                         .addMediaType("application/problem+json", tipoProblema));
+        ApiResponse limiteExcedido = new ApiResponse()
+                .description("Limite de requisicoes excedido")
+                .content(new io.swagger.v3.oas.models.media.Content()
+                        .addMediaType("application/problem+json", tipoProblema))
+                .addHeaderObject("Retry-After", new Header()
+                        .description("Segundos ate uma nova tentativa")
+                        .schema(new IntegerSchema().format("int64")));
 
         Components componentes = new Components()
                 .addSchemas("ErroCampo", erroCampo)
@@ -65,7 +73,8 @@ public class ConfiguracaoOpenApi {
                         .description("Token obtido em /api/v1/administracao/autenticacao/csrf"))
                 .responses(new ApiResponses()
                         .addApiResponse("FalhaValidacao", falhaValidacao)
-                        .addApiResponse("Problema", problemaGenerico));
+                        .addApiResponse("Problema", problemaGenerico)
+                        .addApiResponse("LimiteExcedido", limiteExcedido));
 
         return new OpenAPI()
                 .info(new Info()
@@ -125,7 +134,19 @@ public class ConfiguracaoOpenApi {
             configurar(openApi, "/api/v1/administracao/servicos/{id}", "put", true, true,
                     "200", "400", "401", "403", "404", "415", "422", "500");
             configurar(openApi, "/api/v1/publico/servicos", "get", false, false,
-                    "200", "500");
+                    "200", "429", "500");
+            configurar(openApi, "/api/v1/administracao/agenda/semanal", "get", true, false,
+                    "200", "400", "401", "403", "404", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agenda/semanal", "put", true, true,
+                    "200", "400", "401", "403", "404", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agenda/bloqueios", "get", true, false,
+                    "200", "400", "401", "403", "404", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agenda/bloqueios", "post", true, true,
+                    "201", "400", "401", "403", "404", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agenda/bloqueios/{id}", "delete", true, true,
+                    "204", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/publico/servicos/{servicoId}/disponibilidade", "get", false, false,
+                    "200", "400", "404", "422", "429", "500");
         };
     }
 
@@ -168,6 +189,9 @@ public class ConfiguracaoOpenApi {
             ApiResponse documentada = resposta.startsWith("2") && sucessoGerado != null
                     ? sucessoGerado.description("Operacao concluida")
                     : new ApiResponse().$ref("#/components/responses/Problema");
+            if ("429".equals(resposta)) {
+                documentada = new ApiResponse().$ref("#/components/responses/LimiteExcedido");
+            }
             if ("204".equals(resposta)) {
                 documentada = new ApiResponse().description("Operacao concluida");
             }

@@ -14,9 +14,15 @@ spring:
     open-in-view: false
 
 aplicacao:
+  seguranca-publica:
+    requisicoes-maximo: ${PUBLICO_REQUISICOES_MAXIMO:120}
+    janela: ${PUBLICO_REQUISICOES_JANELA:1m}
   negocio:
     moeda: ${NEGOCIO_MOEDA:BRL}
     intervalo-grade-minutos: ${NEGOCIO_INTERVALO_GRADE_MINUTOS:15}
+    fuso-horario: ${NEGOCIO_FUSO_HORARIO:America/Sao_Paulo}
+    antecedencia-minima-reserva-minutos: ${NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS:60}
+    horizonte-reserva-dias: ${NEGOCIO_HORIZONTE_RESERVA_DIAS:90}
   acesso:
     bootstrap:
       nome: ${BOOTSTRAP_PROPRIETARIO_NOME:}

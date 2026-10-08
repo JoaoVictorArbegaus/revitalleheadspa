@@ -47,6 +47,8 @@ public class ConfiguracaoSeguranca {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/publico/servicos")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/publico/servicos/*/disponibilidade")
+                        .permitAll()
                         .requestMatchers("/api/v1/administracao/usuarios/**")
                         .hasRole("PROPRIETARIO")
                         .requestMatchers("/api/v1/administracao/profissionais/**")

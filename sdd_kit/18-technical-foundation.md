@@ -128,13 +128,18 @@ Não criar um perfil por cliente. As diferenças simples entram por configuraç�
 
 Configurações do catálogo e da agenda:
 
-| Variável | Finalidade | Padrão |
-|---|---|---|
-| `NEGOCIO_MOEDA` | código de moeda aplicado a todos os preços da instalação | `BRL` |
-| `NEGOCIO_INTERVALO_GRADE_MINUTOS` | granularidade dos horários de início | `15` |
+| Variável | Finalidade | Padrão | Validação |
+|---|---|---|---|
+| `NEGOCIO_MOEDA` | código de moeda aplicado a todos os preços da instalação | `BRL` | três letras maiúsculas |
+| `NEGOCIO_INTERVALO_GRADE_MINUTOS` | granularidade dos horários de início | `15` | 1 a 1440 |
+| `NEGOCIO_FUSO_HORARIO` | fuso IANA da instalação | `America/Sao_Paulo` | `ZoneId` válido |
+| `NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS` | antecedência pública mínima | `60` | 0 a 43200 |
+| `NEGOCIO_HORIZONTE_RESERVA_DIAS` | quantidade de datas locais elegíveis | `90` | 1 a 365 |
+| `PUBLICO_REQUISICOES_MAXIMO` | requisições públicas por origem e janela | `120` | positivo |
+| `PUBLICO_REQUISICOES_JANELA` | duração da janela do limite público | `1m` | duração positiva |
 
-Ambas são configurações comuns da instalação, validadas no início, e não podem ser
-alteradas por endpoints de catálogo.
+São configurações comuns da instalação, carregadas por `@ConfigurationProperties`,
+validadas no início e não alteradas por HTTP.
 
 ## Observabilidade
 

@@ -98,6 +98,15 @@ Cobrem poucos fluxos críticos completos:
 
 ## Dados de teste
 
+Para concluir B2, a suíte cobre de forma proporcional: substituição integral e
+limpeza do expediente; rejeição atômica de janela inválida ou sobreposta; adjacência;
+escopo do funcionário; criação, listagem e remoção de bloqueios sem motivo; rejeição
+de bloqueios sobrepostos; grade, contenção integral no expediente, bloqueio parcial e
+integral; serviço, profissional e recurso inativos; períodos com 1, 31 e 32 datas;
+antecedência, horizonte por data local e fuso com relógio controlado; CSRF, acesso
+público, limite público por origem e OpenAPI. Concorrência de reservas, idempotência e capacidade consumida
+permanecem critérios de B3.
+
 - não usar celulares, nomes ou emails administrativos de pessoas reais;
 - manter geradores de dados válidos e claramente fictícios;
 - limpar ou isolar dados por teste;

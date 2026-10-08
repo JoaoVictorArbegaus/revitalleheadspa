@@ -19,20 +19,17 @@ concluídas pertencem ao Git; requisitos e decisões pertencem ao `sdd_kit/`.
 
 ## Trabalho ativo
 
-- F1, F2 e B1 estão concluídas e validadas.
-- Não há tarefa em implementação; B2 — agenda, bloqueios e disponibilidade — é a
-  próxima tarefa liberada.
-- `V1`, `V2` e `V3` estão ocupadas; a próxima migration deve ser reservada ao iniciar B2.
-- Não há decisão aberta nem bloqueio conhecido para iniciar B2.
+- F1, F2, B1 e B2 estão concluídas e validadas.
+- Não há tarefa em implementação; B3 — reserva pública auto-confirmada — é a próxima
+  tarefa liberada.
+- `V1` a `V4` estão ocupadas; a próxima migration deve ser reservada ao iniciar B3.
+- Não há decisão aberta nem bloqueio conhecido para iniciar B3.
 
 ## Continuidade
 
-- Iniciar somente B2 e detalhar seus critérios de aceite em `TASKS.md` antes da
-  implementação.
-- Aplicar `sdd_kit/16-scheduling-and-availability.md` e as regras relacionadas de
-  domínio, contrato, segurança e qualidade citadas pela especificação.
-- Preservar em B2 a separação entre agenda semanal, bloqueios e disponibilidade
-  calculada; não antecipar a criação de reservas de B3.
+- Iniciar somente B3 e detalhar seus critérios de aceite em `TASKS.md` antes da implementação.
+- Integrar reservas confirmadas e capacidade consumida ao cálculo entregue por B2,
+  com a proteção transacional definida em `sdd_kit/16-scheduling-and-availability.md`.
 - Preservar o núcleo sem multitenancy, frontend, marca Revitalle ou provedor
   concreto de comunicação.
 

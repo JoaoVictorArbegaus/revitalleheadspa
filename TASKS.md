@@ -7,10 +7,10 @@ de trabalho concluído no Git.
 ## Estado
 
 - O escopo reduzido da API V1 está consolidado e não possui decisão bloqueante aberta.
-- F1, F2 e B1 foram concluídas e são preservadas no histórico do Git. B1 passou
+- F1, F2, B1 e B2 foram concluídas e são preservadas no histórico do Git. B2 passou
   pelos gates de código, desempenho e conformidade documental, além de `clean verify`
-  com 32 testes.
-- Não há tarefa em implementação; B2 é a próxima tarefa liberada.
+  com 39 testes.
+- Não há tarefa em implementação; B3 é a próxima tarefa liberada.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -21,12 +21,11 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | B2 | Agenda, bloqueios e disponibilidade | TODO | liberada | `sdd_kit/16-scheduling-and-availability.md` |
-| 2 | B3 | Reserva pública auto-confirmada | TODO | B2 | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
-| 3 | B4 | Operação administrativa e anonimização manual | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
-| 4 | R1 | Contrato da API para desenvolvimento do frontend | TODO | B2 a B4 | `sdd_kit/15-api-consumer-documentation.md` |
-| 5 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
-| 6 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | B3 | Reserva pública auto-confirmada | TODO | liberada | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
+| 2 | B4 | Operação administrativa e anonimização manual | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
+| 3 | R1 | Contrato da API para desenvolvimento do frontend | TODO | B3 e B4 | `sdd_kit/15-api-consumer-documentation.md` |
+| 4 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
+| 5 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 
@@ -34,6 +33,7 @@ explicitamente liberado.
 - `V2` está ocupada por F2 com acesso administrativo e a referência mínima de
   profissional.
 - `V3` está ocupada pelo catálogo implementado em B1.
+- `V4` está ocupada por expediente semanal e bloqueios de B2.
 - Toda reserva ou mudança de número deve aparecer aqui antes da criação do arquivo.
 
 ## Regras de manutenção

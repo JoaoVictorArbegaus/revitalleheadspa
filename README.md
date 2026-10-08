@@ -21,10 +21,11 @@ gerencia todo o catálogo; `FUNCIONARIO` mantém somente os serviços do profiss
 vinculado e pode associar recursos existentes, sem administrar profissionais nem a
 capacidade ou o estado dos recursos. O backend sempre deriva esse escopo da sessão.
 
-A moeda e a grade de horários são configurações da instalação, com padrões `BRL` e
-`15` minutos, e preços usam duas casas decimais. A etapa R1 documentará o contrato
-necessário ao desenvolvimento do frontend; a documentação operacional da fundação
-permanece independente desse critério.
+A moeda, a grade de horários, o fuso, a antecedência mínima e o horizonte são
+configurações da instalação. Os padrões são `BRL`, `15` minutos,
+`America/Sao_Paulo`, `60` minutos e `90` dias; preços usam duas casas decimais. A
+etapa R1 documentará o contrato necessário ao desenvolvimento do frontend; a
+documentação operacional da fundação permanece independente desse critério.
 
 ## Stack definida
 
@@ -94,6 +95,10 @@ O limite de login é configurado por `LOGIN_TENTATIVAS_MAXIMO` (padrão `5`) e
 não JWT. Consulte o [guia de autenticação administrativa](docs/autenticacao-administrativa.md)
 para os exemplos `curl`, a gestão de usuários e o procedimento de recuperação do
 proprietário.
+
+Rotas públicas compartilham um limite por origem configurado por
+`PUBLICO_REQUISICOES_MAXIMO` (padrão `120`) e `PUBLICO_REQUISICOES_JANELA` (padrão
+`1m`). Excesso retorna `429` com `Retry-After`.
 
 `FORWARD_HEADERS_STRATEGY` permanece `NONE` por padrão. Uma instalação atrás de
 proxy só deve habilitar cabeçalhos encaminhados depois de configurar a plataforma

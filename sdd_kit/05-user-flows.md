@@ -68,12 +68,17 @@ listar recursos e manter somente os serviços do profissional vinculado.
 
 ## Configuração da agenda
 
-1. Usuário autorizado seleciona um profissional dentro do próprio escopo e define seu expediente semanal.
-2. Adiciona intervalos separados quando houver pausa.
-3. Registra folgas, indisponibilidades ou outros bloqueios.
-4. Sistema valida sobreposições e mostra uma prévia da disponibilidade resultante.
+1. Usuário autorizado seleciona um profissional dentro do próprio escopo e consulta seu expediente semanal.
+2. Envia por `PUT` a representação integral desejada, com intervalos separados quando houver pausa.
+3. A API valida o conjunto e o substitui atomicamente; lista vazia limpa o expediente.
+4. Registra folgas e indisponibilidades como bloqueios contendo somente início e fim.
+5. Lista bloqueios em um período de até 31 datas locais e pode removê-los individualmente.
+6. A consulta pública reflete imediatamente o expediente e os bloqueios persistidos.
 
 Recursos operacionais não possuem expediente ou bloqueios próprios, e não existe abertura extraordinária na API V1.
+
+B2 não cria, lista nem persiste reservas. A incorporação de ocupações confirmadas à
+disponibilidade pertence a B3.
 
 ## Operação diária
 

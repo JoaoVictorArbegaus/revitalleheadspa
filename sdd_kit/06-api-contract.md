@@ -24,7 +24,11 @@ Lista serviços ativos com o profissional proprietário. Pode aceitar filtro por
 
 ### `GET /api/v1/publico/servicos/{servicoId}/disponibilidade?dataInicial=YYYY-MM-DD&dataFinal=YYYY-MM-DD`
 
-Retorna `servicoId`, fuso, período consultado e dias com opções de `inicioEm` e `fimServicoEm`. Horários usam ISO 8601 com offset do negócio. Cada chamada cobre no máximo 31 dias e respeita `antecedenciaMinimaReservaMinutos` e `horizonteReservaDias`.
+Retorna `servicoId`, fuso, período consultado e dias com opções de `inicioEm` e
+`fimServicoEm`. As datas são inclusivas, obrigatórias e limitadas a 31 datas locais.
+Horários usam ISO 8601 com offset do negócio e respeitam antecedência e horizonte.
+Período válido sem opções retorna `200` com `dias` vazio; ausência de parâmetro,
+período invertido ou acima de 31 datas retorna `422`.
 
 ### `POST /api/v1/publico/agendamentos`
 
@@ -229,7 +233,25 @@ A criação administrativa de reserva também recebe `versaoAvisoPrivacidade` e 
 
 A instalação fornece moeda e `intervaloGradeMinutos` por variáveis de ambiente, com padrões `BRL` e `15`; esses valores não são alterados pelos endpoints de catálogo. O contrato de serviço usa `duracaoMinutos` e `intervaloLimpezaMinutos`, não expõe quantidade persistida de unidades de grade e devolve a moeda junto dos preços. A disponibilidade retorna início e fim reais de cada opção.
 
+`NEGOCIO_FUSO_HORARIO`, `NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS` e
+`NEGOCIO_HORIZONTE_RESERVA_DIAS` configuram a agenda, com padrões
+`America/Sao_Paulo`, `60` e `90`. Com horizonte `N`, são elegíveis hoje e os `N - 1`
+dias locais seguintes.
+
 O expediente recorrente e os bloqueios administrativos pertencem sempre a um profissional. Recursos não possuem agenda, e não existe bloqueio de recurso ou abertura extraordinária. A API rejeita criação no passado. Operações administrativas fora dos limites públicos continuam sujeitas a expediente, bloqueios, conflito e capacidade.
+
+`GET /api/v1/administracao/agenda/semanal` recebe `profissionalId` opcional para
+`FUNCIONARIO` e obrigatório para `PROPRIETARIO`. `PUT` recebe uma representação
+integral com `profissionalId` e `janelas`; cada janela contém `diaSemana`, `inicio` e
+`fim`. Nas escritas, `profissionalId` também pode ser omitido por `FUNCIONARIO`, pois
+o vínculo é derivado da sessão; para `PROPRIETARIO` ele é obrigatório. Lista vazia
+limpa a agenda, adjacência é aceita e sobreposição é rejeitada.
+
+`GET /api/v1/administracao/agenda/bloqueios` recebe `profissionalId`, `dataInicial`
+e `dataFinal`, devolvendo bloqueios que intersectam o período de até 31 datas locais.
+`POST` recebe `profissionalId`, `inicioEm` e `fimEm`, retorna `201` e `Location`.
+Bloqueios não possuem motivo; adjacência é aceita e sobreposição é rejeitada.
+`DELETE /api/v1/administracao/agenda/bloqueios/{id}` retorna `204`.
 
 O `PUT` de profissionais, recursos e serviços substitui todos os campos mutáveis, inclusive `ativo`. Não existe atualização parcial por `PATCH` nem comando separado de ativação.
 
@@ -300,6 +322,7 @@ Status e códigos iniciais:
 | validação de campos | `422` | `FALHA_VALIDACAO` |
 | regra de domínio inválida sem conflito de estado | `422` | `VIOLACAO_REGRA_NEGOCIO` |
 | limite de requisições excedido | `429` | `LIMITE_REQUISICOES_EXCEDIDO` |
+| limite compartilhado das rotas públicas | `429` | `LIMITE_REQUISICOES_PUBLICAS` |
 | falha inesperada | `500` | `ERRO_INTERNO` |
 
 Para F2, os principais códigos adicionais são:
@@ -329,6 +352,17 @@ Para B1, os códigos adicionais do catálogo são:
 | recurso informado inexistente | `422` | `RECURSO_INVALIDO` |
 | quantidade exigida acima da capacidade | `422` | `QUANTIDADE_SUPERIOR_A_CAPACIDADE` |
 | redução de capacidade abaixo de requisito existente | `409` | `CAPACIDADE_INFERIOR_AO_REQUISITO` |
+
+Para B2, os códigos adicionais da agenda são:
+
+| Situação | Status | `codigo` |
+|---|---:|---|
+| bloqueio inexistente ou ocultado pelo escopo | `404` | `BLOQUEIO_NAO_ENCONTRADO` |
+| período ausente, invertido ou acima de 31 datas | `422` | `PERIODO_CONSULTA_INVALIDO` |
+| janelas semanais sobrepostas | `422` | `EXPEDIENTE_SOBREPOSTO` |
+| bloqueios sobrepostos | `422` | `BLOQUEIO_SOBREPOSTO` |
+| janela semanal com intervalo inválido | `422` | `INTERVALO_EXPEDIENTE_INVALIDO` |
+| bloqueio com intervalo inválido | `422` | `INTERVALO_BLOQUEIO_INVALIDO` |
 
 Mensagens podem evoluir. `status`, `codigo` e a estrutura documentada são o contrato estável. Os campos `type`, `title`, `status`, `detail` e `instance` preservam os nomes definidos pela RFC 9457; as extensões próprias usam português. Respostas nunca expõem stack trace, mensagem SQL, nomes de tabelas ou detalhes de exceções internas.
 
