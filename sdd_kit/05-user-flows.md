@@ -7,41 +7,37 @@ Os fluxos descrevem as jornadas que a API deve suportar. A implementação visua
 1. Cliente acessa a página de agendamento.
 2. Sistema apresenta profissionais e seus serviços ativos, com descrição, duração e preço próprios.
 3. Cliente seleciona um serviço.
-4. Sistema apresenta dias e horários disponíveis dentro do horizonte permitido.
+4. Sistema apresenta dias e horários disponíveis dentro do horizonte permitido, considerando a agenda do profissional e a capacidade dos recursos exigidos.
 5. Cliente seleciona um horário.
-6. Cliente informa nome, celular e os contatos/documentos exigidos pela instalação.
-7. Sistema apresenta resumo, aviso de privacidade e consentimentos aplicáveis.
-8. Cliente confirma.
+6. Cliente informa somente nome e celular.
+7. Sistema apresenta o resumo, o aviso de privacidade vigente e sua versão.
+8. Cliente confirma a ciência dessa versão e a reserva.
 9. Frontend envia uma nova `Chave-Idempotencia`; em retentativas da mesma confirmação, reutiliza essa chave.
-10. API valida novamente o horário e cria a reserva uma única vez.
-11. Interface exibe referência, serviço, data, hora, valor e orientação seguinte.
-12. Evento de confirmação é processado pela integração configurada.
-
-Quando a instalação usa aprovação manual, o passo 9 cria uma reserva `PENDENTE`, bloqueia o horário e informa no resumo que ela aguarda decisão até `expiraEm`. Se não houver decisão no prazo, o estado passa para `EXPIRADO` e o horário é liberado.
+10. API valida novamente o horário, registra a versão do aviso e o instante da ciência e cria a reserva uma única vez, diretamente em `CONFIRMADO`.
+11. Interface exibe confirmação, serviço, profissional, data, hora e valor.
 
 ### Exceções
 
 - Horário ocupado durante o preenchimento: informar conflito, preservar dados não sensíveis necessários ao formulário e solicitar novo horário.
 - Dados inválidos: indicar os campos sem expor regra interna desnecessária.
 - Falha temporária da API: não afirmar que a reserva foi criada; oferecer tentativa segura usando a mesma chave de idempotência.
-- Falha no WhatsApp: manter a reserva e sinalizar a falha para operação.
 
 A consulta pública cobre no máximo 31 dias por chamada, respeita a antecedência e nunca ultrapassa o horizonte da instalação.
 
-A ciência do aviso vigente é obrigatória para a reserva. Marketing aparece separadamente, nunca vem pré-marcado e sua recusa não impede o agendamento.
+## Anonimização manual
 
-## Atendimento a direitos do titular
-
-1. O controlador recebe a solicitação pelo canal configurado e verifica a identidade fora da API pública.
+1. O controlador recebe a solicitação pelo canal operacional e verifica a identidade fora da API pública.
 2. `PROPRIETARIO` localiza o cliente sem expor a busca publicamente.
-3. Pode exportar os dados, corrigir o cadastro ou solicitar anonimização integral.
-4. A API rejeita anonimização quando existe reserva futura vigente.
-5. Em caso de sucesso, dados pessoais são removidos, o histórico operacional é preservado sem identificação e a ação é auditada.
+3. Solicita a anonimização integral com motivo.
+4. A API rejeita a operação quando existe reserva futura `CONFIRMADO`.
+5. Em caso de sucesso, nome, celular e fotografias pessoais são removidos, o histórico operacional é preservado sem identificação e a ação é auditada.
+
+Exportação, correção e anonimização automática não fazem parte da API V1.
 
 ## Gestão de serviços
 
-1. Administrador autenticado abre o catálogo.
-2. Seleciona o profissional proprietário e cria ou edita nome, descrição, duração, intervalo, preço, estado e ordem.
+1. `PROPRIETARIO` autenticado abre o catálogo.
+2. Seleciona o profissional proprietário e cria ou edita nome, descrição, duração, intervalo, preço, estado, ordem e requisitos fixos de recursos.
 3. Sistema valida e salva.
 4. Alterações passam a valer para novas consultas e reservas.
 5. Reservas antigas mantêm sua fotografia histórica.
@@ -54,61 +50,43 @@ A ciência do aviso vigente é obrigatória para a reserva. Marketing aparece se
 4. `PROPRIETARIO` pode alterar o vínculo profissional, redefinir uma senha temporária ou desativar a conta.
 5. Contas desativadas permanecem no histórico de auditoria.
 
-`FUNCIONARIO` não cria usuários, altera papéis ou eleva as próprias permissões.
+`FUNCIONARIO` não cria usuários, altera papéis, eleva as próprias permissões ou administra profissionais, serviços e recursos.
 
 ## Operação do funcionário
 
-1. `FUNCIONARIO` acessa somente o profissional ao qual sua conta está vinculada.
-2. Pode manter os próprios serviços, preços, durações e pré-seleções de recursos.
-3. Pode manter sua agenda, exceções e bloqueios.
-4. Pode consultar e operar apenas suas reservas.
+1. `FUNCIONARIO` acessa somente a agenda e as reservas do profissional ao qual sua conta está vinculada.
+2. Pode manter o expediente recorrente e os bloqueios desse profissional.
+3. Pode consultar e criar reservas somente para esse profissional.
+4. Pode cancelar, concluir ou registrar ausência somente nessas reservas.
 5. Pode consultar os dados de contato necessários ao atendimento, sem acessar reservas do cliente com outros profissionais.
-6. Pode consultar recursos compartilhados e alocá-los nos próprios serviços ou reservas, mas não altera cadastro ou capacidade desses recursos.
+6. Pode visualizar os recursos alocados automaticamente nas próprias reservas, mas não altera catálogos, requisitos ou alocações.
 
 ## Configuração da agenda
 
-1. Administrador seleciona um recurso e define seu expediente semanal.
+1. Usuário autorizado seleciona um profissional dentro do próprio escopo e define seu expediente semanal.
 2. Adiciona intervalos separados quando houver pausa.
 3. Registra folgas, indisponibilidades ou outros bloqueios.
 4. Sistema valida sobreposições e mostra uma prévia da disponibilidade resultante.
 
-## Autoatendimento da reserva
-
-1. Após criar, o frontend recebe a referência e o token uma única vez e monta um link com o segredo no fragmento da URL.
-2. Ao abrir o link, o frontend lê o fragmento localmente e envia o token pelo cabeçalho `X-Token-Agendamento`.
-3. A API valida referência, hash, estado e prazo e devolve somente o resumo daquela reserva.
-4. Cliente seleciona cancelar ou reagendar.
-5. Frontend cria uma `Chave-Idempotencia` para a ação e a reutiliza em eventual retentativa.
-6. No reagendamento, a API garante o novo horário antes de liberar o anterior, mantendo o mesmo serviço e profissional.
-7. Sistema registra a alteração e emite o evento de notificação correspondente uma única vez.
-
-Telefone isolado não localiza nem autoriza reservas. Se o token for perdido, a V1 orienta contato com o estabelecimento.
-
-Se o limite de alteração pública já tiver passado, a API mantém a reserva e orienta o cliente a contatar o estabelecimento. A administração pode atuar enquanto o início ainda estiver no futuro, registrando motivo.
+Recursos operacionais não possuem expediente ou bloqueios próprios, e não existe abertura extraordinária na API V1.
 
 ## Operação diária
 
-1. Administrador consulta reservas por dia ou período.
-2. Abre detalhes de uma reserva.
-3. Executa uma transição permitida.
-4. Sistema registra a mudança e gera evento de notificação quando aplicável.
+1. Usuário autorizado consulta reservas por dia ou período dentro do próprio escopo.
+2. Abre os detalhes de uma reserva.
+3. Cria, cancela, conclui ou registra ausência conforme o estado e o horário permitirem.
+4. Sistema registra a operação e o autor.
 
-Na análise de uma reserva `PENDENTE`, `PROPRIETARIO` ou o `FUNCIONARIO` responsável pode confirmar ou rejeitar. Rejeição exige motivo; pendência vencida não pode ser confirmada.
+Não existe confirmação, rejeição ou reagendamento na API V1.
 
 ## Reserva administrativa
 
-1. Administrador seleciona serviço e horário.
-2. Sistema carrega os recursos e quantidades pré-selecionados pelo serviço.
-3. Administrador mantém ou ajusta as alocações sem reduzir os mínimos definidos pelo serviço.
-4. Localiza cliente existente ou informa seus dados.
-5. Confirma o resumo.
-6. API aplica as mesmas regras de conflito e capacidade, cria a reserva como `CONFIRMADO` e registra origem `ADMINISTRACAO`.
+1. Usuário autorizado seleciona um serviço dentro do próprio escopo e um horário.
+2. Sistema determina automaticamente os recursos e quantidades fixas exigidos pelo serviço.
+3. Usuário informa somente nome e celular do cliente.
+4. Sistema apresenta o aviso vigente, e o usuário confirma que o cliente teve ciência dessa versão.
+5. Usuário confirma o resumo.
+6. API rejeita versão desatualizada e aplica as mesmas regras de expediente, bloqueio, conflito, capacidade e concorrência do fluxo público.
+7. API cria a reserva em `CONFIRMADO`, registra origem `ADMINISTRACAO`, versão e instante da ciência e preserva a fotografia automática das alocações.
 
-## Análise ou edição administrativa
-
-1. Usuário autorizado abre uma reserva pendente ou confirmada.
-2. Sistema mostra profissional, recursos, quantidades e disponibilidade atual.
-3. Usuário altera as alocações, respeita os mínimos do serviço e informa motivo quando exigido.
-4. API tenta garantir o novo conjunto de forma atômica.
-5. Em caso de conflito, nenhuma alocação antiga é perdida.
-6. Em caso de sucesso, a alteração é auditada e pode gerar notificação.
+As alocações não podem ser ajustadas ou realocadas na reserva.

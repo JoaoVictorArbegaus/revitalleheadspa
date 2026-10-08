@@ -8,7 +8,7 @@ Cobrem regras puras: sobreposição, transições, normalização, duração ocu
 
 ### Testes de integração
 
-Executam com o banco real escolhido e cobrem repositórios, migrações, transações, restrições, autenticação e outbox.
+Executam com o banco real escolhido e cobrem repositórios, migrações, transações, restrições, autenticação, concorrência e idempotência da criação pública.
 
 ### Testes de contrato/API
 
@@ -18,11 +18,11 @@ Validam payloads, estados HTTP, erros, autorização, paginação, idempotência
 
 Cobrem poucos fluxos críticos completos:
 
-- configurar serviço e agenda;
-- concluir uma reserva pública;
+- configurar serviço, recurso e agenda;
+- concluir uma reserva pública auto-confirmada;
 - disputar o mesmo horário em paralelo;
-- cancelar e tornar o intervalo disponível novamente;
-- registrar e processar confirmação sem duplicidade.
+- cancelar administrativamente e tornar o intervalo disponível novamente;
+- anonimizar manualmente um cliente elegível.
 
 ## Casos críticos obrigatórios
 
@@ -40,71 +40,53 @@ Cobrem poucos fluxos críticos completos:
 - duas criações concorrentes que consultaram previamente o mesmo horário resultam em somente uma ocupação válida;
 - falha integral quando apenas um dos recursos exigidos está indisponível;
 - serviço sem recurso operacional dependendo somente da agenda do profissional;
-- reserva pública usando exatamente as quantidades padrão do serviço;
-- remoção administrativa permitida quando o mínimo é zero e rejeitada quando viola mínimo positivo;
-- recurso adicional sem predefinição podendo ser removido posteriormente;
-- troca atômica de recursos sem perder as alocações antigas quando a nova falha;
+- reserva usando exatamente a quantidade fixa de cada recurso configurada no serviço;
 - rejeição de redução de capacidade abaixo das alocações futuras vigentes;
-- repetição idempotente da mesma solicitação;
+- repetição idempotente da mesma criação pública;
 - chave idempotente reutilizada com conteúdo diferente;
-- criação, cancelamento e reagendamento simultâneos com a mesma chave produzindo um único efeito e eventos únicos;
+- criações concorrentes com a mesma chave produzindo um único efeito;
 - chave não sendo consumida por validação, indisponibilidade ou falha inesperada;
-- expiração e limpeza do registro após 24 horas;
-- retentativa da criação reproduzindo o mesmo token sem persistência em texto puro;
+- expiração e limpeza do registro de idempotência após 24 horas;
 - serviço desativado entre consulta e confirmação;
-- cancelamento concorrente com outra ação;
-- falha e retentativa do provedor de notificação;
-- criação atômica da reserva e de exatamente um evento por mudança;
-- oito falhas levando a `FALHA_DEFINITIVA` conforme a sequência de espera;
-- nova tentativa administrativa preservando `eventoId` e impedindo entrega duplicada;
-- adaptador desabilitado produzindo `IGNORADO` sem falhar a reserva;
-- `FUNCIONARIO` sem acesso à inspeção ou retentativa global da outbox;
-- payload, logs e métricas sem CPF, token ou contato completo;
+- cancelamento administrativo concorrente com outra ação;
+- logs, métricas e erros sem dados pessoais, credenciais, tokens ou segredos;
 - alterações de preço e duração sem modificar histórico;
-- mudança de dia e regras de fuso aplicáveis.
-- limites exatos de antecedência, horizonte e alteração pública usando relógio controlado;
+- mudança de dia e regras de fuso aplicáveis;
+- limites exatos de antecedência e horizonte usando relógio controlado;
 - consulta pública acima de 31 dias rejeitada;
-- exceção `ABERTURA` criando disponibilidade extraordinária e `BLOQUEIO` prevalecendo na sobreposição;
-- administração ultrapassando limites públicos sem conseguir ignorar expediente, conflito ou capacidade;
-- cancelamento e reagendamento rejeitados depois de `inicioEm`;
-- referência sem token, token inválido e token de outra reserva produzindo a mesma resposta neutra;
-- token não aparecendo em persistência pura, URL, log ou resposta posterior à criação;
-- reagendamento garantindo o novo intervalo antes de liberar o anterior;
-- reagendamento preservando serviço, profissional, referência e estado conforme D-016;
-- estado terminal e chegada de `inicioEm` revogando o acesso público;
+- bloqueio removendo disponibilidade do profissional no intervalo configurado;
+- criação administrativa sem conseguir ignorar expediente, bloqueio, conflito ou capacidade;
+- cancelamento administrativo rejeitado depois de `inicioEm`;
+- toda reserva pública ou administrativa nascendo `CONFIRMADO`;
 - bootstrap cria um único `PROPRIETARIO` e não redefine senha existente;
 - login troca o identificador da sessão;
 - escrita administrativa sem CSRF é rejeitada;
 - sessão expirada, usuário inativo e rota desconhecida são rejeitados;
 - mudança de senha invalida todas as sessões;
-- rate limit bloqueia excesso de tentativas sem registrar credenciais.
+- rate limit bloqueia excesso de tentativas sem registrar credenciais;
 - senha temporária bloqueia operações até ser trocada;
 - `FUNCIONARIO` não acessa gestão de usuários;
 - último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado;
-- desativação e redefinição de senha invalidam as sessões afetadas.
+- desativação e redefinição de senha invalidam as sessões afetadas;
 - criação de `FUNCIONARIO` sem profissional ou com profissional já vinculado é rejeitada;
-- `FUNCIONARIO` não lê nem altera serviço, agenda ou reserva de outro profissional;
+- `FUNCIONARIO` não administra serviços e não lê nem altera agenda ou reserva de outro profissional;
 - identificador de profissional no payload não amplia o escopo derivado da sessão;
 - `FUNCIONARIO` não vê histórico do cliente com outros profissionais;
-- `FUNCIONARIO` pode consultar e alocar recurso compartilhado, mas não alterar sua capacidade.
+- `FUNCIONARIO` não altera recursos, requisitos de recursos ou alocações de reservas;
 - recuperação não inicia servidor web e rejeita conta inexistente, inativa ou que não seja `PROPRIETARIO`;
 - recuperação não expõe senha em logs e retorna código de saída coerente;
-- senha recuperada autentica após reinício e a senha anterior deixa de funcionar.
-- pendência bloqueia profissional e todos os recursos até confirmação, rejeição ou expiração;
-- expiração concorrente é idempotente e libera as alocações uma única vez;
-- pendência vencida não pode ser confirmada, mesmo antes da próxima execução periódica;
-- `FUNCIONARIO` não confirma nem rejeita pendência de outro profissional;
-- criação administrativa nasce confirmada nos dois modos de confirmação;
+- senha recuperada autentica após reinício e a senha anterior deixa de funcionar;
 - formatos brasileiros equivalentes do mesmo celular reutilizam um único cliente;
 - dois clientes não podem persistir com o mesmo celular normalizado;
-- divergência entre celular e CPF retorna conflito neutro sem revelar cadastro existente;
-- atualização do cadastro não altera as fotografias de reservas anteriores;
-- CPF persistido cifrado, localizado por HMAC e ausente de logs e respostas indevidas;
-- produção recusando inicialização sem aviso, canal e retenção configurados;
-- recusa de marketing não impedindo reserva e nunca sendo convertida em aceite implícito;
-- exportação, correção integral e anonimização proibidas para `FUNCIONARIO`;
-- anonimização rejeitada com reserva futura e bem-sucedida após o fim da relação operacional;
-- restauração de backup reaplicando anonimizações posteriores;
+- contrato, persistência e respostas de cliente não possuem CPF, email, marketing ou campos adicionais;
+- produção recusa inicialização sem versão vigente do aviso de privacidade;
+- criação pública e administrativa persistem exatamente a versão apresentada e o instante da ciência;
+- criação com versão desatualizada do aviso é rejeitada antes de reservar o horário;
+- anonimização manual é proibida para `FUNCIONARIO`;
+- anonimização é rejeitada com reserva futura e bem-sucedida depois do fim da relação operacional;
+- anonimização remove nome e celular do cadastro e das cópias pessoais das reservas;
+- auditoria da anonimização não reproduz os valores removidos;
+- não existem tabela, endpoint, job ou módulo de notificação na V1;
 - todos os erros usam `application/problem+json` e preservam o schema de D-006;
 - JSON ilegível retorna `400`, validação semântica retorna `422` e conflito de agenda retorna `409`;
 - erros de campos não devolvem o valor rejeitado nem detalhes internos;
@@ -112,7 +94,7 @@ Cobrem poucos fluxos críticos completos:
 
 ## Dados de teste
 
-- não usar CPFs, celulares ou nomes de pessoas reais;
+- não usar celulares, nomes ou emails administrativos de pessoas reais;
 - manter geradores de dados válidos e claramente fictícios;
 - limpar ou isolar dados por teste;
 - testar migrações desde banco vazio e, antes de produção, a partir da versão anterior suportada.

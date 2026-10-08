@@ -33,9 +33,9 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 - Se uma expansão for necessária, registre-a primeiro em `TASKS.md` e na especificação correspondente.
 - Não introduza multitenancy, `tenant_id` ou compartilhamento de banco entre clientes.
 - Até a publicação da API V1, não implemente frontend ou personalização específica da Revitalle neste repositório.
-- Mantenha o núcleo de agendamento independente de marca, clínica, WhatsApp e provedores externos.
+- Mantenha o núcleo de agendamento independente de marca, clínica e provedores externos.
 - Preserve a linguagem ubíqua de D-026: conceitos de negócio, identificadores, estados, rotas, JSON e banco usam português sem acentos nos identificadores técnicos.
-- Trate CPF, telefone e demais dados pessoais como dados protegidos.
+- Trate telefone, email administrativo e demais dados pessoais como dados protegidos.
 - Qualquer operação de reserva deve ser segura contra concorrência e duplicidade.
 - Preserve o modelo de segurança: sessão HTTP, CSRF ativo, allowlist pública explícita e negação padrão.
 - Não introduza JWT, OAuth, login social ou segundo fator na V1.
@@ -49,7 +49,6 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 - Não publique uma GitHub Release nem crie a tag estável `v1.0.0` antes da tarefa R2 e de seus critérios de aceite.
 - Siga `sdd_kit/15-api-consumer-documentation.md` ao criar ou alterar qualquer endpoint.
 - Siga `sdd_kit/16-scheduling-and-availability.md` ao alterar agenda, disponibilidade, reservas ou calendário.
-- Siga `sdd_kit/17-notifications-outbox.md` ao alterar eventos, worker, retentativas ou adaptadores de comunicação.
 - Siga `sdd_kit/18-technical-foundation.md` ao alterar stack, pacotes, persistência, configuração, observabilidade ou build.
 
 ## Restrições contra overengineering
@@ -57,7 +56,7 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 - Preserve o monólito modular e o PostgreSQL como base da V1.
 - Não introduza microserviços, Redis, Kafka, RabbitMQ, Kubernetes, service mesh, CQRS, event sourcing, GraphQL, Elasticsearch ou cache distribuído sem uma decisão posterior aprovada.
 - Não crie mecanismo genérico de plugins, motor de regras, DSL, barramento interno complexo ou framework próprio.
-- O processador de outbox começa no mesmo aplicativo; separá-lo exige necessidade operacional demonstrada.
+- Não introduza notificações, outbox, worker, porta ou adaptador de comunicação na V1; integração futura exige necessidade e provedor concretos, nova decisão e tarefa própria.
 - Uma interface é aceitável quando protege uma fronteira externa real ou uma fronteira de domínio, não apenas para espelhar uma única classe.
 - Uma nova dependência precisa resolver uma necessidade da tarefa atual e possuir uso imediato.
 - Não crie campos, endpoints, tabelas ou eventos reservados para uso futuro.

@@ -3,6 +3,7 @@ package com.servicescheduling.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -151,6 +152,8 @@ class AcessoAdministrativoIntegracaoTest {
                 .andExpect(jsonPath("$.paths['/api/v1/administracao/autenticacao/entrar'].post").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/administracao/autenticacao/senha'].put").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/administracao/usuarios'].post").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/administracao/usuarios/{id}'].put").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/administracao/usuarios/{id}'].patch").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.DadosUsuarioAdministrativo").exists())
                 .andExpect(jsonPath("$.components.securitySchemes.sessao").exists())
                 .andExpect(jsonPath("$.components.securitySchemes.csrf").exists())
@@ -250,6 +253,36 @@ class AcessoAdministrativoIntegracaoTest {
                                 """.formatted(profissionalId)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("PROFISSIONAL_JA_VINCULADO"));
+    }
+
+    @Test
+    void preservaPutERejeitaPatchNaAlteracaoDeUsuario() throws Exception {
+        UUID profissionalId = inserirProfissional("Profissional Alteracao");
+        UUID funcionarioId = servicoUsuarios.criarFuncionario(
+                "Funcionario", "alteracao@example.test", "senha-temporaria", profissionalId).id();
+        MockHttpSession sessao = autenticar(EMAIL_PROPRIETARIO, SENHA_PROPRIETARIO);
+        String alteracao = """
+                {"nome":"Funcionario Atualizado", "email":"atualizado@example.test",
+                 "papel":"FUNCIONARIO", "profissionalId":"%s"}
+                """.formatted(profissionalId);
+
+        mockMvc.perform(put("/api/v1/administracao/usuarios/{id}", funcionarioId)
+                        .session(sessao)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(alteracao))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Funcionario Atualizado"))
+                .andExpect(jsonPath("$.email").value("atualizado@example.test"));
+
+        mockMvc.perform(patch("/api/v1/administracao/usuarios/{id}", funcionarioId)
+                        .session(sessao)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(alteracao))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.codigo").value("METODO_NAO_PERMITIDO"));
     }
 
     @Test

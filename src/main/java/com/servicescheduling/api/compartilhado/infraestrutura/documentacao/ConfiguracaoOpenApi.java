@@ -94,8 +94,6 @@ public class ConfiguracaoOpenApi {
                     "200", "400", "401", "403", "404", "500");
             configurar(openApi, "/api/v1/administracao/usuarios/{id}", "put", true, true,
                     "200", "400", "401", "403", "404", "409", "415", "422", "500");
-            configurar(openApi, "/api/v1/administracao/usuarios/{id}", "patch", true, true,
-                    "200", "400", "401", "403", "404", "409", "415", "422", "500");
             configurar(openApi, "/api/v1/administracao/usuarios/{id}/senha-temporaria", "post", true, true,
                     "204", "400", "401", "403", "404", "409", "415", "422", "500");
             configurar(openApi, "/api/v1/administracao/usuarios/{id}/ativar", "post", true, true,

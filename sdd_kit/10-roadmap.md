@@ -2,42 +2,40 @@
 
 O roadmap descreve resultados. A execução detalhada e o estado ficam em `TASKS.md`.
 
-## Etapa 0 — Decisões e fundação
+## B1 — Catálogo simples
 
-Resultado: base Java/Spring Boot executável, PostgreSQL migrável, contrato básico e rotina de qualidade.
+Resultado: administração autenticada mantém profissionais, serviços e recursos simples com capacidade e quantidade fixa por serviço.
 
-Inclui F1 e início de F2.
+## B2 — Agenda
 
-## Etapa 1 — Catálogo e agenda pela API
+Resultado: administração configura expediente recorrente e bloqueios do profissional, e a API calcula disponibilidade segura considerando a capacidade dos recursos exigidos.
 
-Resultado: responsável autenticado consegue cadastrar serviços e construir a agenda real do negócio.
+## B3 — Reserva auto-confirmada
 
-Inclui F2, B1 e B2, validados pelo contrato e por chamadas de API.
+Resultado: cliente consulta disponibilidade e cria sem login uma reserva que nasce `CONFIRMADO`, informando somente nome e celular e registrando ciência do aviso de privacidade.
 
-## Etapa 2 — Reserva completa pela API
+Não há confirmação manual, estado `PENDENTE`, expiração de solicitação ou acesso público posterior à criação.
 
-Resultado: cliente consulta disponibilidade e conclui uma reserva sem login; responsável acompanha a agenda.
+## B4 — Operação administrativa e anonimização manual
 
-Inclui B3 e B4, com exemplos de consumo e testes da jornada completa sem depender de frontend.
+Resultado: usuários autenticados operam o ciclo das reservas dentro do próprio escopo, e `PROPRIETARIO` pode anonimizar manualmente um cliente elegível.
 
-## Etapa 3 — Contrato, comunicação e release V1
+## R1 — Documentação para consumidores
 
-Resultado: a API possui contrato completo, eventos confiáveis, documentação reproduzível e uma versão estável publicada no GitHub.
+Resultado: contrato OpenAPI, catálogo de erros, configuração e exemplos executáveis permitem consumir e operar a API sem ler sua implementação.
 
-Inclui I1, R1 e R2. O adaptador concreto de WhatsApp pode ser entregue posteriormente.
+## R2 — Release da API V1
 
-## Etapa 4 — Projeto Revitalle
+Resultado: a API reduzida está validada, documentada e publicada como versão estável apta a originar projetos de clientes.
 
-Resultado: um projeto separado é derivado da API V1 e recebe frontends, identidade visual, integrações e regras aprovadas para a clínica.
+## C1 — Derivação
 
-Inclui C1, I2 quando priorizado, O1, conteúdo final, homologação e treinamento.
+Resultado: um projeto separado é derivado da release estável e pode receber frontend, identidade visual e regras aprovadas para o cliente.
 
-## Etapa 5 — Segunda implantação
+## Possibilidades futuras
 
-Resultado: iniciar um novo projeto diretamente de uma release estável da API, sem herdar personalizações da Revitalle.
-
-Antes de generalizar novas configurações, comparar necessidades reais da segunda implantação com a Revitalle. O que for comum pode evoluir para o núcleo; o que for exclusivo permanece periférico.
+Notificações não são tarefa ativa nem parte da V1. Uma integração de comunicação só pode entrar em roadmap futuro depois que existir necessidade, canal e provedor concretos, com nova decisão e escopo próprios. Não se antecipa outbox, worker, porta ou adaptador.
 
 ## Critério de avanço
 
-Uma etapa pode começar parcialmente antes da anterior terminar quando não houver dependência, mas nenhum marco deve ser anunciado como entregue sem sua jornada principal validada e suas decisões bloqueantes resolvidas.
+A ordem da V1 é exatamente B1, B2, B3, B4, R1, R2 e C1. Um item só avança quando suas dependências, critérios de aceite e decisões aplicáveis estiverem satisfeitos.

@@ -6,9 +6,9 @@ de trabalho concluído no Git.
 
 ## Estado
 
-- O SDD da API V1 está consolidado e não possui decisão bloqueante aberta.
-- F1 e F2 foram concluídas e são preservadas no histórico do Git; F2 passou por
-  revisão de código e `clean verify` com 23 testes.
+- O escopo reduzido da API V1 está consolidado e não possui decisão bloqueante aberta.
+- F1 e F2 foram concluídas e são preservadas no histórico do Git. A revisão de
+  escopo e contrato passou por revisão de qualidade e `clean verify` com 24 testes.
 - B1 é a única tarefa liberada para implementação.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
@@ -20,16 +20,13 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | B1 | Catálogo de profissionais, recursos e serviços | TODO | liberada | `sdd_kit/03-domain-model.md` e `sdd_kit/04-business-rules.md` |
+| 1 | B1 | Catálogo simples de profissionais, recursos e serviços | TODO | liberada | `sdd_kit/03-domain-model.md` e `sdd_kit/04-business-rules.md` |
 | 2 | B2 | Agenda, bloqueios e disponibilidade | TODO | B1 | `sdd_kit/16-scheduling-and-availability.md` |
-| 3 | B3 | Agendamento público sem login | TODO | B1 e B2 | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
-| 4 | B4 | Gestão administrativa de agendamentos | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
-| 5 | I1 | Caixa de saída de notificações | TODO | B3 e B4 | `sdd_kit/17-notifications-outbox.md` |
-| 6 | R1 | Contrato e documentação para consumidores | TODO | F2, B1 a B4 e I1 | `sdd_kit/15-api-consumer-documentation.md` |
-| 7 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
-| 8 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
-| 9 | O1 | Preparar uma instalação para produção | TODO | R2 e projeto de cliente | `sdd_kit/07-data-privacy-security.md` e `sdd_kit/08-architecture.md` |
-| 10 | I2 | Implementar adaptador concreto de WhatsApp | BLOCKED | decisão do projeto de cliente | `sdd_kit/17-notifications-outbox.md` |
+| 3 | B3 | Reserva pública auto-confirmada | TODO | B1 e B2 | `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md` e D-023 |
+| 4 | B4 | Operação administrativa e anonimização manual | TODO | B3 | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
+| 5 | R1 | Contrato e documentação para consumidores | TODO | F2 e B1 a B4 | `sdd_kit/15-api-consumer-documentation.md` |
+| 6 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
+| 7 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 

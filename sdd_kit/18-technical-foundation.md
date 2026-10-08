@@ -31,7 +31,7 @@ A tarefa F1 deve iniciar com:
 
 Versões gerenciadas pelo Spring Boot não são sobrescritas sem incompatibilidade comprovada. Antes de iniciar F1, uma versão corretiva estável da mesma linha `4.1.x` pode substituir `4.1.1`; mudança de linha exige registrar a decisão e executar a suíte completa.
 
-Dependências específicas de outro produto, inclusive AWS SDK, armazenamento de arquivos, email, pagamentos e provedor de WhatsApp, não entram na fundação. Uma dependência nova precisa atender uma tarefa atual.
+Dependências específicas de outro produto, inclusive AWS SDK, armazenamento de arquivos, envio de email, pagamentos e provedores de comunicação, não entram na fundação. Uma dependência nova precisa atender uma tarefa atual.
 
 ## Linguagem ubíqua
 
@@ -53,7 +53,6 @@ com.servicescheduling.api
 ├── agenda
 ├── clientes
 ├── agendamentos
-├── notificacoes
 └── compartilhado
 ```
 
@@ -63,12 +62,11 @@ Responsabilidades:
 |---|---|
 | `acesso` | contas administrativas, autenticação, sessão, papéis e recuperação operacional |
 | `profissionais` | cadastro do profissional e vínculo opcional com `FUNCIONARIO` |
-| `servicos` | serviços próprios de cada profissional, preços, durações e predefinições de recursos |
-| `recursos` | salas, equipamentos, capacidades e agendas reserváveis |
-| `agenda` | expediente, exceções e cálculo de disponibilidade |
-| `clientes` | identidade operacional, contatos e direitos sobre dados pessoais |
+| `servicos` | serviços próprios de cada profissional, preços, durações e quantidades fixas de recursos |
+| `recursos` | salas, equipamentos e capacidades compartilhadas, sem agenda própria |
+| `agenda` | expediente, bloqueios do profissional e cálculo de disponibilidade |
+| `clientes` | nome, celular, aviso de privacidade e anonimização manual |
 | `agendamentos` | reservas, estados, alocações, idempotência e concorrência |
-| `notificacoes` | outbox, worker e porta de entrega |
 | `compartilhado` | erros HTTP, relógio, configuração técnica e utilidades realmente compartilhadas |
 
 Cada funcionalidade é um módulo interno e organiza suas classes nos subpacotes
@@ -93,7 +91,7 @@ Controladores dependem de casos de uso da própria funcionalidade. Repositórios
 - nomes JSON em `camelCase`;
 - nomes de domínio no JSON e nos recursos HTTP em português sem acentos;
 - instantes em ISO 8601 com offset ou `Z`;
-- IDs internos nunca substituem a referência pública da reserva em fluxos sem autenticação.
+- a resposta de criação pública não oferece referência ou credencial para operar a reserva posteriormente.
 
 Swagger UI e a descrição OpenAPI ficam habilitados em desenvolvimento e teste. Em produção, sua exposição é desabilitada por padrão e pode ser habilitada conscientemente pela instalação.
 
@@ -131,12 +129,11 @@ Não criar um perfil por cliente. As diferenças simples entram por configuraç�
 ## Observabilidade
 
 - logs estruturados incluem `idRastreio`, método, rota, estado e duração, sem corpo de requisição por padrão;
-- CPF, celular, email, senha, cookie, token e chave de idempotência nunca são registrados;
+- nome, celular, email administrativo, senha, cookie, token e chave de idempotência nunca são registrados;
 - um filtro aceita ou cria identificador de correlação no cabeçalho
   `X-Id-Rastreio` no formato UUID e o devolve no mesmo cabeçalho da resposta;
 - Actuator expõe somente os endpoints necessários;
 - liveness verifica o processo; readiness verifica a capacidade de atender, inclusive banco;
-- métricas e logs do worker distinguem `PENDENTE`, `ENTREGUE`, `IGNORADO` e `FALHA_DEFINITIVA` sem copiar conteúdo ou destinatário.
 
 ## Qualidade e verificação
 
@@ -146,7 +143,7 @@ Aplicar esta proporção:
 
 - testes unitários para regras de domínio puras;
 - testes de controller para contrato, validação, autenticação, autorização e CSRF;
-- testes de integração com PostgreSQL real para JPA, Flyway, locks, capacidade, idempotência e outbox;
+- testes de integração com PostgreSQL real para JPA, Flyway, locks, capacidade e idempotência;
 - poucos testes de jornada cobrindo os fluxos público e administrativo mais importantes;
 - teste de inicialização com banco vazio e validação automática do contrato OpenAPI.
 

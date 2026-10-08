@@ -31,7 +31,7 @@ Precisa baixar uma versão estável da API, iniciar um projeto independente e pe
 - configuração e segredos isolados;
 - frontend substituível ou personalizável;
 - evolução do núcleo por versões controladas;
-- extensões específicas implementadas por adaptadores ou módulos claros.
+- extensões específicas implementadas por módulos claros quando houver necessidade concreta;
 - projeto de código independente derivado de uma release conhecida da API.
 
 Não haverá `tenant_id`, seleção de organização ou dados de clientes diferentes na mesma instância.
@@ -43,9 +43,9 @@ Projetos derivados não acompanham automaticamente a API-base. Depois da cópia,
 - administrar serviços e agenda;
 - publicar horários realmente disponíveis;
 - reservar sem conta de cliente final;
-- preservar dados e histórico necessários à operação;
+- coletar somente nome e celular do cliente final, com aviso de privacidade;
+- preservar apenas os dados e o histórico necessários à operação;
 - impedir sobreposição de reservas;
-- preparar notificações sem acoplar o domínio ao WhatsApp.
 - oferecer contrato OpenAPI completo e exemplos para consumidores;
 - ser instalável e testável sem um frontend;
 - publicar uma release estável que possa originar projetos de clientes.
@@ -57,6 +57,7 @@ Projetos derivados não acompanham automaticamente a API-base. Depois da cópia,
 - identidade visual e conteúdo da Revitalle;
 - regras exclusivas de uma clínica ou cliente;
 - adaptação de um projeto já derivado para outro cliente.
+- notificações, outbox, worker e adaptadores de comunicação; qualquer integração futura exige provedor concreto e nova decisão.
 
 ## Indicadores da API V1
 

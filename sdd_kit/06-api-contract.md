@@ -14,7 +14,7 @@ Prefixo definitivo: `/api/v1`.
 - Valores monetários como decimal e código de moeda explícito no contrato.
 - Durações e intervalos como quantidades inteiras de minutos.
 - Paginação obrigatória em coleções administrativas potencialmente grandes.
-- Cabeçalho `Chave-Idempotencia` obrigatório em criação, cancelamento e reagendamento públicos.
+- Cabeçalho `Chave-Idempotencia` obrigatório na criação pública.
 
 ## Recursos públicos
 
@@ -36,39 +36,28 @@ Entrada conceitual:
 - início selecionado com representação temporal definida;
 - `cliente.nome`;
 - `cliente.celular`;
-- `cliente.email`, quando informado;
-- `cliente.cpf`, quando permitido ou exigido pela instalação;
-- `versaoAvisoPrivacidade` e confirmação de ciência;
-- `consentimentoMarketing`, opcional e falso por padrão;
+- `versaoAvisoPrivacidade`, igual à versão apresentada;
+- `cienteAvisoPrivacidade`, obrigatoriamente `true`;
 - chave de idempotência no cabeçalho.
 
 Saída conceitual:
 
-- `referencia`;
-- estado;
+- estado `CONFIRMADO`;
 - fotografia pública do serviço;
-- data, hora e fuso;
-- orientação de confirmação.
+- profissional;
+- data, hora, fuso e preço contratado.
 
-A resposta não devolve documento completo nem identificador interno do cliente.
+A resposta não devolve identificador interno do cliente.
 
-Nome e celular são sempre obrigatórios. O frontend não envia país separadamente; a API aceita formatos brasileiros documentados e normaliza para `+55`. Email e CPF seguem `emailClienteObrigatorio` e `politicaCpf`. O contrato público não revela se esses dados já estavam cadastrados.
+Nome e celular são os únicos dados do cliente aceitos. O frontend não envia país separadamente; a API aceita formatos brasileiros documentados e normaliza para `+55`. O contrato público não revela se o celular já estava cadastrado.
 
-A versão enviada deve ser a versão vigente; versão ausente ou antiga retorna validação sem criar a reserva. Recusar marketing não altera a capacidade de reservar.
+A API compara `versaoAvisoPrivacidade` com a versão vigente antes de associá-la à reserva e registrar o instante da ciência. Uma versão desatualizada retorna `409 AVISO_PRIVACIDADE_DESATUALIZADO`, para que o frontend apresente o novo texto antes de repetir a confirmação. `cienteAvisoPrivacidade` confirma somente que o aviso apresentado foi lido; não representa consentimento de marketing nem introduz outro dado do cliente.
 
 O cliente envia apenas o `inicioEm` retornado pela disponibilidade. A API calcula os términos, revalida o horário sob bloqueio transacional e responde `409 CONFLITO_AGENDAMENTO` quando outra reserva o ocupou.
 
-### Gestão pública de reserva
+A chave de idempotência possui de 16 a 128 caracteres do conjunto documentado e vale por 24 horas. Retentativa idêntica devolve o resultado original; conteúdo divergente retorna `409 CONFLITO_IDEMPOTENCIA`.
 
-- `GET /api/v1/publico/agendamentos/{referencia}`;
-- `POST /api/v1/publico/agendamentos/{referencia}/cancelar`;
-- `POST /api/v1/publico/agendamentos/{referencia}/reagendar`.
-
-As três operações exigem `X-Token-Agendamento`. O token puro aparece somente na resposta de criação, é associado exclusivamente à referência e nunca é aceito em path ou query string. Token ausente, inválido, revogado ou usado com outra referência recebe resposta neutra equivalente a recurso não encontrado.
-
-Cancelamento e reagendamento também exigem `Chave-Idempotencia`. A chave possui de 16 a 128 caracteres do conjunto documentado, vale por 24 horas e é escopada pelo tipo de operação. Retentativa idêntica devolve o resultado original; conteúdo divergente retorna `409 CONFLITO_IDEMPOTENCIA`.
-
-Reagendamento recebe somente o novo `inicioEm`, mantém serviço e profissional e aplica as mesmas regras de disponibilidade e concorrência da criação. A resposta informa o estado resultante e o novo intervalo. Telefone não participa da autorização.
+A API V1 não oferece consulta, cancelamento ou reagendamento públicos e não emite referência ou token de acesso à reserva.
 
 ## Recursos administrativos
 
@@ -81,32 +70,26 @@ rotas desta seção descrevem entregas posteriores da V1.
 - `POST /api/v1/administracao/autenticacao/sair`;
 - `PUT /api/v1/administracao/autenticacao/senha`;
 - `GET|POST /api/v1/administracao/usuarios`;
-- `GET|PUT|PATCH /api/v1/administracao/usuarios/{id}`;
+- `GET|PUT /api/v1/administracao/usuarios/{id}`;
 - `POST /api/v1/administracao/usuarios/{id}/senha-temporaria`;
 - `POST /api/v1/administracao/usuarios/{id}/ativar`;
 - `POST /api/v1/administracao/usuarios/{id}/desativar`;
 - `GET|POST /api/v1/administracao/profissionais`;
 - `GET|PUT|PATCH /api/v1/administracao/profissionais/{id}`;
-- `GET|PUT /api/v1/administracao/clientes/{id}`;
-- `GET /api/v1/administracao/clientes/{id}/exportar`;
+- `GET /api/v1/administracao/clientes/{id}`;
 - `POST /api/v1/administracao/clientes/{id}/anonimizar`;
 - `GET|POST /api/v1/administracao/recursos`;
 - `GET|PUT|PATCH /api/v1/administracao/recursos/{id}`;
 - `GET|POST /api/v1/administracao/servicos`;
 - `GET|PUT|PATCH /api/v1/administracao/servicos/{id}`;
 - `GET|PUT /api/v1/administracao/agenda/semanal`;
-- `GET|POST /api/v1/administracao/agenda/excecoes`;
-- `DELETE /api/v1/administracao/agenda/excecoes/{id}`;
+- `GET|POST /api/v1/administracao/agenda/bloqueios`;
+- `DELETE /api/v1/administracao/agenda/bloqueios/{id}`;
 - `GET|POST /api/v1/administracao/agendamentos`;
 - `GET /api/v1/administracao/agendamentos/{id}`;
-- `POST /api/v1/administracao/agendamentos/{id}/confirmar`;
-- `POST /api/v1/administracao/agendamentos/{id}/rejeitar`;
 - `POST /api/v1/administracao/agendamentos/{id}/cancelar`;
 - `POST /api/v1/administracao/agendamentos/{id}/concluir`;
-- `POST /api/v1/administracao/agendamentos/{id}/nao-compareceu`;
-- `GET /api/v1/administracao/eventos-notificacao`;
-- `GET /api/v1/administracao/eventos-notificacao/{id}`;
-- `POST /api/v1/administracao/eventos-notificacao/{id}/tentar-novamente`.
+- `POST /api/v1/administracao/agendamentos/{id}/nao-compareceu`.
 
 ### Autenticação implementada em F2
 
@@ -198,7 +181,6 @@ Todas as rotas em `/api/v1/administracao/usuarios` exigem sessão com papel
 | `GET /usuarios/{id}` | sem corpo | `200`, usuário |
 | `POST /usuarios` | criação de funcionário | `201`, usuário e `Location` |
 | `PUT /usuarios/{id}` | alteração completa | `200`, usuário |
-| `PATCH /usuarios/{id}` | mesmo corpo completo de `PUT` | `200`, usuário |
 | `POST /usuarios/{id}/senha-temporaria` | senha temporária | `204` |
 | `POST /usuarios/{id}/ativar` | sem corpo | `204` |
 | `POST /usuarios/{id}/desativar` | sem corpo | `204` |
@@ -214,7 +196,7 @@ Criação de funcionário:
 }
 ```
 
-Alteração completa por `PUT` ou `PATCH`:
+Alteração completa por `PUT`:
 
 ```json
 {
@@ -241,19 +223,19 @@ desativar uma conta invalida suas sessões. Cada funcionário exige um profissio
 ativo com vínculo exclusivo, e o último proprietário ativo não pode ser
 desativado nem convertido em funcionário.
 
-Recursos administrativos expõem capacidade. Serviços aceitam uma coleção de predefinições com `recursoId`, `quantidadePadrao` e `quantidadeMinima`. Criação e edição administrativa de reservas aceitam a coleção efetiva de alocações com `recursoId` e `quantidade`, respeitando os mínimos vigentes do serviço.
+Recursos administrativos expõem somente nome, estado ativo e capacidade, além do identificador. Serviços aceitam uma coleção de requisitos fixos com `recursoId` e `quantidade`. A criação pública ou administrativa determina as alocações automaticamente a partir desses requisitos; o contrato de reserva não aceita alocações informadas ou editadas pelo consumidor.
 
-A configuração administrativa expõe `intervaloGradeMinutos`, `antecedenciaMinimaReservaMinutos`, `horizonteReservaDias` e `antecedenciaAlteracaoClienteMinutos`. O contrato de serviço usa `duracaoMinutos` e `intervaloLimpezaMinutos`; não expõe quantidade persistida de unidades de grade. A disponibilidade retorna início e fim reais de cada opção.
+A criação administrativa de reserva também recebe `versaoAvisoPrivacidade` e `cienteAvisoPrivacidade=true`. O usuário autorizado confirma que o cliente teve ciência da versão apresentada; versão desatualizada é rejeitada da mesma forma que no fluxo público.
 
-Exceções administrativas informam `tipo` como `ABERTURA` ou `BLOQUEIO`. A API rejeita criação ou reagendamento no passado. Operações administrativas fora dos limites públicos continuam sujeitas a expediente, exceções, conflito e capacidade.
+A configuração administrativa expõe `intervaloGradeMinutos`, `antecedenciaMinimaReservaMinutos` e `horizonteReservaDias`. O contrato de serviço usa `duracaoMinutos` e `intervaloLimpezaMinutos`; não expõe quantidade persistida de unidades de grade. A disponibilidade retorna início e fim reais de cada opção.
+
+O expediente recorrente e os bloqueios administrativos pertencem sempre a um profissional. Recursos não possuem agenda, e não existe bloqueio de recurso ou abertura extraordinária. A API rejeita criação no passado. Operações administrativas fora dos limites públicos continuam sujeitas a expediente, bloqueios, conflito e capacidade.
 
 A preferência entre comandos explícitos e atualização genérica de estado é por comandos explícitos, pois eles tornam permissões e transições mais claras.
 
-Em confirmação manual, a resposta da criação pública contém estado `PENDENTE` e `expiraEm`. Confirmar ou rejeitar exige `PROPRIETARIO` ou `FUNCIONARIO` vinculado ao profissional. Rejeição recebe motivo obrigatório. Reservas administrativas são criadas diretamente como `CONFIRMADO`.
+Reservas públicas e administrativas são criadas diretamente como `CONFIRMADO`. As únicas operações administrativas do ciclo da reserva são criar, cancelar, concluir e registrar ausência. Não existe confirmação, rejeição ou reagendamento na API V1.
 
-Exportação, correção integral e anonimização de cliente exigem `PROPRIETARIO`. A resposta de exportação é protegida contra cache, e anonimização recebe motivo obrigatório e falha se houver reserva futura vigente.
-
-Eventos de notificação são visíveis somente ao `PROPRIETARIO`, paginados e filtráveis por estado e período. Apenas evento `FALHA_DEFINITIVA` aceita nova tentativa; payload não é editável e respostas não expõem contato nem conteúdo pessoal.
+Anonimização manual de cliente exige `PROPRIETARIO`, recebe motivo obrigatório e falha se houver reserva futura `CONFIRMADO`. Exportação, correção e anonimização automática não fazem parte da API V1.
 
 ## Sessão administrativa
 
@@ -265,10 +247,11 @@ Eventos de notificação são visíveis somente ao `PROPRIETARIO`, paginados e f
 - A mudança de senha exige a senha atual, invalida todas as sessões do usuário e exige novo login.
 - Usuário com `deveAlterarSenha` só pode consultar sua identidade, trocar a senha ou encerrar a sessão.
 - Gestão de usuários exige papel `PROPRIETARIO`; `FUNCIONARIO` não acessa esses endpoints.
-- Endpoints de profissionais, serviços, agendas e reservas aplicam o escopo do profissional vinculado quando o papel é `FUNCIONARIO`.
-- `FUNCIONARIO` possui leitura dos recursos operacionais necessários à alocação, mas criação, edição, capacidade, ativação e desativação exigem `PROPRIETARIO`.
+- Gestão de profissionais, serviços, recursos e requisitos de recursos exige `PROPRIETARIO`.
+- Endpoints de agendas e reservas aplicam o escopo do profissional vinculado quando o papel é `FUNCIONARIO`.
+- `FUNCIONARIO` pode visualizar recursos alocados automaticamente em suas reservas, mas não altera catálogo, capacidade, requisitos ou alocações.
 - A API não aceita `profissionalId` arbitrário para ampliar o escopo do funcionário; o backend deriva o profissional da sessão.
-- Recurso fora do escopo do funcionário responde como não encontrado, sem confirmar sua existência.
+- Agenda ou reserva fora do escopo do funcionário responde como não encontrada, sem confirmar sua existência.
 - CORS permanece desabilitado na V1 porque o frontend é servido na mesma origem.
 - Rotas públicas são autorizadas por método e caminho; `/api/v1/administracao/**` exige autenticação; qualquer rota restante é negada.
 - Recuperação de `PROPRIETARIO` não possui endpoint HTTP; é um procedimento operacional executado com a aplicação web parada.
@@ -293,7 +276,7 @@ Toda falha usa `Content-Type: application/problem+json`, conforme RFC 9457, e de
 
 Cada item de `errosCampos` contém:
 
-- `campo`: caminho do campo no payload, como `cliente.celular` ou `alocacoes[0].quantidade`;
+- `campo`: caminho do campo no payload, como `cliente.celular` ou `requisitosRecursos[0].quantidade`;
 - `codigo`: regra de validação estável;
 - `mensagem`: descrição segura e legível.
 
@@ -310,7 +293,7 @@ Status e códigos iniciais:
 | método não aceito | `405` | `METODO_NAO_PERMITIDO` |
 | conflito de horário ou capacidade | `409` | `CONFLITO_AGENDAMENTO` |
 | chave de idempotência reutilizada com conteúdo diferente | `409` | `CONFLITO_IDEMPOTENCIA` |
-| celular e CPF apontam para clientes diferentes | `409` | `CONFLITO_IDENTIDADE_CLIENTE` |
+| versão do aviso diferente da vigente | `409` | `AVISO_PRIVACIDADE_DESATUALIZADO` |
 | tipo de conteúdo não aceito | `415` | `TIPO_MIDIA_NAO_SUPORTADO` |
 | validação de campos | `422` | `FALHA_VALIDACAO` |
 | regra de domínio inválida sem conflito de estado | `422` | `VIOLACAO_REGRA_NEGOCIO` |

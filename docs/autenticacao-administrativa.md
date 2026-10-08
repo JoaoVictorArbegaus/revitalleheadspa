@@ -134,7 +134,6 @@ Todas estas rotas exigem `PROPRIETARIO`; operações mutáveis também exigem CS
 | `GET /api/v1/administracao/usuarios/{id}` | nenhum | `200`, usuário |
 | `POST /api/v1/administracao/usuarios` | criação de funcionário | `201`, usuário e `Location` |
 | `PUT /api/v1/administracao/usuarios/{id}` | alteração completa | `200`, usuário |
-| `PATCH /api/v1/administracao/usuarios/{id}` | mesmo corpo completo de `PUT` | `200`, usuário |
 | `POST /api/v1/administracao/usuarios/{id}/senha-temporaria` | redefinição | `204` |
 | `POST /api/v1/administracao/usuarios/{id}/ativar` | nenhum | `204` |
 | `POST /api/v1/administracao/usuarios/{id}/desativar` | nenhum | `204` |
@@ -164,7 +163,7 @@ Criação de funcionário:
 }
 ```
 
-Alteração por `PUT` ou `PATCH` (ambos exigem todos os campos mostrados):
+Alteração por `PUT` (exige todos os campos mostrados):
 
 ```json
 {

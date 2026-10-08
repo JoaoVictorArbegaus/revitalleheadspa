@@ -12,7 +12,7 @@ A API-base é distribuída como imagem Docker e usa PostgreSQL com migrações F
 
 ## Objetivo da V1
 
-Entregar uma API completa para que o responsável por um negócio administre profissionais, recursos, serviços, preços, duração e horários, enquanto o cliente final consulta a disponibilidade e agenda sem criar conta, informando nome, celular e os dados adicionais exigidos pela instalação.
+Entregar uma API completa para que o responsável por um negócio administre profissionais, recursos, serviços, preços, duração e horários, enquanto o cliente final consulta a disponibilidade e agenda sem criar conta, informando somente nome e celular.
 
 A V1 termina com contrato OpenAPI, banco versionado, segurança administrativa, testes, documentação de execução e uma versão estável publicada. Frontends, identidade visual e regras próprias da Revitalle começam depois, em um projeto de cliente derivado da V1.
 

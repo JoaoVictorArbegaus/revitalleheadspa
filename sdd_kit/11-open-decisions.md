@@ -42,7 +42,7 @@ Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/08-architecture.md`, `sd
 
 Contexto: o negócio será especificado e desenvolvido em português; misturar nomes de domínio em inglês enfraquece a linguagem comum entre documentação, código e operação.
 
-Decisão: usar português brasileiro, sem acentos nos identificadores técnicos, para conceitos do domínio, pacotes funcionais, classes, métodos, campos, estados, eventos, recursos HTTP, propriedades JSON e nomes do banco. Exemplos centrais: `Agendamento`, `Cliente`, `Profissional`, `Servico`, `RecursoOperacional`, `PENDENTE`, `CONFIRMADO`, `/agendamentos` e `/servicos`.
+Decisão: usar português brasileiro, sem acentos nos identificadores técnicos, para conceitos do domínio, pacotes funcionais, classes, métodos, campos, estados, eventos, recursos HTTP, propriedades JSON e nomes do banco. Exemplos centrais: `Agendamento`, `Cliente`, `Profissional`, `Servico`, `RecursoOperacional`, `CONFIRMADO`, `/agendamentos` e `/servicos`.
 
 O nome de distribuição `service-scheduling-api`, o `groupId` `com.servicescheduling`, o pacote técnico raiz `com.servicescheduling.api`, nomes próprios de tecnologias e elementos fixados por padrões externos permanecem em sua forma original. Tipos criados pelo projeto também usam português: `ControladorAgendamento`, `RepositorioAgendamento` e `CalculadoraDisponibilidade`; anotações e interfaces pertencentes ao Spring ou a bibliotecas preservam seus nomes oficiais.
 
@@ -110,75 +110,71 @@ Consequências: a duração ocupada deve ser múltipla da granularidade; valores
 
 Contexto: consultas e comandos precisam aplicar limites previsíveis sem impedir que a administração resolva exceções reais do negócio.
 
-Decisão: configurar por instalação `antecedenciaMinimaReservaMinutos` entre 0 e 43200, padrão 60; `horizonteReservaDias` entre 1 e 365, padrão 90; e `antecedenciaAlteracaoClienteMinutos` entre 0 e 43200, padrão 1440. Consultas públicas aceitam no máximo 31 dias por requisição e nunca retornam opções fora da antecedência ou do horizonte.
+Decisão: configurar por instalação `antecedenciaMinimaReservaMinutos` entre 0 e 43200, padrão 60, e `horizonteReservaDias` entre 1 e 365, padrão 90. Consultas públicas aceitam no máximo 31 dias por requisição e nunca retornam opções fora da antecedência ou do horizonte.
 
-Esses limites se aplicam ao cliente final. Usuários administrativos podem criar e reagendar no futuro fora da antecedência e do horizonte público, mas não podem ignorar expediente, bloqueios, conflitos ou capacidade. Para atender fora do expediente recorrente, criam antes uma exceção `ABERTURA`; exceções `BLOQUEIO` removem disponibilidade e prevalecem quando houver sobreposição.
+Esses limites se aplicam à criação pelo cliente final. A criação administrativa também respeita expediente, bloqueios, conflitos e capacidade. A V1 não oferece abertura extraordinária.
 
-Cancelamento ou reagendamento público é recusado quando faltar menos que `antecedenciaAlteracaoClienteMinutos` para o início. Usuário administrativo no escopo pode cancelar ou reagendar uma reserva futura depois desse limite, com motivo auditável. Não se cria nem reagenda reserva para o passado; depois de `inicioEm`, a V1 permite apenas concluir ou marcar ausência e não reabre estados terminais.
+A V1 não oferece cancelamento ou reagendamento público nem reagendamento administrativo. Usuário administrativo no escopo pode cancelar uma reserva futura, com motivo auditável. Não se cria reserva para o passado; depois de `inicioEm`, a V1 permite apenas concluir ou marcar ausência e não reabre estados terminais.
 
-Consequências: `ExcecaoAgenda` possui tipo `ABERTURA` ou `BLOQUEIO`; `BLOQUEIO` prevalece em sobreposição; limites públicos são calculados pelo relógio do servidor e fuso da instalação; conflitos e capacidade nunca podem ser ignorados.
+Consequências: `BloqueioAgenda` remove disponibilidade do profissional; limites públicos são calculados pelo relógio do servidor e fuso da instalação; expediente, bloqueios, conflitos e capacidade nunca podem ser ignorados; operação posterior à criação exige sessão administrativa.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/16-scheduling-and-availability.md`.
 
 ### D-008 — Identidade do cliente — `DECIDED`
 
-Contexto: o cliente final não cria conta, mas a instalação precisa reconhecer retornos, manter histórico e evitar duplicação excessiva sem exigir CPF.
+Contexto: o cliente final não cria conta, e a V1 precisa identificá-lo operacionalmente com a menor coleta possível.
 
-Decisão: nome e celular são obrigatórios. O celular é normalizado para o formato canônico brasileiro com `+55`, sem campo de país no formulário, e é único na instalação. Uma nova reserva com o mesmo celular reutiliza o `Cliente`; por consequência, duas pessoas diferentes não podem compartilhar o mesmo celular na V1.
+Decisão: nome e celular são os únicos dados pessoais solicitados ao cliente final. O celular é normalizado para o formato canônico brasileiro com `+55`, sem campo de país no formulário, e é único na instalação. Uma nova reserva com o mesmo celular reutiliza o `Cliente`; por consequência, duas pessoas diferentes não podem compartilhar o mesmo celular na V1.
 
-Email é contato e CPF é documento; são campos conceitualmente separados. Email é opcional por padrão e pode ser exigido pela configuração. A política de CPF pode ser `DESABILITADA`, `OPCIONAL` ou `OBRIGATORIA`, com padrão `OPCIONAL`. A V1 aceita apenas CPF como documento de cliente, normaliza e valida seus dígitos.
+CPF, email de cliente, documento, consentimento de marketing e campos adicionais ficam fora da V1. O email permanece somente nas contas administrativas conforme D-004.
 
-Cada reserva grava fotografia do nome, celular e email informados. Ao reutilizar um cliente, nome e email canônicos recebem os valores mais recentes sem alterar reservas antigas. Um CPF novo pode preencher um cadastro ainda sem documento; CPF diferente do já associado, ou CPF já vinculado a outro celular, produz conflito neutro e exige correção administrativa. A API pública nunca informa se o celular ou CPF já existia.
+Ao reutilizar um cliente, o nome canônico recebe o valor mais recente. A reserva mantém somente as cópias pessoais necessárias à operação e todas elas são alcançadas pela anonimização manual. A API pública nunca informa se o celular já existia.
 
-Consequências: troca de celular não é deduzida automaticamente; correções preservam histórico; índices de unicidade usam valores normalizados; CPF recebe proteção específica definida no documento de segurança.
+Consequências: troca de celular não é deduzida automaticamente; a V1 não oferece correção integral do cadastro; o índice de unicidade usa o celular normalizado; somente a administração autorizada acessa o cliente no contexto operacional.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md` e `sdd_kit/11-open-decisions.md`.
 
 ### D-009 — Capacidade operacional — `DECIDED`
 
-Decisão: haverá vários profissionais, e cada profissional define seus próprios serviços, preços e durações. Toda reserva bloqueia obrigatoriamente o profissional. Salas e equipamentos são recursos opcionais; quando exigidos pelo serviço, todos são bloqueados junto do profissional e na mesma transação.
+Decisão: haverá vários profissionais, e cada profissional define seus próprios serviços, preços e durações. Toda reserva bloqueia obrigatoriamente o profissional. Salas e equipamentos são recursos opcionais com capacidade positiva; cada serviço define uma quantidade fixa dos recursos que exige, e todos são bloqueados junto do profissional na mesma transação.
 
-Consequências: a disponibilidade resulta da interseção das agendas de todos os participantes; indisponibilidade de qualquer recurso impede a reserva inteira; serviços sem recursos operacionais usam somente a agenda do profissional.
+Consequências: a disponibilidade usa a agenda do profissional e a capacidade simultânea dos recursos exigidos; recursos não possuem agenda própria; insuficiência de qualquer recurso impede a reserva inteira.
 
-### D-010 — Privacidade e retenção — `DECIDED`
+### D-010 — Privacidade básica e anonimização manual — `DECIDED`
 
-Contexto: o produto-base precisa oferecer controles técnicos consistentes sem escolher, em nome de cada cliente, sua base legal, seus textos ou seu prazo de conservação.
+Contexto: o produto-base precisa oferecer privacidade básica verificável sem antecipar um sistema completo de direitos do titular ou retenção automática.
 
-Decisão: o projeto-base não fixa base legal nem prazo universal para todos os clientes. Cada instalação deve informar, antes de produção, versão do aviso de privacidade, canal do titular e `retencaoDadosPessoaisDias`; produção falha ao iniciar sem essa configuração. Ciência do aviso aplicável à reserva é registrada por versão e instante. Consentimento de marketing é separado, opcional e falso por padrão.
+Decisão: cada instalação informa antes de produção a versão vigente do aviso de privacidade. A reserva registra essa versão e o instante da ciência. O cliente final fornece somente nome e celular; CPF, email de cliente, marketing e campos adicionais não são coletados. Logs, métricas e erros não reproduzem dados pessoais, credenciais ou segredos.
 
-CPF é cifrado com AES-256-GCM e possui HMAC-SHA-256 separado para busca e unicidade; chaves ficam fora do banco. Nome, celular e email permanecem operacionais sob controle de acesso, TLS e criptografia do volume e dos backups. Nenhum dado clínico ou de saúde entra na V1.
+Nome e celular permanecem operacionais sob controle de acesso, TLS e criptografia do volume e dos backups. O email administrativo continua protegido pelo mesmo modelo de segurança. Nenhum dado clínico ou de saúde entra na V1.
 
-Somente `PROPRIETARIO` pode exportar, corrigir ou anonimizar integralmente um cliente. Anonimização remove dados canônicos e fotografias pessoais das reservas, preservando valores operacionais sem identificação, e é rejeitada enquanto houver reserva futura `PENDENTE` ou `CONFIRMADO`. Um processo interno aplica a retenção configurada após o último atendimento terminal. Toda ação é auditada sem copiar os dados pessoais para o log.
+Somente `PROPRIETARIO` pode anonimizar manualmente um cliente, após verificação operacional do pedido. A ação exige motivo, remove nome, celular e suas cópias pessoais das reservas, preserva valores operacionais sem identificação e é rejeitada enquanto houver reserva futura `CONFIRMADO`. Toda ação é auditada sem copiar os dados pessoais para o log.
 
-A instalação continua responsável por definir finalidade, base legal, texto e prazo com revisão apropriada. Backups expiram pela política operacional e, quando restaurados, precisam reaplicar o registro de anonimizações posteriores ao ponto restaurado.
+A V1 não oferece exportação completa, correção integral, retenção configurável ou anonimização automática. A instalação continua responsável por definir finalidade, base legal, texto e práticas operacionais apropriadas. Depois de restaurar um backup, a operação verifica e reaplica manualmente anonimizações posteriores ao ponto restaurado.
 
-Consequências: a API oferece exportação, correção e anonimização, mas a verificação da identidade do solicitante e a decisão sobre hipóteses legais de conservação pertencem à operação do controlador; o projeto do cliente documenta controlador, operador e canal de atendimento; dados pessoais não são apagados de backups isoladamente, mas deixam de reaparecer após restauração.
+Consequências: a API oferece somente anonimização manual; demais solicitações são tratadas operacionalmente pelo controlador. Funcionalidades completas de titular ou automação de retenção ficam fora da V1 e dependem de nova decisão antes de qualquer implementação.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/15-api-consumer-documentation.md`.
 
 ## Integrações
 
-### D-011 — Provedor e política de WhatsApp — `DECIDED`
+### D-011 — Comunicação externa fora da V1 — `DECIDED`
 
-Contexto: a API-base precisa ser funcional e testável sem contrato, credencial ou regra comercial de um provedor específico.
+Contexto: não existe provedor concreto nem necessidade de comunicação aprovada para a API-base V1.
 
-Decisão: nenhum provedor concreto, template, custo ou política própria de WhatsApp entra na API-base V1. O núcleo oferece porta de notificação e outbox; cada projeto de cliente escolhe e implementa seu adaptador quando necessário.
+Decisão: notificações, outbox, worker, porta e adaptador de comunicação não entram na V1. Nenhum componente preparatório é criado. Uma integração futura exige necessidade, canal e provedor concretos, nova decisão e tarefa própria.
 
-Consequências: a configuração padrão usa adaptador desabilitado; indisponibilidade ou ausência de provedor nunca desfaz reserva; homologação do canal, templates e horários de envio ocorre no projeto do cliente.
+Consequências: a reserva não depende de comunicação externa; não existe configuração de adaptador desabilitado; uma possibilidade futura não cria tabela, evento, pacote, dependência ou endpoint na V1.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/08-architecture.md`, `sdd_kit/10-roadmap.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/14-v1-boundaries.md` e `sdd_kit/17-notifications-outbox.md`.
 
-### D-012 — Conteúdo e gatilhos de notificação — `DECIDED`
+### D-012 — Gatilhos de comunicação futura — `DECIDED`
 
-Contexto: o domínio deve registrar fatos notificáveis de maneira confiável sem antecipar conteúdo, canal ou provedor de um cliente.
+Contexto: gatilhos, conteúdo e entrega não podem ser definidos corretamente antes de existir uma integração concreta.
 
-Decisão: a V1 registra na outbox `AGENDAMENTO_PENDENTE`, `AGENDAMENTO_CONFIRMADO`, `AGENDAMENTO_REAGENDADO`, `AGENDAMENTO_CANCELADO` e `AGENDAMENTO_EXPIRADO`. Conclusão, ausência e alterações internas de recursos não geram notificação. Lembretes, horários silenciosos e textos concretos ficam fora da API-base V1.
+Decisão: a V1 não registra eventos de notificação. Tipos de evento, payload, canal, conteúdo, retentativa, idempotência de entrega e observabilidade ficam fora da V1 e só podem ser definidos por nova decisão ligada a um provedor concreto.
 
-O evento é gravado na mesma transação da reserva, contém identificadores e fotografia mínima do fato e recebe chave única para entrega idempotente. O worker do mesmo aplicativo busca lotes pequenos, tenta novamente com espera crescente até oito vezes e então marca `FALHA_DEFINITIVA`. `PROPRIETARIO` pode listar falhas e solicitar nova tentativa, sem editar payload.
-
-Sem adaptador configurado, o evento termina como `IGNORADO` com motivo `PROVEDOR_DESABILITADO`; a reserva nunca falha por isso. O adaptador do projeto de cliente transforma o evento em texto e canal. Comunicação transacional e marketing permanecem separados; a recusa de marketing não altera eventos operacionais necessários ao agendamento.
-
-Consequências: payload possui versão e fotografia mínima do fato, sem CPF ou token puro; falha de entrega é visível e repetível; o produto-base não envia lembretes nem mensagens promocionais.
+Consequências: não existem eventos, estados de entrega, retentativas ou operação administrativa de comunicação na V1. A funcionalidade adiada não autoriza abstrações ou schema antecipados.
 
 Documentos afetados: `AGENTS.md`, `SESSION.md`, `TASKS.md`, `sdd_kit/00-index.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/08-architecture.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/15-api-consumer-documentation.md` e `sdd_kit/17-notifications-outbox.md`.
 
@@ -186,7 +182,7 @@ Documentos afetados: `AGENTS.md`, `SESSION.md`, `TASKS.md`, `sdd_kit/00-index.md
 
 Decisão: haverá somente `PROPRIETARIO` e `FUNCIONARIO`; não existe `GERENTE` na V1. O primeiro `PROPRIETARIO` vem do bootstrap. Somente ele cria, altera, ativa, desativa ou redefine a senha temporária de funcionários. O último `PROPRIETARIO` ativo não pode ser desativado ou rebaixado.
 
-Todo `FUNCIONARIO` é vinculado obrigatoriamente a um único profissional e opera somente seus serviços, agenda e reservas. Dados do cliente são visíveis apenas no contexto desses atendimentos. Recursos compartilhados podem ser consultados e alocados, mas somente `PROPRIETARIO` altera seu cadastro ou capacidade. O backend deriva o escopo da sessão e não confia em identificadores enviados pelo cliente.
+Todo `FUNCIONARIO` é vinculado obrigatoriamente a um único profissional e opera somente a agenda e as reservas desse profissional. Não administra profissionais, serviços, recursos ou requisitos de recursos. Dados do cliente são visíveis apenas no contexto desses atendimentos. O backend deriva o escopo da sessão e não confia em identificadores enviados pelo cliente.
 
 Consequências: vínculo de profissional é único por conta; acesso cruzado é ocultado; profissional pode existir sem usuário; `PROPRIETARIO` tem visão global e pode opcionalmente estar vinculado a um profissional.
 
@@ -194,49 +190,41 @@ Sequenciamento: F2 cria a tabela mínima de profissional, limitada aos campos j�
 aprovados `id`, `nome` e `ativo`, apenas para garantir a integridade do vínculo de
 acesso. Endpoints e casos de uso de cadastro continuam pertencendo a B1.
 
-### D-015 — Confirmação automática ou manual — `DECIDED`
+### D-015 — Confirmação automática — `DECIDED`
 
-Contexto: a instalação precisa escolher se uma solicitação pública já confirma o atendimento ou se aguarda análise, sem permitir dupla promessa do mesmo horário.
+Contexto: a V1 precisa de um único fluxo de reserva correto e simples, sem processo periódico ou estados transitórios de aprovação.
 
-Decisão: em modo `AUTOMATICA`, a reserva pública nasce `CONFIRMADO`. Em modo `MANUAL`, nasce `PENDENTE` e bloqueia imediatamente o profissional e todos os recursos alocados, evitando que a aprovação posterior dispute um horário já prometido a outra pessoa.
+Decisão: toda reserva pública ou administrativa criada com sucesso nasce `CONFIRMADO`. Não existe configuração de modo de confirmação.
 
-Toda `PENDENTE` recebe `expiraEm`, calculado pelo menor instante entre o início do atendimento e `criadoEm + prazoAprovacaoPendenteMinutos`. O prazo é configurável por instalação entre 15 minutos e 24 horas, com padrão de 12 horas. Um processo interno simples expira pendências vencidas e libera as alocações; a expiração também é revalidada antes de consultar ou ocupar disponibilidade, para não depender exclusivamente da execução periódica.
-
-Somente `PROPRIETARIO` ou o `FUNCIONARIO` vinculado ao profissional da reserva pode confirmar ou rejeitar. Rejeição altera o estado para `CANCELADO` e exige motivo; expiração usa o estado explícito `EXPIRADO`. Ambas encerram a reserva sem apagar o histórico e liberam suas alocações. Uma reserva criada por usuário administrativo nasce `CONFIRMADO`, pois já foi validada por alguém autorizado.
-
-Consequências: disponibilidade e proteção concorrente consideram `PENDENTE` e `CONFIRMADO`; o processamento de expiração é idempotente; confirmar uma pendência vencida é proibido; notificações continuam assíncronas e não determinam o estado.
+Consequências: `PENDENTE`, `EXPIRADO`, `expiraEm`, prazo de aprovação, confirmação e rejeição ficam fora da V1. Aprovação manual futura depende de nova decisão e não autoriza campos, jobs ou endpoints preparatórios.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/02-scope-and-requirements.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/09-quality-strategy.md` e `sdd_kit/11-open-decisions.md`.
 
-### D-016 — Acesso público à reserva — `DECIDED`
+### D-016 — Ausência de acesso público pós-reserva — `DECIDED`
 
-Contexto: o cliente precisa operar uma reserva sem conta e sem depender do futuro provedor de mensagens, mas celular e referência isolados não são autenticação.
+Contexto: oferecer operação pública posterior exigiria credencial, recuperação e superfície de segurança adicionais que não são necessárias à V1 reduzida.
 
-Decisão: cada reserva recebe uma referência pública e um token criptograficamente seguro de 256 bits. A API devolve o token somente na criação e persiste apenas seu hash. O frontend pode montar um link usando fragmento de URL, que não é enviado ao servidor, e apresenta o token à API pelo cabeçalho `X-Token-Agendamento`; token nunca aparece em path, query string ou log.
+Decisão: a criação devolve somente a confirmação necessária ao fluxo atual, sem referência pública ou token. A API não expõe rota pública de operação posterior.
 
-Referência e token juntos autorizam somente a leitura resumida, o cancelamento e o reagendamento daquela reserva. O token vale enquanto a reserva puder ser operada, é invalidado após cancelamento ou início do atendimento e não permite listar outras reservas do mesmo celular. Tentativas inválidas recebem resposta neutra e rate limit.
+Consulta e cancelamento depois da criação exigem sessão administrativa e escopo autorizado. Celular nunca autoriza acesso, e reagendamento não pertence à V1.
 
-Reagendamento mantém serviço e profissional, garante o novo intervalo antes de liberar o anterior e preserva referência e token. Reserva `CONFIRMADO` continua confirmada; `PENDENTE` continua pendente e recebe novo `expiraEm`. Se o token for perdido, a V1 orienta contato com o estabelecimento; recuperação por código enviado ao celular fica para quando houver um provedor concreto.
-
-Consequências: token ausente, inválido ou associado a outra referência produz resposta neutra; estados terminais e o início do atendimento revogam o acesso; mudar de serviço exige cancelar e criar outra reserva; a documentação do frontend deve evitar armazenamento inseguro do token.
+Consequências: não existem referência pública, hash de token, segredo de token, recuperação pública ou endpoint público pós-reserva. Autoatendimento e reagendamento futuros dependem de novas decisões. Mudar horário ou serviço exige cancelar e criar outra reserva.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/02-scope-and-requirements.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/15-api-consumer-documentation.md`.
 
 ### D-017 — Seleção e capacidade de recursos operacionais — `DECIDED`
 
-Decisão: recursos são específicos, como `Sala 1` ou `Aparelho X`, e possuem uma capacidade positiva. O serviço pré-seleciona recursos e quantidades. A reserva grava as alocações efetivas e bloqueia as quantidades junto do profissional.
+Decisão: recursos são específicos, como `Sala 1` ou `Aparelho X`, e possuem capacidade positiva. Cada serviço associa zero ou mais recursos com uma quantidade fixa positiva. A reserva copia essas associações e bloqueia exatamente essas quantidades junto do profissional.
 
-Consequências: capacidade 1 representa um item único; capacidade maior representa unidades equivalentes; disponibilidade considera a soma das alocações sobrepostas; usuários autorizados podem ajustar alocações em reservas manuais, pendentes ou confirmadas, sempre com revalidação, atomicidade e auditoria.
+Consequências: capacidade 1 representa um item único; capacidade maior representa unidades equivalentes; disponibilidade considera a soma das alocações sobrepostas. A V1 não permite escolher, remover, substituir ou ajustar quantidades por reserva.
 
-### D-018 — Obrigatoriedade da pré-seleção de recursos — `DECIDED`
+### D-018 — Quantidade fixa dos recursos do serviço — `DECIDED`
 
-Contexto: recursos pré-selecionados precisam servir tanto como conveniência quanto como requisito operacional, sem criar dois modelos diferentes.
+Contexto: o catálogo simples precisa representar os recursos exigidos sem mínimos, padrões ou edição por reserva.
 
-Decisão: cada `PredefinicaoRecursoServico` possui `quantidadePadrao` positiva e `quantidadeMinima` entre zero e a quantidade padrão. A reserva pública usa exatamente `quantidadePadrao`. Na criação administrativa, análise de pendência ou realocação posterior, usuários autorizados podem alterar ou remover recursos, mas a alocação final nunca pode ficar abaixo do mínimo de cada predefinição do serviço.
+Decisão: cada associação entre serviço e recurso possui somente uma `quantidade` positiva, limitada pela capacidade atual do recurso. Toda reserva do serviço usa exatamente essa configuração.
 
-`quantidadeMinima = 0` torna o recurso totalmente substituível ou removível. Um valor positivo torna obrigatória ao menos aquela quantidade do recurso específico. Recursos adicionais que não fazem parte das predefinições podem ser incluídos administrativamente e possuem mínimo zero para aquela reserva.
-
-Consequências: `0 <= quantidadeMinima <= quantidadePadrao <= capacidade`; toda alteração de alocação revalida os mínimos vigentes do serviço e a capacidade; reservas antigas preservam suas alocações históricas quando a configuração do serviço muda.
+Consequências: `0 < quantidade <= capacidade`; não existem `quantidadePadrao`, `quantidadeMinima` ou recursos adicionais por reserva. Reservas antigas preservam suas alocações históricas quando a configuração do serviço muda.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/02-scope-and-requirements.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/16-scheduling-and-availability.md`.
 
@@ -250,7 +238,7 @@ Consequências: uma instância Spring Boot e um PostgreSQL são suficientes; nã
 
 Contexto: a disponibilidade consultada pelo frontend pode ficar desatualizada antes da criação, e recursos com capacidade maior que um exigem somar alocações concorrentes.
 
-Decisão: o PostgreSQL é a autoridade. A criação ou realocação bloqueia, na mesma transação, a linha do profissional e as linhas dos recursos envolvidos em ordem determinística; depois encerra pendências vencidas, revalida sobreposições e capacidades e grava reserva, alocações e outbox atomicamente. O frontend não cria bloqueio ao selecionar um horário.
+Decisão: o PostgreSQL é a autoridade. A criação bloqueia, na mesma transação, a linha do profissional e as linhas dos recursos envolvidos em ordem determinística; depois revalida sobreposições e capacidades e grava cliente, reserva e alocações atomicamente. O frontend não cria bloqueio ao selecionar um horário.
 
 Consequências: requisições sem participantes comuns continuam paralelas; disputas são serializadas no banco; conflito retorna `409 CONFLITO_AGENDAMENTO`; testes com PostgreSQL real comprovam profissional, recurso e capacidade. Não haverá lock distribuído, Redis ou tabela de unidades de grade na V1.
 
@@ -258,17 +246,15 @@ Documentos afetados: `AGENTS.md`, `sdd_kit/00-index.md`, `sdd_kit/04-business-ru
 
 ### D-023 — Idempotência das operações públicas — `DECIDED`
 
-Contexto: repetição causada por duplo clique, timeout ou perda da resposta não pode duplicar reservas, transições ou eventos.
+Contexto: repetição da criação pública causada por duplo clique, timeout ou perda da resposta não pode duplicar reservas.
 
-Decisão: exigir `Chave-Idempotencia` em toda escrita pública de criação, cancelamento e reagendamento. A chave possui de 16 a 128 caracteres seguros, é tratada como opaca e seu hash é mantido por 24 horas junto da operação, impressão digital do payload e referência do resultado.
+Decisão: exigir `Chave-Idempotencia` na criação pública. A chave possui de 16 a 128 caracteres seguros, é tratada como opaca e seu hash é mantido por 24 horas junto da impressão digital do payload e do resultado interno.
 
-Repetir a mesma operação com a mesma chave e conteúdo devolve o resultado original sem repetir reserva, transição ou evento. Reutilizar a chave na mesma operação com conteúdo diferente retorna `409 CONFLITO_IDEMPOTENCIA`. Uma restrição única e bloqueio transacional coordenam repetições simultâneas.
-
-Para que a criação repetida devolva o mesmo token sem persisti-lo em texto puro, o token de 256 bits é derivado por HMAC-SHA-256 a partir da referência pública e de um segredo próprio da instalação; somente seu hash permanece no banco. O segredo é obrigatório, não aparece em logs e precisa permanecer estável enquanto existirem reservas operáveis.
+Repetir a criação com a mesma chave e conteúdo devolve o resultado original sem repetir a reserva. Reutilizar a chave com conteúdo diferente retorna `409 CONFLITO_IDEMPOTENCIA`. Uma restrição única e bloqueio transacional coordenam repetições simultâneas.
 
 Somente comandos concluídos com sucesso são mantidos como resultado idempotente. Validação, conflito de disponibilidade e falha inesperada não consomem a chave; uma tentativa simultânea aguarda o comando dono da chave e então recebe seu resultado. A limpeza de registros vencidos é idempotente e executada pelo próprio aplicativo.
 
-Consequências: o frontend cria uma chave por intenção do usuário e a reutiliza somente nas retentativas daquela intenção; o escopo combina tipo de operação e hash da chave; o segredo `SEGREDO_TOKEN_AGENDAMENTO` é configuração obrigatória com pelo menos 32 bytes aleatórios.
+Consequências: o frontend cria uma chave por intenção de reserva e a reutiliza somente nas retentativas daquela intenção; não existe segredo de token de agendamento na V1.
 
 Documentos afetados: `SESSION.md`, `TASKS.md`, `sdd_kit/03-domain-model.md`, `sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md`, `sdd_kit/15-api-consumer-documentation.md` e `sdd_kit/16-scheduling-and-availability.md`.
 

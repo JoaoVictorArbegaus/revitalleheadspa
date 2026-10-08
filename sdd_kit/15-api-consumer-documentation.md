@@ -39,12 +39,12 @@ Cada variável deve informar:
 - classificação como segredo ou configuração comum;
 - ambiente em que se aplica.
 
-A referência marca `SEGREDO_TOKEN_AGENDAMENTO`, `PII_ENCRYPTION_KEY` e `PII_LOOKUP_KEY` como segredos distintos e documenta os requisitos de geração e estabilidade. Também explica que produção exige versão do aviso, canal do titular e prazo de retenção definidos pela instalação.
+A referência explica que produção exige a versão vigente do aviso de privacidade definida pela instalação. A política jurídica de retenção é responsabilidade operacional da instalação e não aciona anonimização automática na V1.
 
 ### Autenticação administrativa
 
 - obtenção do token CSRF;
-- login e cookie de sessão;
+- login administrativo por email e cookie de sessão;
 - consulta da identidade atual;
 - envio de CSRF em operações mutáveis;
 - troca de senha;
@@ -57,6 +57,8 @@ Todos os guias usam o modelo RFC 9457 definido em D-006. Exemplos de falha devem
 O guia de recuperação deve informar como parar a aplicação, fornecer as variáveis temporárias, executar o modo sem servidor web, interpretar o código de saída, remover os segredos e reiniciar a instalação.
 
 ### Recursos da API
+
+A superfície pública compreende a consulta de catálogo e disponibilidade e a criação de uma reserva sempre `CONFIRMADO`. Não existe consulta, cancelamento ou outra operação pública após a criação, nem referência ou token público de reserva para autoatendimento. Consulta e mudanças posteriores usam sessão administrativa e CSRF quando mutáveis. Reagendamento não existe na V1, inclusive para usuários administrativos.
 
 Para cada endpoint:
 
@@ -76,23 +78,20 @@ O repositório deve oferecer uma coleção executável pelo IntelliJ HTTP Client
 2. CSRF e login;
 3. criação de profissional;
 4. criação de recurso e capacidade;
-5. criação de serviço e pré-seleções;
-6. configuração de agenda;
+5. criação de serviço e requisitos fixos de recursos;
+6. configuração da agenda do profissional;
 7. consulta pública de disponibilidade;
-8. criação idempotente de reserva;
-9. consulta administrativa e mudança de estado;
-10. cancelamento ou reagendamento público autorizado;
-11. exportação e anonimização de cliente pelo `PROPRIETARIO`;
-12. inspeção e nova tentativa de evento `FALHA_DEFINITIVA`;
-13. logout.
+8. criação pública idempotente de reserva confirmada;
+9. criação administrativa de reserva confirmada;
+10. consulta administrativa e mudança de estado, incluindo cancelamento;
+11. anonimização manual de cliente pelo `PROPRIETARIO`;
+12. logout.
 
-A documentação da outbox lista eventos, payloads versionados, estados, sequência de retentativas, métricas e comportamento do adaptador desabilitado. Não inclui template ou credencial de provedor.
+Os exemplos de criação não retornam credencial, token ou referência destinada a autorizar operações públicas posteriores. O consumidor público informa que alterações futuras dependem de contato com a administração.
 
-Exemplos públicos usam apenas tokens fictícios. O guia explica como manter o token no fragmento do link, enviá-lo por `X-Token-Agendamento`, evitar logs e tratar a perda do segredo sem tentar localizar reservas por celular.
+Os exemplos geram uma `Chave-Idempotencia` por intenção de criação, repetem a mesma chave somente em retentativas e demonstram `409 CONFLITO_IDEMPOTENCIA`.
 
-Os exemplos geram uma `Chave-Idempotencia` por intenção, repetem a mesma chave somente em retentativas e demonstram `409 CONFLITO_IDEMPOTENCIA`. A referência de configuração marca `SEGREDO_TOKEN_AGENDAMENTO` como segredo obrigatório e explica seu requisito de estabilidade.
-
-O guia de privacidade diferencia ciência do aviso e consentimento de marketing, documenta as operações do titular, a anonimização automática e o procedimento de reaplicação após restauração de backup. O texto não escolhe base legal ou prazo em nome da instalação.
+O guia de privacidade documenta a ciência do aviso e a anonimização manual iniciada por `PROPRIETARIO`. Também descreve o procedimento operacional para reaplicar manualmente anonimizações posteriores ao ponto de restauração de um backup. O texto não escolhe base legal ou prazo em nome da instalação.
 
 ### Catálogo de erros
 
@@ -140,6 +139,8 @@ A documentação está pronta quando:
 - campos, permissões, estados e erros não dependem da leitura do código;
 - links internos e exemplos são verificados;
 - nenhuma credencial, token ou dado pessoal real está presente;
+- nenhum endpoint ou exemplo oferece autoatendimento público após a criação da reserva;
+- nenhuma configuração ou operação depende de notificação ou outbox;
 - incompatibilidades entre documentação, OpenAPI e comportamento falham na validação da entrega.
 
 ## Regra contra duplicação

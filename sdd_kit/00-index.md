@@ -10,7 +10,7 @@ Leia este arquivo primeiro e abra apenas os documentos necessários para a taref
 | [04-business-rules.md](04-business-rules.md) | disponibilidade, reserva, cancelamento e concorrência |
 | [05-user-flows.md](05-user-flows.md) | jornadas pública e administrativa |
 | [06-api-contract.md](06-api-contract.md) | recursos HTTP, contratos, erros e idempotência |
-| [07-data-privacy-security.md](07-data-privacy-security.md) | CPF, celular, LGPD, acesso, logs e retenção |
+| [07-data-privacy-security.md](07-data-privacy-security.md) | dados pessoais mínimos, aviso de privacidade, acesso, logs e anonimização manual |
 | [08-architecture.md](08-architecture.md) | módulos, fronteiras, implantação e integrações |
 | [09-quality-strategy.md](09-quality-strategy.md) | testes, validação e critérios de qualidade |
 | [10-roadmap.md](10-roadmap.md) | sequência de entregas e evolução do produto |
@@ -20,7 +20,7 @@ Leia este arquivo primeiro e abra apenas os documentos necessários para a taref
 | [14-v1-boundaries.md](14-v1-boundaries.md) | limites funcionais, técnicos e de atuação da LLM na V1 |
 | [15-api-consumer-documentation.md](15-api-consumer-documentation.md) | entregáveis e critérios da documentação para consumidores da API |
 | [16-scheduling-and-availability.md](16-scheduling-and-availability.md) | persistência da agenda, cálculo de horários, concorrência e integração do calendário |
-| [17-notifications-outbox.md](17-notifications-outbox.md) | eventos notificáveis, worker, retentativas e fronteira de provedores |
+| [17-notifications-outbox.md](17-notifications-outbox.md) | referência histórica fora da V1; comunicação futura exige nova decisão e provedor concreto |
 | [18-technical-foundation.md](18-technical-foundation.md) | identidade do produto-base, stack, pacotes, convenções e configuração inicial |
 
 ## Ordem sugerida para uma nova tarefa
