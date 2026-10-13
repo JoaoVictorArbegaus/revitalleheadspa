@@ -3,6 +3,7 @@ package com.servicescheduling.api.compartilhado.infraestrutura.documentacao;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.media.ArraySchema;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
+import java.util.List;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +37,9 @@ public class ConfiguracaoOpenApi {
                 .addProperty("status", new IntegerSchema().example(422))
                 .addProperty("detail", new StringSchema().example("A solicitacao possui campos invalidos"))
                 .addProperty("instance", new StringSchema().format("uri").example("urn:rastreio:550e8400-e29b-41d4-a716-446655440000"))
-                .addProperty("codigo", new StringSchema().example("FALHA_VALIDACAO"))
+                .addProperty("codigo", new StringSchema()
+                        .description("Codigo estavel do erro; a lista completa esta em docs/catalogo-erros.md")
+                        .example("FALHA_VALIDACAO"))
                 .addProperty("idRastreio", new StringSchema().example("550e8400-e29b-41d4-a716-446655440000"))
                 .addProperty("errosCampos", new ArraySchema().items(new Schema<>().$ref("#/components/schemas/ErroCampo")))
                 .required(java.util.List.of("type", "title", "status", "detail", "instance", "codigo", "idRastreio"));
@@ -168,6 +172,43 @@ public class ConfiguracaoOpenApi {
             configurar(openApi, "/api/v1/administracao/clientes/{id}/anonimizar", "post", true, true,
                     "204", "400", "401", "403", "404", "409", "415", "422", "500");
         };
+    }
+
+    @Bean
+    OpenApiCustomizer documentarPapeis() {
+        return openApi -> {
+            if (openApi.getPaths() == null) {
+                return;
+            }
+            openApi.getPaths().forEach((caminho, item) -> item.readOperationsMap().forEach((metodo, operacao) -> {
+                List<String> papeis = papeis(caminho, metodo);
+                operacao.addExtension("x-papeis", papeis);
+                String escopo = papeis.contains("FUNCIONARIO") && !caminho.startsWith("/api/v1/administracao/recursos")
+                        ? " FUNCIONARIO opera somente o profissional vinculado; entidades de outro profissional"
+                                + " respondem como nao encontrados."
+                        : "";
+                operacao.setDescription("Acesso: " + String.join(", ", papeis) + "." + escopo);
+            }));
+        };
+    }
+
+    static List<String> papeis(String caminho, PathItem.HttpMethod metodo) {
+        if (caminho.startsWith("/api/v1/publico/")
+                || caminho.equals("/api/v1/administracao/autenticacao/csrf")
+                || caminho.equals("/api/v1/administracao/autenticacao/entrar")) {
+            return List.of("PUBLICO");
+        }
+        if (caminho.startsWith("/api/v1/administracao/autenticacao/")) {
+            return List.of("AUTENTICADO");
+        }
+        if (caminho.startsWith("/api/v1/administracao/usuarios")
+                || caminho.startsWith("/api/v1/administracao/profissionais")
+                || caminho.startsWith("/api/v1/administracao/clientes")
+                || (caminho.startsWith("/api/v1/administracao/recursos") && !(caminho.equals(
+                        "/api/v1/administracao/recursos") && metodo == PathItem.HttpMethod.GET))) {
+            return List.of("PROPRIETARIO");
+        }
+        return List.of("PROPRIETARIO", "FUNCIONARIO");
     }
 
     private void configurar(

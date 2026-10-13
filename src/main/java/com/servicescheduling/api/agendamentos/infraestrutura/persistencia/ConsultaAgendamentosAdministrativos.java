@@ -6,6 +6,7 @@ import com.servicescheduling.api.agendamentos.aplicacao.DadosAgendamentoAdminist
 import com.servicescheduling.api.agendamentos.aplicacao.DadosAgendamentoAdministrativo.RecursoAlocado;
 import com.servicescheduling.api.agendamentos.aplicacao.DadosAgendamentoAdministrativo.ServicoAgendamento;
 import com.servicescheduling.api.agendamentos.dominio.EstadoAgendamento;
+import com.servicescheduling.api.agendamentos.dominio.OrigemAgendamento;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -108,8 +109,8 @@ public class ConsultaAgendamentosAdministrativos {
     private Linha linha(ResultSet resultado) throws SQLException {
         return new Linha(
                 resultado.getObject("id", UUID.class),
-                resultado.getString("estado"),
-                resultado.getString("origem"),
+                EstadoAgendamento.valueOf(resultado.getString("estado")),
+                OrigemAgendamento.valueOf(resultado.getString("origem")),
                 resultado.getObject("cliente_id", UUID.class),
                 resultado.getString("nome_cliente_informado"),
                 resultado.getString("celular_cliente_informado"),
@@ -139,8 +140,8 @@ public class ConsultaAgendamentosAdministrativos {
 
     private record Linha(
             UUID id,
-            String estado,
-            String origem,
+            EstadoAgendamento estado,
+            OrigemAgendamento origem,
             UUID clienteId,
             String nomeCliente,
             String celularCliente,

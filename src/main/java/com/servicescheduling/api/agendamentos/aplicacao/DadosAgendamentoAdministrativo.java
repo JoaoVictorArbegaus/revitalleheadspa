@@ -1,5 +1,7 @@
 package com.servicescheduling.api.agendamentos.aplicacao;
 
+import com.servicescheduling.api.agendamentos.dominio.EstadoAgendamento;
+import com.servicescheduling.api.agendamentos.dominio.OrigemAgendamento;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -7,8 +9,8 @@ import java.util.UUID;
 
 public record DadosAgendamentoAdministrativo(
         UUID id,
-        String estado,
-        String origem,
+        EstadoAgendamento estado,
+        OrigemAgendamento origem,
         ClienteAgendamento cliente,
         ServicoAgendamento servico,
         ProfissionalAgendamento profissional,

@@ -276,7 +276,7 @@ cliente deve tratar `status` e `codigo`; textos humanos podem evoluir.
 }
 ```
 
-Erros principais do fluxo:
+Erros principais do fluxo (lista completa em [catalogo-erros.md](catalogo-erros.md)):
 
 | Status | `codigo` | Tratamento esperado |
 |---:|---|---|

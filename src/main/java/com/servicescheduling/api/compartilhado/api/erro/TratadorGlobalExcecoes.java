@@ -148,7 +148,7 @@ public class TratadorGlobalExcecoes extends ResponseEntityExceptionHandler {
             case BAD_REQUEST -> "SOLICITACAO_MALFORMADA";
             case METHOD_NOT_ALLOWED -> "METODO_NAO_PERMITIDO";
             case UNSUPPORTED_MEDIA_TYPE -> "TIPO_MIDIA_NAO_SUPORTADO";
-            case NOT_FOUND -> "RECURSO_NAO_ENCONTRADO";
+            case NOT_FOUND -> "ROTA_NAO_ENCONTRADA";
             default -> status.is5xxServerError() ? "ERRO_INTERNO" : "SOLICITACAO_INVALIDA";
         };
         ProblemDetail problema = criarProblema(

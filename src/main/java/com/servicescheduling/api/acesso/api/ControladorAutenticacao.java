@@ -4,6 +4,7 @@ import com.servicescheduling.api.acesso.aplicacao.DadosUsuarioAdministrativo;
 import com.servicescheduling.api.acesso.aplicacao.ServicoAutenticacaoAdministrativa;
 import com.servicescheduling.api.acesso.dominio.UsuarioAdministrativo;
 import com.servicescheduling.api.acesso.infraestrutura.seguranca.PrincipalAdministrativo;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -48,7 +49,7 @@ public class ControladorAutenticacao {
     }
 
     @GetMapping("/csrf")
-    TokenCsrf obterCsrf(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+    TokenCsrf obterCsrf(@Parameter(hidden = true) CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
         repositorioCsrf.saveToken(token, request, response);
         return new TokenCsrf(token.getToken(), token.getHeaderName());
     }

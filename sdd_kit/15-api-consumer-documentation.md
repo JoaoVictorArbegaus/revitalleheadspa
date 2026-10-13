@@ -78,6 +78,20 @@ A documentação está pronta quando:
 - nenhum endpoint ou exemplo oferece autoatendimento público após a criação da reserva;
 - incompatibilidades entre documentação, OpenAPI e comportamento falham na validação da entrega.
 
+## Localização e validação
+
+- OpenAPI gerado em `/api-docs`, com papéis por operação em `x-papeis`;
+- guia em [`docs/guia-frontend.md`](../docs/guia-frontend.md);
+- catálogo em [`docs/catalogo-erros.md`](../docs/catalogo-erros.md);
+- exemplos em [`docs/catalogo-api.http`](../docs/catalogo-api.http), com datas e
+  chaves geradas a cada execução e asserções de status.
+
+`ContratoDocumentacaoTest` falha quando o catálogo diverge dos códigos emitidos,
+quando um exemplo usa operação ausente do OpenAPI, quando `x-papeis` diverge da
+autorização real ou quando um link interno da documentação não resolve. A execução
+dos exemplos contra a API em Docker Compose usa a imagem
+`jetbrains/intellij-http-client` e não faz parte do build.
+
 ## Regra contra duplicação
 
 Não manter manualmente duas descrições completas do mesmo schema. OpenAPI define a estrutura; Markdown explica intenção, sequência, regras e exemplos. Quando possível, tabelas e clientes derivados do contrato devem ser gerados ou validados automaticamente.

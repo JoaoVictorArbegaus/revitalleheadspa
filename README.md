@@ -136,6 +136,9 @@ funcionalidade entregue exige classes reais.
 - [sdd_kit/15-api-consumer-documentation.md](sdd_kit/15-api-consumer-documentation.md): contrato e guia para desenvolvimento do frontend.
 - [sdd_kit/18-technical-foundation.md](sdd_kit/18-technical-foundation.md): identidade, stack e convenções para iniciar o código.
 - [docs/autenticacao-administrativa.md](docs/autenticacao-administrativa.md): bootstrap, sessão, CSRF, usuários e recuperação administrativa.
+- [docs/guia-frontend.md](docs/guia-frontend.md): sequência e regras para consumir a API no frontend.
+- [docs/catalogo-erros.md](docs/catalogo-erros.md): códigos de erro estáveis e ação esperada do consumidor.
+- [docs/catalogo-api.http](docs/catalogo-api.http): exemplos executáveis pelo IntelliJ HTTP Client.
 
 Antes de codificar, resolva as decisões bloqueantes registradas em `sdd_kit/11-open-decisions.md` e atualize os documentos afetados.
 

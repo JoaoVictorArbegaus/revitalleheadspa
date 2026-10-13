@@ -1,15 +1,45 @@
 @baseUrl = http://localhost:8080
 @email = proprietario@example.test
 @senha = substitua-por-uma-senha-local
-@chaveIdempotencia = 550e8400-e29b-41d4-a716-446655440000
-@chaveIdempotenciaAdministrativa = 6f1c2d3e-4b5a-4c6d-8e7f-901234567890
+
+# Exemplos executáveis pelo IntelliJ HTTP Client, na ordem do arquivo, contra uma
+# instalação local com dados fictícios. Datas, chaves de idempotência, celulares e
+# emails são gerados a cada execução; o arquivo pode ser executado mais de uma vez.
+
+### 1. Sem sessão, a área administrativa responde 401
+< {%
+const base = new Date(Date.now() + 2 * 86400000);
+while (base.getUTCDay() !== 1) {
+  base.setUTCDate(base.getUTCDate() + 1);
+}
+const dia = (deslocamento) => new Date(base.getTime() + deslocamento * 86400000).toISOString().slice(0, 10);
+const sufixo = Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+client.global.set("segunda", dia(0));
+client.global.set("domingo", dia(6));
+client.global.set("sufixo", sufixo);
+client.global.set("celularPublico", "(11) 9" + sufixo.slice(-8, -4) + "-" + sufixo.slice(-4));
+client.global.set("celularBalcao", "+55 21 9" + sufixo.slice(-8));
+client.global.set("chavePublica", "publica-" + sufixo);
+client.global.set("chaveConflito", "conflito-" + sufixo);
+client.global.set("chaveAviso", "aviso-" + sufixo);
+client.global.set("chaveAdministrativa", "administrativa-" + sufixo);
+client.global.set("chaveAdministrativaConflito", "administrativa-conflito-" + sufixo);
+client.global.set("chaveBloqueada", "administrativa-bloqueada-" + sufixo);
+%}
+GET {{baseUrl}}/api/v1/administracao/autenticacao/eu
+
+> {%
+client.test("Sem sessao", function () {
+  client.assert(response.status === 401, "Esperado 401");
+});
+%}
 
 ### Obter CSRF e cookies
 GET {{baseUrl}}/api/v1/administracao/autenticacao/csrf
 
 > {% client.global.set("csrf", response.body.token); %}
 
-### Entrar
+### Entrar como proprietário
 POST {{baseUrl}}/api/v1/administracao/autenticacao/entrar
 Content-Type: application/json
 X-CSRF-TOKEN: {{csrf}}
@@ -18,6 +48,38 @@ X-CSRF-TOKEN: {{csrf}}
   "email": "{{email}}",
   "senha": "{{senha}}"
 }
+
+> {%
+client.test("Login", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Consultar a identidade atual
+GET {{baseUrl}}/api/v1/administracao/autenticacao/eu
+
+> {%
+client.test("Identidade", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.papel === "PROPRIETARIO", "Esperado PROPRIETARIO");
+});
+%}
+
+### 2. Escrita sem X-CSRF-TOKEN responde 403
+POST {{baseUrl}}/api/v1/administracao/profissionais
+Content-Type: application/json
+
+{
+  "nome": "Sem CSRF",
+  "ativo": true
+}
+
+> {%
+client.test("CSRF obrigatorio", function () {
+  client.assert(response.status === 403, "Esperado 403");
+  client.assert(response.body.codigo === "FALHA_VALIDACAO_CSRF", "Esperado FALHA_VALIDACAO_CSRF");
+});
+%}
 
 ### Criar profissional
 POST {{baseUrl}}/api/v1/administracao/profissionais
@@ -29,7 +91,29 @@ X-CSRF-TOKEN: {{csrf}}
   "ativo": true
 }
 
-> {% client.global.set("profissionalId", response.body.id); %}
+> {%
+client.test("Profissional criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+client.global.set("profissionalId", response.body.id);
+%}
+
+### Criar segundo profissional, sem serviços, para a conta de funcionário
+POST {{baseUrl}}/api/v1/administracao/profissionais
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "nome": "Profissional Equipe",
+  "ativo": true
+}
+
+> {%
+client.test("Segundo profissional criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+client.global.set("profissionalEquipeId", response.body.id);
+%}
 
 ### Criar recurso
 POST {{baseUrl}}/api/v1/administracao/recursos
@@ -42,7 +126,36 @@ X-CSRF-TOKEN: {{csrf}}
   "ativo": true
 }
 
-> {% client.global.set("recursoId", response.body.id); %}
+> {%
+client.test("Recurso criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+client.global.set("recursoId", response.body.id);
+%}
+
+### Validação de campos responde 422 com errosCampos
+POST {{baseUrl}}/api/v1/administracao/servicos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "profissionalId": "{{profissionalId}}",
+  "nome": "",
+  "duracaoMinutos": 0,
+  "intervaloLimpezaMinutos": 0,
+  "preco": 120.00,
+  "ativo": true,
+  "ordemExibicao": 0,
+  "requisitosRecursos": []
+}
+
+> {%
+client.test("Validacao", function () {
+  client.assert(response.status === 422, "Esperado 422");
+  client.assert(response.body.codigo === "FALHA_VALIDACAO", "Esperado FALHA_VALIDACAO");
+  client.assert(response.body.errosCampos.length === 2, "Esperados dois campos invalidos");
+});
+%}
 
 ### Criar serviço
 POST {{baseUrl}}/api/v1/administracao/servicos
@@ -66,12 +179,14 @@ X-CSRF-TOKEN: {{csrf}}
   ]
 }
 
-> {% client.global.set("servicoId", response.body.id); %}
+> {%
+client.test("Servico criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+client.global.set("servicoId", response.body.id);
+%}
 
-### Catálogo público
-GET {{baseUrl}}/api/v1/publico/servicos
-
-### Substituir expediente semanal
+### 3. Substituir expediente semanal
 PUT {{baseUrl}}/api/v1/administracao/agenda/semanal
 Content-Type: application/json
 X-CSRF-TOKEN: {{csrf}}
@@ -84,115 +199,324 @@ X-CSRF-TOKEN: {{csrf}}
   ]
 }
 
+> {%
+client.test("Expediente", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.janelas.length === 2, "Esperadas duas janelas");
+});
+%}
+
 ### Consultar expediente semanal
 GET {{baseUrl}}/api/v1/administracao/agenda/semanal?profissionalId={{profissionalId}}
 
-### Criar bloqueio
+> {%
+client.test("Consulta do expediente", function () {
+  client.assert(response.status === 200, "Esperado 200");
+});
+%}
+
+### Criar bloqueio das 14h às 15h
 POST {{baseUrl}}/api/v1/administracao/agenda/bloqueios
 Content-Type: application/json
 X-CSRF-TOKEN: {{csrf}}
 
 {
   "profissionalId": "{{profissionalId}}",
-  "inicioEm": "2026-10-12T13:00:00-03:00",
-  "fimEm": "2026-10-12T14:00:00-03:00"
+  "inicioEm": "{{segunda}}T14:00:00-03:00",
+  "fimEm": "{{segunda}}T15:00:00-03:00"
 }
 
-> {% client.global.set("bloqueioId", response.body.id); %}
+> {%
+client.test("Bloqueio criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+client.global.set("bloqueioId", response.body.id);
+%}
 
 ### Listar bloqueios
-GET {{baseUrl}}/api/v1/administracao/agenda/bloqueios?profissionalId={{profissionalId}}&dataInicial=2026-10-01&dataFinal=2026-10-31
+GET {{baseUrl}}/api/v1/administracao/agenda/bloqueios?profissionalId={{profissionalId}}&dataInicial={{segunda}}&dataFinal={{domingo}}
+
+> {%
+client.test("Lista de bloqueios", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.length === 1, "Esperado um bloqueio");
+});
+%}
+
+### 4. Catálogo público
+GET {{baseUrl}}/api/v1/publico/servicos
+
+> {%
+client.test("Catalogo", function () {
+  client.assert(response.status === 200, "Esperado 200");
+});
+%}
 
 ### Consultar disponibilidade pública
-GET {{baseUrl}}/api/v1/publico/servicos/{{servicoId}}/disponibilidade?dataInicial=2026-10-12&dataFinal=2026-10-18
+GET {{baseUrl}}/api/v1/publico/servicos/{{servicoId}}/disponibilidade?dataInicial={{segunda}}&dataFinal={{domingo}}
+
+> {%
+client.test("Disponibilidade", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.dias[0].horarios[0].inicioEm.indexOf("T09:00:00-03:00") > 0, "Esperado inicio as 9h");
+});
+%}
 
 ### Consultar aviso de privacidade
 GET {{baseUrl}}/api/v1/publico/aviso-privacidade
 
-> {% client.global.set("versaoAvisoPrivacidade", response.body.versao); %}
+> {%
+client.test("Aviso", function () {
+  client.assert(response.status === 200, "Esperado 200");
+});
+client.global.set("versaoAvisoPrivacidade", response.body.versao);
+%}
 
-### Criar reserva pública
+### 5. Criar reserva pública
 POST {{baseUrl}}/api/v1/publico/agendamentos
 Content-Type: application/json
-Chave-Idempotencia: {{chaveIdempotencia}}
+Chave-Idempotencia: {{chavePublica}}
 
 {
   "servicoId": "{{servicoId}}",
-  "inicioEm": "2026-10-12T09:00:00-03:00",
+  "inicioEm": "{{segunda}}T09:00:00-03:00",
   "cliente": {
     "nome": "Cliente Exemplo",
-    "celular": "(11) 99999-0000"
-  },
-  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
-  "cienteAvisoPrivacidade": true
-}
-
-### Repetir criação com o mesmo resultado
-POST {{baseUrl}}/api/v1/publico/agendamentos
-Content-Type: application/json
-Chave-Idempotencia: {{chaveIdempotencia}}
-
-{
-  "servicoId": "{{servicoId}}",
-  "inicioEm": "2026-10-12T09:00:00-03:00",
-  "cliente": {
-    "nome": "Cliente Exemplo",
-    "celular": "+5511999990000"
-  },
-  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
-  "cienteAvisoPrivacidade": true
-}
-
-### Rejeitar a mesma chave com conteúdo diferente
-POST {{baseUrl}}/api/v1/publico/agendamentos
-Content-Type: application/json
-Chave-Idempotencia: {{chaveIdempotencia}}
-
-{
-  "servicoId": "{{servicoId}}",
-  "inicioEm": "2026-10-12T09:15:00-03:00",
-  "cliente": {
-    "nome": "Cliente Exemplo",
-    "celular": "+5511999990000"
+    "celular": "{{celularPublico}}"
   },
   "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
   "cienteAvisoPrivacidade": true
 }
 
 > {%
-client.test("A chave divergente e rejeitada", function () {
-  client.assert(response.status === 409, "Esperado estado 409");
-  client.assert(response.body.codigo === "CONFLITO_IDEMPOTENCIA", "Esperado conflito de idempotencia");
+client.test("Reserva publica", function () {
+  client.assert(response.status === 201, "Esperado 201");
+  client.assert(response.body.estado === "CONFIRMADO", "Esperado CONFIRMADO");
+  client.assert(response.body.agendamentoId === undefined, "Sem identificador publico");
 });
 %}
 
-### Criar reserva administrativa
-POST {{baseUrl}}/api/v1/administracao/agendamentos
+### Repetir a criação com a mesma chave devolve o mesmo resultado
+POST {{baseUrl}}/api/v1/publico/agendamentos
 Content-Type: application/json
-X-CSRF-TOKEN: {{csrf}}
-Chave-Idempotencia: {{chaveIdempotenciaAdministrativa}}
+Chave-Idempotencia: {{chavePublica}}
 
 {
   "servicoId": "{{servicoId}}",
-  "inicioEm": "2026-10-12T10:30:00-03:00",
+  "inicioEm": "{{segunda}}T09:00:00-03:00",
   "cliente": {
-    "nome": "Cliente Balcao",
-    "celular": "(11) 98888-0000"
+    "nome": "Cliente Exemplo",
+    "celular": "{{celularPublico}}"
   },
   "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
   "cienteAvisoPrivacidade": true
 }
 
 > {%
+client.test("Retentativa idempotente", function () {
+  client.assert(response.status === 201, "Esperado 201");
+});
+%}
+
+### Reutilizar a chave com conteúdo diferente responde 409
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chavePublica}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T09:15:00-03:00",
+  "cliente": {
+    "nome": "Cliente Exemplo",
+    "celular": "{{celularPublico}}"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Chave divergente", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "CONFLITO_IDEMPOTENCIA", "Esperado CONFLITO_IDEMPOTENCIA");
+});
+%}
+
+### Horário já ocupado responde 409
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chaveConflito}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T09:00:00-03:00",
+  "cliente": {
+    "nome": "Outro Cliente",
+    "celular": "{{celularBalcao}}"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Conflito de agenda", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "CONFLITO_AGENDAMENTO", "Esperado CONFLITO_AGENDAMENTO");
+});
+%}
+
+### Aviso de privacidade desatualizado responde 409
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chaveAviso}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T11:00:00-03:00",
+  "cliente": {
+    "nome": "Cliente Exemplo",
+    "celular": "{{celularPublico}}"
+  },
+  "versaoAvisoPrivacidade": "versao-anterior",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Aviso desatualizado", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "AVISO_PRIVACIDADE_DESATUALIZADO", "Esperado aviso desatualizado");
+});
+%}
+
+### 6. Criar reserva administrativa
+POST {{baseUrl}}/api/v1/administracao/agendamentos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+Chave-Idempotencia: {{chaveAdministrativa}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T10:30:00-03:00",
+  "cliente": {
+    "nome": "Cliente Balcao",
+    "celular": "{{celularBalcao}}"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Reserva administrativa", function () {
+  client.assert(response.status === 201, "Esperado 201");
+  client.assert(response.body.origem === "ADMINISTRACAO", "Esperado ADMINISTRACAO");
+  client.assert(response.headers.valueOf("Location") !== null, "Esperado Location");
+});
 client.global.set("agendamentoId", response.body.id);
 client.global.set("clienteId", response.body.cliente.id);
 %}
 
-### Listar reservas do período
-GET {{baseUrl}}/api/v1/administracao/agendamentos?dataInicial=2026-10-12&dataFinal=2026-10-18&estado=CONFIRMADO
+### Criação administrativa também respeita conflitos
+POST {{baseUrl}}/api/v1/administracao/agendamentos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+Chave-Idempotencia: {{chaveAdministrativaConflito}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T10:30:00-03:00",
+  "cliente": {
+    "nome": "Outro Cliente",
+    "celular": "{{celularPublico}}"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Conflito administrativo", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "CONFLITO_AGENDAMENTO", "Esperado CONFLITO_AGENDAMENTO");
+});
+%}
+
+### Criação administrativa também respeita bloqueios
+POST {{baseUrl}}/api/v1/administracao/agendamentos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+Chave-Idempotencia: {{chaveBloqueada}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "{{segunda}}T14:00:00-03:00",
+  "cliente": {
+    "nome": "Outro Cliente",
+    "celular": "{{celularPublico}}"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("Bloqueio respeitado", function () {
+  client.assert(response.status === 409, "Esperado 409");
+});
+%}
+
+### Listar reservas confirmadas da semana
+GET {{baseUrl}}/api/v1/administracao/agendamentos?dataInicial={{segunda}}&dataFinal={{domingo}}&profissionalId={{profissionalId}}&estado=CONFIRMADO
+
+> {%
+client.test("Lista de reservas", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.length === 2, "Esperadas as reservas publica e administrativa");
+});
+%}
 
 ### Consultar reserva
 GET {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}
+
+> {%
+client.test("Detalhe da reserva", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.recursos.length === 1, "Esperado um recurso alocado");
+});
+%}
+
+### Concluir antes do início responde 409
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/concluir
+X-CSRF-TOKEN: {{csrf}}
+
+> {%
+client.test("Conclusao antecipada", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "TRANSICAO_AGENDAMENTO_INVALIDA", "Esperada transicao invalida");
+});
+%}
+
+### Registrar ausência antes do início responde 409
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/nao-compareceu
+X-CSRF-TOKEN: {{csrf}}
+
+> {%
+client.test("Ausencia antecipada", function () {
+  client.assert(response.status === 409, "Esperado 409");
+});
+%}
+
+### 7. Anonimizar cliente com reserva futura responde 409
+POST {{baseUrl}}/api/v1/administracao/clientes/{{clienteId}}/anonimizar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "motivo": "Solicitacao do titular verificada pelo canal operacional"
+}
+
+> {%
+client.test("Reserva futura impede anonimizacao", function () {
+  client.assert(response.status === 409, "Esperado 409");
+  client.assert(response.body.codigo === "CLIENTE_POSSUI_RESERVA_FUTURA", "Esperada reserva futura");
+});
+%}
 
 ### Cancelar reserva antes do início
 POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/cancelar
@@ -203,18 +527,39 @@ X-CSRF-TOKEN: {{csrf}}
   "motivo": "Cliente solicitou cancelamento por telefone"
 }
 
-### Concluir reserva a partir do início
-POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/concluir
+> {%
+client.test("Cancelamento", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.estado === "CANCELADO", "Esperado CANCELADO");
+});
+%}
+
+### Cancelar novamente responde 409
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/cancelar
+Content-Type: application/json
 X-CSRF-TOKEN: {{csrf}}
 
-### Registrar ausência a partir do início
-POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/nao-compareceu
-X-CSRF-TOKEN: {{csrf}}
+{
+  "motivo": "Repeticao"
+}
 
-### Consultar cliente (somente PROPRIETARIO)
+> {%
+client.test("Cancelamento repetido", function () {
+  client.assert(response.status === 409, "Esperado 409");
+});
+%}
+
+### Consultar cliente
 GET {{baseUrl}}/api/v1/administracao/clientes/{{clienteId}}
 
-### Anonimizar cliente sem reserva futura confirmada (somente PROPRIETARIO)
+> {%
+client.test("Cliente", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.anonimizadoEm === null, "Cliente ainda identificado");
+});
+%}
+
+### Anonimizar cliente sem reserva futura confirmada
 POST {{baseUrl}}/api/v1/administracao/clientes/{{clienteId}}/anonimizar
 Content-Type: application/json
 X-CSRF-TOKEN: {{csrf}}
@@ -223,6 +568,164 @@ X-CSRF-TOKEN: {{csrf}}
   "motivo": "Solicitacao do titular verificada pelo canal operacional"
 }
 
+> {%
+client.test("Anonimizacao", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Reserva preserva o histórico sem dados pessoais
+GET {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}
+
+> {%
+client.test("Historico anonimizado", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.cliente.nome === null, "Nome removido");
+  client.assert(response.body.cliente.celular === null, "Celular removido");
+});
+%}
+
 ### Remover bloqueio
 DELETE {{baseUrl}}/api/v1/administracao/agenda/bloqueios/{{bloqueioId}}
 X-CSRF-TOKEN: {{csrf}}
+
+> {%
+client.test("Bloqueio removido", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### 8. Criar funcionário vinculado ao segundo profissional
+POST {{baseUrl}}/api/v1/administracao/usuarios
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "nome": "Funcionario Exemplo",
+  "email": "funcionario-{{sufixo}}@example.test",
+  "senhaTemporaria": "senha-temporaria-ficticia",
+  "profissionalId": "{{profissionalEquipeId}}"
+}
+
+> {%
+client.test("Funcionario criado", function () {
+  client.assert(response.status === 201, "Esperado 201");
+  client.assert(response.body.deveAlterarSenha === true, "Senha temporaria");
+});
+%}
+
+### Sair como proprietário
+POST {{baseUrl}}/api/v1/administracao/autenticacao/sair
+X-CSRF-TOKEN: {{csrf}}
+
+> {%
+client.test("Logout", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Entrar como funcionário com senha temporária
+POST {{baseUrl}}/api/v1/administracao/autenticacao/entrar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "email": "funcionario-{{sufixo}}@example.test",
+  "senha": "senha-temporaria-ficticia"
+}
+
+> {%
+client.test("Login do funcionario", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Senha temporária bloqueia as demais operações
+GET {{baseUrl}}/api/v1/administracao/agendamentos?dataInicial={{segunda}}&dataFinal={{domingo}}
+
+> {%
+client.test("Troca de senha obrigatoria", function () {
+  client.assert(response.status === 403, "Esperado 403");
+  client.assert(response.body.codigo === "ACESSO_NEGADO", "Esperado ACESSO_NEGADO");
+});
+%}
+
+### Trocar a senha temporária
+PUT {{baseUrl}}/api/v1/administracao/autenticacao/senha
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "senhaAtual": "senha-temporaria-ficticia",
+  "novaSenha": "nova-senha-ficticia-segura"
+}
+
+> {%
+client.test("Senha trocada", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Entrar novamente com a nova senha
+POST {{baseUrl}}/api/v1/administracao/autenticacao/entrar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "email": "funcionario-{{sufixo}}@example.test",
+  "senha": "nova-senha-ficticia-segura"
+}
+
+> {%
+client.test("Novo login do funcionario", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}
+
+### Funcionário não gerencia usuários
+GET {{baseUrl}}/api/v1/administracao/usuarios
+
+> {%
+client.test("Sem gestao de usuarios", function () {
+  client.assert(response.status === 403, "Esperado 403");
+});
+%}
+
+### Funcionário só lista recursos
+GET {{baseUrl}}/api/v1/administracao/recursos
+
+> {%
+client.test("Lista de recursos", function () {
+  client.assert(response.status === 200, "Esperado 200");
+});
+%}
+
+### Funcionário vê somente reservas do profissional vinculado
+GET {{baseUrl}}/api/v1/administracao/agendamentos?dataInicial={{segunda}}&dataFinal={{domingo}}&profissionalId={{profissionalId}}
+
+> {%
+client.test("Escopo da listagem", function () {
+  client.assert(response.status === 200, "Esperado 200");
+  client.assert(response.body.length === 0, "Filtro de outro profissional ignorado");
+});
+%}
+
+### Reserva de outro profissional responde 404
+GET {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}
+
+> {%
+client.test("Escopo do detalhe", function () {
+  client.assert(response.status === 404, "Esperado 404");
+  client.assert(response.body.codigo === "AGENDAMENTO_NAO_ENCONTRADO", "Esperado AGENDAMENTO_NAO_ENCONTRADO");
+});
+%}
+
+### Sair como funcionário
+POST {{baseUrl}}/api/v1/administracao/autenticacao/sair
+X-CSRF-TOKEN: {{csrf}}
+
+> {%
+client.test("Logout do funcionario", function () {
+  client.assert(response.status === 204, "Esperado 204");
+});
+%}

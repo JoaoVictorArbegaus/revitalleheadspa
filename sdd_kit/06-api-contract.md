@@ -411,84 +411,22 @@ Cada item de `errosCampos` contém:
 
 O valor rejeitado não é devolvido, porque pode conter dados pessoais ou segredos. A ordem de `errosCampos` não faz parte do contrato.
 
-Status e códigos iniciais:
+Os códigos estáveis, com status, condição e ação esperada do consumidor, ficam em
+[`docs/catalogo-erros.md`](../docs/catalogo-erros.md), que é validado
+automaticamente contra os códigos emitidos pela API. Resumo dos status:
 
-| Situação | Status | `codigo` |
-|---|---:|---|
-| corpo ou parâmetro ilegível | `400` | `SOLICITACAO_MALFORMADA` |
-| autenticação ausente ou credencial inválida | `401` | `AUTENTICACAO_NECESSARIA` ou `CREDENCIAIS_INVALIDAS` |
-| permissão ou CSRF inválido | `403` | `ACESSO_NEGADO` ou `FALHA_VALIDACAO_CSRF` |
-| recurso inexistente ou ocultado pelo escopo | `404` | `RECURSO_NAO_ENCONTRADO` |
-| método não aceito | `405` | `METODO_NAO_PERMITIDO` |
-| conflito de horário ou capacidade | `409` | `CONFLITO_AGENDAMENTO` |
-| chave de idempotência reutilizada com conteúdo diferente | `409` | `CONFLITO_IDEMPOTENCIA` |
-| versão do aviso diferente da vigente | `409` | `AVISO_PRIVACIDADE_DESATUALIZADO` |
-| tipo de conteúdo não aceito | `415` | `TIPO_MIDIA_NAO_SUPORTADO` |
-| validação de campos | `422` | `FALHA_VALIDACAO` |
-| regra de domínio inválida sem conflito de estado | `422` | `VIOLACAO_REGRA_NEGOCIO` |
-| limite de requisições excedido | `429` | `LIMITE_REQUISICOES_EXCEDIDO` |
-| limite compartilhado das rotas públicas | `429` | `LIMITE_REQUISICOES_PUBLICAS` |
-| falha inesperada | `500` | `ERRO_INTERNO` |
-
-Para F2, os principais códigos adicionais são:
-
-| Situação | Status | `codigo` |
-|---|---:|---|
-| limite de falhas de login por origem | `429` | `LIMITE_TENTATIVAS_LOGIN` |
-| senha fora de 12 a 72 bytes UTF-8 | `422` | `SENHA_FORA_DA_POLITICA` |
-| senha atual incorreta | `422` | `SENHA_ATUAL_INVALIDA` |
-| usuário inexistente | `404` | `USUARIO_NAO_ENCONTRADO` |
-| email já vinculado | `409` | `EMAIL_JA_UTILIZADO` |
-| profissional ausente ou inválido | `422` | `PROFISSIONAL_OBRIGATORIO` ou `PROFISSIONAL_INVALIDO` |
-| profissional já vinculado | `409` | `PROFISSIONAL_JA_VINCULADO` |
-| tentativa de alterar o último proprietário ativo | `409` | `ULTIMO_PROPRIETARIO_ATIVO` |
-| senha temporária aplicada a proprietário | `422` | `SENHA_TEMPORARIA_APENAS_FUNCIONARIO` |
-
-Para B1, os códigos adicionais do catálogo são:
-
-| Situação | Status | `codigo` |
-|---|---:|---|
-| profissional inexistente | `404` | `PROFISSIONAL_NAO_ENCONTRADO` |
-| recurso inexistente | `404` | `RECURSO_NAO_ENCONTRADO` |
-| serviço inexistente ou ocultado pelo escopo | `404` | `SERVICO_NAO_ENCONTRADO` |
-| profissional inválido no serviço | `422` | `PROFISSIONAL_INVALIDO` |
-| duração ocupada incompatível com a grade | `422` | `DURACAO_INCOMPATIVEL_COM_GRADE` |
-| recurso repetido no mesmo serviço | `422` | `RECURSO_REPETIDO_NO_SERVICO` |
-| recurso informado inexistente | `422` | `RECURSO_INVALIDO` |
-| quantidade exigida acima da capacidade | `422` | `QUANTIDADE_SUPERIOR_A_CAPACIDADE` |
-| redução de capacidade abaixo de requisito existente | `409` | `CAPACIDADE_INFERIOR_AO_REQUISITO` |
-| redução de capacidade abaixo do consumo simultâneo confirmado | `409` | `CAPACIDADE_INFERIOR_AS_RESERVAS` |
-
-Para B2, os códigos adicionais da agenda são:
-
-| Situação | Status | `codigo` |
-|---|---:|---|
-| bloqueio inexistente ou ocultado pelo escopo | `404` | `BLOQUEIO_NAO_ENCONTRADO` |
-| período ausente, invertido ou acima de 31 datas | `422` | `PERIODO_CONSULTA_INVALIDO` |
-| janelas semanais sobrepostas | `422` | `EXPEDIENTE_SOBREPOSTO` |
-| bloqueios sobrepostos | `422` | `BLOQUEIO_SOBREPOSTO` |
-| janela semanal com intervalo inválido | `422` | `INTERVALO_EXPEDIENTE_INVALIDO` |
-| bloqueio com intervalo inválido | `422` | `INTERVALO_BLOQUEIO_INVALIDO` |
-
-Para B3, os códigos adicionais da reserva pública são:
-
-| Situação | Status | `codigo` |
-|---|---:|---|
-| chave ausente ou fora do formato | `422` | `FALHA_VALIDACAO` |
-| nome vazio ou acima de 120 caracteres após `strip` | `422` | `FALHA_VALIDACAO` |
-| celular brasileiro inválido | `422` | `FALHA_VALIDACAO` |
-
-Para B4, os códigos adicionais da administração de reservas e clientes são:
-
-| Situação | Status | `codigo` |
-|---|---:|---|
-| reserva inexistente ou ocultada pelo escopo | `404` | `AGENDAMENTO_NAO_ENCONTRADO` |
-| cliente inexistente | `404` | `CLIENTE_NAO_ENCONTRADO` |
-| criação administrativa com início anterior ao instante atual | `422` | `INICIO_NO_PASSADO` |
-| motivo vazio ou acima de 500 caracteres após `strip` | `422` | `FALHA_VALIDACAO` |
-| transição fora de `CONFIRMADO` ou da janela de horário | `409` | `TRANSICAO_AGENDAMENTO_INVALIDA` |
-| cliente com reserva `CONFIRMADO` de início futuro | `409` | `CLIENTE_POSSUI_RESERVA_FUTURA` |
-| cliente já anonimizado | `409` | `CLIENTE_JA_ANONIMIZADO` |
+| Situação | Status |
+|---|---:|
+| corpo ou parâmetro ilegível | `400` |
+| sessão ausente, expirada ou credencial incorreta | `401` |
+| papel sem permissão, senha temporária pendente ou CSRF inválido | `403` |
+| entidade inexistente, ocultada pelo escopo ou rota desconhecida | `404` |
+| método não aceito | `405` |
+| conflito de estado, horário, capacidade, aviso ou idempotência | `409` |
+| tipo de conteúdo não aceito | `415` |
+| validação de campos ou regra de domínio sem conflito de estado | `422` |
+| limite de requisições excedido, com `Retry-After` | `429` |
+| falha inesperada | `500` |
 
 Mensagens podem evoluir. `status`, `codigo` e a estrutura documentada são o contrato estável. Os campos `type`, `title`, `status`, `detail` e `instance` preservam os nomes definidos pela RFC 9457; as extensões próprias usam português. Respostas nunca expõem stack trace, mensagem SQL, nomes de tabelas ou detalhes de exceções internas.
 

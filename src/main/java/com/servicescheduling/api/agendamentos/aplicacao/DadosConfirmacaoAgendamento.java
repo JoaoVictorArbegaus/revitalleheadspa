@@ -1,12 +1,14 @@
 package com.servicescheduling.api.agendamentos.aplicacao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.servicescheduling.api.agendamentos.dominio.EstadoAgendamento;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record DadosConfirmacaoAgendamento(
-        String estado,
+        @Schema(allowableValues = "CONFIRMADO") EstadoAgendamento estado,
         ServicoConfirmado servico,
         ProfissionalConfirmado profissional,
         @JsonFormat(without = JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE) OffsetDateTime inicioEm,

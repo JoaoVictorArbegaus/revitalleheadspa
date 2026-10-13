@@ -7,11 +7,10 @@ de trabalho concluído no Git.
 ## Estado
 
 - O escopo reduzido da API V1 está consolidado e não possui decisão bloqueante aberta.
-- F1, F2, B1, B2, B3 e B4 foram concluídas e são preservadas no histórico do Git. B4
-  passou em `clean verify` com 64 testes, incluindo escopo, criação administrativa
-  idempotente, transições concorrentes, cancelamento liberando horário e
-  anonimização auditada.
-- R1 é a próxima tarefa liberada e ainda não foi iniciada.
+- F1, F2, B1, B2, B3, B4 e R1 foram concluídas e são preservadas no histórico do Git.
+  R1 passou em `clean verify` com 68 testes, incluindo `ContratoDocumentacaoTest`, e
+  os exemplos `.http` executaram contra a API em Docker Compose sem falhas.
+- R2 é a próxima tarefa liberada e ainda não foi iniciada.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -22,9 +21,8 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | R1 | Contrato da API para desenvolvimento do frontend | TODO | liberada | `sdd_kit/15-api-consumer-documentation.md` |
-| 2 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
-| 3 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | R2 | Publicar a release da API V1 | TODO | liberada | `sdd_kit/13-release-and-client-derivation.md` |
+| 2 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 
