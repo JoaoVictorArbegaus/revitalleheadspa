@@ -7,10 +7,11 @@ de trabalho concluído no Git.
 ## Estado
 
 - O escopo reduzido da API V1 está consolidado e não possui decisão bloqueante aberta.
-- F1, F2, B1, B2 e B3 foram concluídas e são preservadas no histórico do Git. B3
-  passou em `clean verify` com 56 testes, incluindo integração com PostgreSQL via
-  Testcontainers, concorrência, idempotência, aviso de privacidade e OpenAPI.
-- B4 é a próxima tarefa liberada e ainda não foi iniciada.
+- F1, F2, B1, B2, B3 e B4 foram concluídas e são preservadas no histórico do Git. B4
+  passou em `clean verify` com 64 testes, incluindo escopo, criação administrativa
+  idempotente, transições concorrentes, cancelamento liberando horário e
+  anonimização auditada.
+- R1 é a próxima tarefa liberada e ainda não foi iniciada.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -21,10 +22,9 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | B4 | Operação administrativa e anonimização manual | TODO | liberada | `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md` |
-| 2 | R1 | Contrato da API para desenvolvimento do frontend | TODO | B4 | `sdd_kit/15-api-consumer-documentation.md` |
-| 3 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
-| 4 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | R1 | Contrato da API para desenvolvimento do frontend | TODO | liberada | `sdd_kit/15-api-consumer-documentation.md` |
+| 2 | R2 | Publicar a release da API V1 | TODO | R1 | `sdd_kit/13-release-and-client-derivation.md` |
+| 3 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 
@@ -34,6 +34,7 @@ explicitamente liberado.
 - `V3` está ocupada pelo catálogo implementado em B1.
 - `V4` está ocupada por expediente semanal e bloqueios de B2.
 - `V5` está ocupada por cliente, agendamento, alocações e idempotência de B3.
+- `V6` está ocupada pela autoria das transições, anonimização e auditoria de B4.
 - Toda reserva ou mudança de número deve aparecer aqui antes da criação do arquivo.
 
 ## Regras de manutenção

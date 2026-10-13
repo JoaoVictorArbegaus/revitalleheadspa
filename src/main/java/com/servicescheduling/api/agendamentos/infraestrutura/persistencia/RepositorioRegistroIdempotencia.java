@@ -63,7 +63,8 @@ public class RepositorioRegistroIdempotencia {
 
     public Optional<DadosRegistroIdempotencia> buscar(String hashChave) {
         return jdbc.sql("""
-                        select hash_requisicao, status_resposta, corpo_resposta::text as corpo_resposta
+                        select hash_requisicao, status_resposta, corpo_resposta::text as corpo_resposta,
+                               agendamento_id
                           from registro_idempotencia
                          where hash_chave = :hashChave
                         """)
@@ -73,7 +74,8 @@ public class RepositorioRegistroIdempotencia {
                     return new DadosRegistroIdempotencia(
                             resultado.getString("hash_requisicao").strip(),
                             status == null ? null : status.intValue(),
-                            resultado.getString("corpo_resposta"));
+                            resultado.getString("corpo_resposta"),
+                            resultado.getObject("agendamento_id", UUID.class));
                 })
                 .optional();
     }

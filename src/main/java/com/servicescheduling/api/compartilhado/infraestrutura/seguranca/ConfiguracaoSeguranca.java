@@ -57,6 +57,8 @@ public class ConfiguracaoSeguranca {
                         .hasRole("PROPRIETARIO")
                         .requestMatchers("/api/v1/administracao/profissionais/**")
                         .hasRole("PROPRIETARIO")
+                        .requestMatchers("/api/v1/administracao/clientes/**")
+                        .hasRole("PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/api/v1/administracao/recursos")
                         .authenticated()
                         .requestMatchers("/api/v1/administracao/recursos/**")

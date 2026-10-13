@@ -77,22 +77,41 @@ public class CalculadoraDisponibilidade {
     public DadosDisponibilidade calcular(UUID servicoId, LocalDate dataInicial, LocalDate dataFinal) {
         validarPeriodo(dataInicial, dataFinal);
         DadosServicoDisponibilidade servico = consultaServico.obter(servicoId);
-        return calcular(servicoId, servico, dataInicial, dataFinal);
+        return calcular(servicoId, servico, dataInicial, dataFinal, limitesPublicos());
     }
 
     public boolean horarioDisponivel(DadosServicoDisponibilidade servico, Instant inicioEm) {
+        return horarioDisponivel(servico, inicioEm, limitesPublicos());
+    }
+
+    public boolean horarioDisponivelAdministrativo(DadosServicoDisponibilidade servico, Instant inicioEm) {
         LocalDate data = inicioEm.atZone(fusoHorario).toLocalDate();
-        DadosDisponibilidade disponibilidade = calcular(servico.id(), servico, data, data);
+        return horarioDisponivel(servico, inicioEm, new LimitesTemporais(relogio.instant(), data, data));
+    }
+
+    private boolean horarioDisponivel(
+            DadosServicoDisponibilidade servico, Instant inicioEm, LimitesTemporais limites) {
+        LocalDate data = inicioEm.atZone(fusoHorario).toLocalDate();
+        DadosDisponibilidade disponibilidade = calcular(servico.id(), servico, data, data, limites);
         return disponibilidade.dias().stream()
                 .flatMap(dia -> dia.horarios().stream())
                 .anyMatch(horario -> horario.inicioEm().toInstant().equals(inicioEm));
+    }
+
+    private LimitesTemporais limitesPublicos() {
+        LocalDate hoje = LocalDate.now(relogio.withZone(fusoHorario));
+        return new LimitesTemporais(
+                relogio.instant().plus(antecedenciaMinimaMinutos, ChronoUnit.MINUTES),
+                hoje,
+                hoje.plusDays(horizonteDias - 1L));
     }
 
     private DadosDisponibilidade calcular(
             UUID servicoId,
             DadosServicoDisponibilidade servico,
             LocalDate dataInicial,
-            LocalDate dataFinal) {
+            LocalDate dataFinal,
+            LimitesTemporais limites) {
         Profissional profissional = servico == null ? null : consultaProfissional.obter(servico.profissionalId());
         if (servico == null || !servico.ativo() || profissional == null || !profissional.isAtivo()) {
             throw new ExcecaoRegraNegocio(
@@ -123,14 +142,11 @@ public class CalculadoraDisponibilidade {
         }
         expedientePorDia.values().forEach(janelas -> janelas.sort(Comparator.comparing(ExpedienteSemanal::getInicio)));
 
-        Instant primeiroInicio = relogio.instant().plus(antecedenciaMinimaMinutos, ChronoUnit.MINUTES);
-        LocalDate hoje = LocalDate.now(relogio.withZone(fusoHorario));
-        LocalDate ultimaData = hoje.plusDays(horizonteDias - 1L);
         int ocupacaoMinutos = servico.duracaoMinutos() + servico.intervaloLimpezaMinutos();
         List<DadosDiaDisponivel> dias = new ArrayList<>();
 
         for (LocalDate data = dataInicial; !data.isAfter(dataFinal); data = data.plusDays(1)) {
-            if (data.isBefore(hoje) || data.isAfter(ultimaData)) {
+            if (data.isBefore(limites.primeiraData()) || data.isAfter(limites.ultimaData())) {
                 continue;
             }
             List<DadosHorarioDisponivel> horarios = calcularDia(
@@ -139,7 +155,7 @@ public class CalculadoraDisponibilidade {
                     bloqueios,
                     servico.duracaoMinutos(),
                     ocupacaoMinutos,
-                    primeiroInicio,
+                    limites.primeiroInicio(),
                     servico.requisitos(),
                     recursos,
                     ocupacoes);
@@ -285,6 +301,9 @@ public class CalculadoraDisponibilidade {
     }
 
     private record EventoCapacidade(Instant instante, int variacao) {
+    }
+
+    private record LimitesTemporais(Instant primeiroInicio, LocalDate primeiraData, LocalDate ultimaData) {
     }
 
     private void validarPeriodo(LocalDate dataInicial, LocalDate dataFinal) {

@@ -122,7 +122,9 @@ O cookie que transporta o token CSRF precisa ser legível pelo frontend; ele nã
 - Somente `PROPRIETARIO` pode anonimizar manualmente um cliente, após verificação operacional do pedido.
 - A operação exige motivo e é rejeitada enquanto existir reserva futura `CONFIRMADO`.
 - A anonimização remove nome, celular e suas cópias pessoais nas reservas, libera o índice de identidade e preserva somente o histórico operacional não identificável.
-- A auditoria registra identificadores internos, autor, motivo, resultado e instante, sem reproduzir o dado removido.
+- A auditoria persiste em `anonimizacao_cliente` identificadores internos, autor, motivo e instante, sem reproduzir o dado removido; o motivo é texto operacional e não deve conter dados pessoais.
+- A consulta direta de cliente é exclusiva de `PROPRIETARIO`; `FUNCIONARIO` vê nome e celular somente nas reservas do profissional vinculado.
+- O registro idempotente da criação administrativa guarda somente a referência da reserva, nunca nome ou celular.
 - A V1 não oferece exportação completa, correção integral, retenção configurável ou anonimização automática.
 - Backups seguem a política operacional da instalação. Depois de uma restauração, a operação deve verificar e reaplicar manualmente anonimizações posteriores ao ponto restaurado.
 

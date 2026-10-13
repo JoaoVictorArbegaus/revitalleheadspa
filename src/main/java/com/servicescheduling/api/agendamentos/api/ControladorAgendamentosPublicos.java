@@ -1,6 +1,6 @@
 package com.servicescheduling.api.agendamentos.api;
 
-import com.servicescheduling.api.agendamentos.aplicacao.ComandoAgendamentoPublico;
+import com.servicescheduling.api.agendamentos.aplicacao.ComandoCriacaoAgendamento;
 import com.servicescheduling.api.agendamentos.aplicacao.DadosConfirmacaoAgendamento;
 import com.servicescheduling.api.agendamentos.aplicacao.ServicoAgendamentoPublico;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,7 +40,7 @@ public class ControladorAgendamentosPublicos {
             @Pattern(regexp = "[A-Za-z0-9._~-]{16,128}") String chaveIdempotencia,
             @RequestBody @Valid CriacaoAgendamento requisicao) {
         DadosConfirmacaoAgendamento resposta = servico.criar(
-                new ComandoAgendamentoPublico(
+                new ComandoCriacaoAgendamento(
                         requisicao.servicoId(),
                         requisicao.inicioEm(),
                         requisicao.cliente().nome(),

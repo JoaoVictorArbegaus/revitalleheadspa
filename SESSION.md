@@ -19,17 +19,17 @@ concluídas pertencem ao Git; requisitos e decisões pertencem ao `sdd_kit/`.
 
 ## Trabalho ativo
 
-- F1, F2, B1, B2 e B3 estão concluídas e validadas; reservas públicas
-  auto-confirmadas já ocupam a disponibilidade.
-- B4 — operação administrativa e anonimização manual — é a próxima tarefa liberada,
-  ainda não iniciada nem detalhada em `TASKS.md`.
+- F1, F2, B1, B2, B3 e B4 estão concluídas e validadas; toda a superfície funcional
+  da V1 está implementada.
+- R1 — contrato da API para desenvolvimento do frontend — é a próxima tarefa
+  liberada, ainda não iniciada nem detalhada em `TASKS.md`.
 - Não há decisão aberta nem bloqueio conhecido.
 
 ## Continuidade
 
-- Ao iniciar B4, detalhar seus critérios de aceite em `TASKS.md` a partir de
-  `sdd_kit/05-user-flows.md` e `sdd_kit/06-api-contract.md`, confirmar decisões
-  pendentes e reservar a próxima migration (`V6`) se houver mudança de banco.
+- Ao iniciar R1, detalhar seus critérios em `TASKS.md` a partir de
+  `sdd_kit/15-api-consumer-documentation.md`, conferindo OpenAPI, catálogo de erros
+  e `docs/catalogo-api.http` contra o comportamento implementado.
 - Os testes de integração usam Testcontainers e exigem o Docker em execução.
 - Preservar o núcleo sem multitenancy, frontend, marca Revitalle ou provedor
   concreto de comunicação.

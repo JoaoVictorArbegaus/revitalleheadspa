@@ -151,6 +151,22 @@ public class ConfiguracaoOpenApi {
                     "204", "400", "401", "403", "404", "500");
             configurar(openApi, "/api/v1/publico/servicos/{servicoId}/disponibilidade", "get", false, false,
                     "200", "400", "404", "422", "429", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos", "get", true, false,
+                    "200", "400", "401", "403", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos", "post", true, true,
+                    "201", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos/{id}/cancelar", "post", true, true,
+                    "200", "400", "401", "403", "404", "409", "415", "422", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos/{id}/concluir", "post", true, true,
+                    "200", "400", "401", "403", "404", "409", "500");
+            configurar(openApi, "/api/v1/administracao/agendamentos/{id}/nao-compareceu", "post", true, true,
+                    "200", "400", "401", "403", "404", "409", "500");
+            configurar(openApi, "/api/v1/administracao/clientes/{id}", "get", true, false,
+                    "200", "400", "401", "403", "404", "500");
+            configurar(openApi, "/api/v1/administracao/clientes/{id}/anonimizar", "post", true, true,
+                    "204", "400", "401", "403", "404", "409", "415", "422", "500");
         };
     }
 

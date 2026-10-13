@@ -30,7 +30,7 @@ A consulta pública cobre no máximo 31 dias por chamada, respeita a antecedênc
 ## Anonimização manual
 
 1. O controlador recebe a solicitação pelo canal operacional e verifica a identidade fora da API pública.
-2. `PROPRIETARIO` localiza o cliente sem expor a busca publicamente.
+2. `PROPRIETARIO` localiza o cliente pelo `cliente.id` da representação administrativa de uma reserva, sem busca pública ou por celular.
 3. Solicita a anonimização integral com motivo.
 4. A API rejeita a operação quando existe reserva futura `CONFIRMADO`.
 5. Em caso de sucesso, nome, celular e fotografias pessoais são removidos, o histórico operacional é preservado sem identificação e a ação é auditada.
@@ -85,8 +85,6 @@ disponibilidade pertence a B3.
 
 ## Operação diária
 
-Este fluxo administrativo pertence a B4 e não faz parte da implementação de B3.
-
 1. Usuário autorizado consulta reservas por dia ou período dentro do próprio escopo.
 2. Abre os detalhes de uma reserva.
 3. Cria, cancela, conclui ou registra ausência conforme o estado e o horário permitirem.
@@ -95,8 +93,6 @@ Este fluxo administrativo pertence a B4 e não faz parte da implementação de B
 Não existe confirmação, rejeição ou reagendamento na API V1.
 
 ## Reserva administrativa
-
-Este fluxo pertence a B4. B3 não cria reserva administrativa.
 
 1. Usuário autorizado seleciona um serviço dentro do próprio escopo e um horário.
 2. Sistema determina automaticamente os recursos e quantidades fixas exigidos pelo serviço.

@@ -121,15 +121,15 @@ retentativas usam a mesma.
 
 ## Operação administrativa de reservas
 
-Esta seção pertence a B4. B3 cria somente reservas públicas e não expõe operações
-administrativas de agendamento.
-
 - Reservas públicas e administrativas nascem em `CONFIRMADO`.
 - `PROPRIETARIO` pode criar e operar reservas de qualquer profissional.
 - `FUNCIONARIO` pode criar, cancelar, concluir ou registrar ausência somente nas reservas do profissional vinculado.
-- A criação administrativa exige somente nome e celular do cliente e aplica as mesmas regras de expediente, bloqueio, capacidade e concorrência da criação pública.
-- Uma reserva `CONFIRMADO` futura pode ser cancelada por usuário autorizado; o cancelamento registra autor, instante e motivo.
-- Depois de `inicioEm`, a reserva pode ser concluída ou marcada como `NAO_COMPARECEU` por usuário autorizado.
+- A criação administrativa exige somente nome e celular do cliente e aplica as mesmas regras de grade, expediente, bloqueio, capacidade e concorrência da criação pública.
+- A criação administrativa não aplica antecedência mínima nem horizonte públicos, mas rejeita início anterior ao instante atual com `422 INICIO_NO_PASSADO`.
+- A criação administrativa exige `Chave-Idempotencia` com as mesmas regras da pública; a impressão digital inclui o autor e o registro guarda somente a referência da reserva produzida.
+- Uma reserva `CONFIRMADO` pode ser cancelada antes de `inicioEm` por usuário autorizado; o cancelamento registra autor, instante e motivo de 1 a 500 caracteres após `strip`.
+- A partir de `inicioEm`, a reserva `CONFIRMADO` pode ser concluída ou marcada como `NAO_COMPARECEU` por usuário autorizado, registrando autor e instante.
+- Cada transição bloqueia a reserva antes de verificar estado e horário; transição fora do estado ou da janela retorna `409 TRANSICAO_AGENDAMENTO_INVALIDA`.
 - O intervalo volta a ficar disponível imediatamente após a confirmação da transação de cancelamento.
 - Não existe confirmação, rejeição ou reagendamento público ou administrativo na API V1.
 
@@ -143,7 +143,9 @@ administrativas de agendamento.
 ## Anonimização manual
 
 - Somente `PROPRIETARIO` anonimiza integralmente um cliente, após verificação operacional do solicitante.
-- A anonimização é rejeitada enquanto existir reserva futura `CONFIRMADO`.
+- A operação bloqueia o cliente e depois verifica reservas; é rejeitada com `409 CLIENTE_POSSUI_RESERVA_FUTURA` enquanto existir reserva `CONFIRMADO` com início posterior ao instante atual.
+- Cliente já anonimizado retorna `409 CLIENTE_JA_ANONIMIZADO`.
 - A ação limpa nome, celular e fotografias pessoais das reservas, libera índices de identidade e mantém dados operacionais sem identificação.
-- A operação registra autor, instante, motivo e identificadores internos, sem copiar dados pessoais.
+- A operação registra em `AnonimizacaoCliente` autor, instante, motivo e identificadores internos, sem copiar dados pessoais.
+- Uma nova reserva com o celular removido cria um novo cliente.
 - Exportação, correção e anonimização automática permanecem fora da API V1.

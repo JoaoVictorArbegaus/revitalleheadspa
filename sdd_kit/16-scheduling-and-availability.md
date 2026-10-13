@@ -14,9 +14,15 @@ ocupações em B2.
 ## Recorte de B3
 
 B3 persiste e cria somente reservas públicas auto-confirmadas, suas alocações e sua
-idempotência, além de incorporar essas ocupações à disponibilidade. Criação,
-consulta, cancelamento, conclusão e registro de ausência administrativos pertencem a
-B4.
+idempotência, além de incorporar essas ocupações à disponibilidade.
+
+## Recorte de B4
+
+B4 acrescenta criação, consulta, cancelamento, conclusão e registro de ausência
+administrativos. A criação administrativa usa a mesma transação de B3, inclusive
+locks e idempotência, mas substitui antecedência e horizonte públicos pela
+exigência de início não anterior ao instante atual. Cancelamento, conclusão e
+ausência bloqueiam somente a linha da reserva, pois apenas liberam ocupação.
 
 ## Fonte de verdade
 
@@ -141,7 +147,7 @@ Se qualquer validação falhar, nenhuma parte é persistida. Um conflito de ocup
 retorna `409 CONFLITO_AGENDAMENTO`. Repetir a mesma criação pública e a mesma chave
 idempotente devolve o resultado original enquanto `agora < expiraEm`. No limite
 exclusivo, o registro deixa de valer e sua remoção ocorre oportunisticamente no fluxo
-de criação, sem job. B3 não cria reservas administrativas.
+de criação, sem job. A criação administrativa de B4 segue os mesmos passos.
 
 ## Visão do fluxo
 

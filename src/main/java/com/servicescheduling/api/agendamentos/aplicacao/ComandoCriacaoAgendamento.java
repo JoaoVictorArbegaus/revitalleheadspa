@@ -3,7 +3,7 @@ package com.servicescheduling.api.agendamentos.aplicacao;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record ComandoAgendamentoPublico(
+public record ComandoCriacaoAgendamento(
         UUID servicoId,
         OffsetDateTime inicioEm,
         String nomeCliente,

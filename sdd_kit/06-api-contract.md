@@ -88,12 +88,7 @@ A API V1 não oferece consulta, cancelamento ou reagendamento públicos e não e
 
 ## Recursos administrativos
 
-As rotas de autenticação e usuários abaixo estão implementadas em F2. As demais
-rotas desta seção descrevem entregas posteriores da V1.
-
-Criação e operações administrativas de reservas pertencem a B4; B3 implementa
-somente `POST /api/v1/publico/agendamentos` e o efeito das reservas públicas na
-disponibilidade.
+Todas as rotas abaixo exigem sessão administrativa e CSRF quando mutáveis.
 
 - `GET /api/v1/administracao/autenticacao/csrf`;
 - `POST /api/v1/administracao/autenticacao/entrar`;
@@ -286,6 +281,89 @@ Reservas públicas e administrativas são criadas diretamente como `CONFIRMADO`.
 
 Anonimização manual de cliente exige `PROPRIETARIO`, recebe motivo obrigatório e falha se houver reserva futura `CONFIRMADO`. Exportação, correção e anonimização automática não fazem parte da API V1.
 
+### Reservas administrativas implementadas em B4
+
+As rotas em `/api/v1/administracao/agendamentos` aceitam `PROPRIETARIO` e
+`FUNCIONARIO`; para `FUNCIONARIO`, reservas de outro profissional respondem
+`404 AGENDAMENTO_NAO_ENCONTRADO`. Toda resposta de sucesso usa a representação:
+
+```json
+{
+  "id": "0f8b1c55-0f5d-4a8e-9a43-3c1f1e9a2b10",
+  "estado": "CONFIRMADO",
+  "origem": "ADMINISTRACAO",
+  "cliente": {
+    "id": "5b3e4f0a-77a8-4d43-8a39-8e1b6c0d2f11",
+    "nome": "Cliente Exemplo",
+    "celular": "+5511999990000"
+  },
+  "servico": { "id": "...", "nome": "Servico Exemplo", "duracaoMinutos": 60 },
+  "profissional": { "id": "...", "nome": "Profissional Exemplo" },
+  "inicioEm": "2026-10-08T10:00:00-03:00",
+  "fimServicoEm": "2026-10-08T11:00:00-03:00",
+  "ocupadoAte": "2026-10-08T11:15:00-03:00",
+  "fusoHorario": "America/Sao_Paulo",
+  "precoContratado": 120.00,
+  "moedaContratada": "BRL",
+  "versaoAvisoPrivacidade": "2026-01",
+  "cienciaAvisoPrivacidadeEm": "2026-10-07T09:00:00-03:00",
+  "recursos": [{ "recursoId": "...", "nome": "Sala 1", "quantidade": 1 }],
+  "criadoEm": "2026-10-07T09:00:00-03:00",
+  "criadoPor": "64fc5548-c3e2-4b83-9d47-b57be53c0289",
+  "estadoAlteradoEm": null,
+  "estadoAlteradoPor": null,
+  "motivoCancelamento": null
+}
+```
+
+`cliente.nome` e `cliente.celular` são as fotografias informadas na reserva e ficam
+`null` depois da anonimização. `criadoPor` é `null` na origem `PUBLICO`. O nome do
+recurso é o atual; a quantidade é a fotografia da alocação.
+
+| Operação | Entrada | Sucesso |
+|---|---|---|
+| `GET /agendamentos` | `dataInicial`, `dataFinal`, `profissionalId` e `estado` opcionais | `200`, array ordenado por `inicioEm` e `id` |
+| `GET /agendamentos/{id}` | sem corpo | `200`, reserva |
+| `POST /agendamentos` | corpo da criação pública e `Chave-Idempotencia` | `201`, reserva e `Location` |
+| `POST /agendamentos/{id}/cancelar` | `{"motivo": "..."}` | `200`, reserva |
+| `POST /agendamentos/{id}/concluir` | sem corpo | `200`, reserva |
+| `POST /agendamentos/{id}/nao-compareceu` | sem corpo | `200`, reserva |
+
+A listagem considera reservas cujo `inicioEm` está entre o início de `dataInicial` e
+o fim de `dataFinal` no fuso do negócio, com no máximo 31 datas. Sem
+`profissionalId`, `PROPRIETARIO` recebe todos os profissionais; `FUNCIONARIO`
+sempre recebe somente o profissional vinculado.
+
+A criação administrativa aceita o mesmo corpo de `POST /api/v1/publico/agendamentos`.
+Ela não aplica antecedência e horizonte públicos, rejeita início anterior ao instante
+atual e mantém as demais validações. `FUNCIONARIO` só cria reservas para serviços do
+profissional vinculado; outro serviço responde `404 SERVICO_NAO_ENCONTRADO`. A
+retentativa com a mesma chave, o mesmo autor e o mesmo conteúdo, enquanto
+`agora < expiraEm`, devolve `201` com a representação atual da reserva já criada.
+
+Cancelamento exige `motivo` com 1 a 500 caracteres após `strip` e só ocorre antes de
+`inicioEm`. Conclusão e ausência só ocorrem a partir de `inicioEm`. Todas partem de
+`CONFIRMADO`.
+
+### Clientes implementados em B4
+
+As rotas em `/api/v1/administracao/clientes` exigem `PROPRIETARIO`.
+
+`GET /api/v1/administracao/clientes/{id}` retorna `200`:
+
+```json
+{
+  "id": "5b3e4f0a-77a8-4d43-8a39-8e1b6c0d2f11",
+  "nome": "Cliente Exemplo",
+  "celular": "+5511999990000",
+  "anonimizadoEm": null
+}
+```
+
+`POST /api/v1/administracao/clientes/{id}/anonimizar` recebe `{"motivo": "..."}`, com
+1 a 500 caracteres após `strip`, e retorna `204`. Depois dela, `nome` e `celular`
+ficam `null` e `anonimizadoEm` recebe o instante da ação.
+
 ## Sessão administrativa
 
 - Login recebe email e senha e cria uma sessão HTTP.
@@ -399,6 +477,18 @@ Para B3, os códigos adicionais da reserva pública são:
 | chave ausente ou fora do formato | `422` | `FALHA_VALIDACAO` |
 | nome vazio ou acima de 120 caracteres após `strip` | `422` | `FALHA_VALIDACAO` |
 | celular brasileiro inválido | `422` | `FALHA_VALIDACAO` |
+
+Para B4, os códigos adicionais da administração de reservas e clientes são:
+
+| Situação | Status | `codigo` |
+|---|---:|---|
+| reserva inexistente ou ocultada pelo escopo | `404` | `AGENDAMENTO_NAO_ENCONTRADO` |
+| cliente inexistente | `404` | `CLIENTE_NAO_ENCONTRADO` |
+| criação administrativa com início anterior ao instante atual | `422` | `INICIO_NO_PASSADO` |
+| motivo vazio ou acima de 500 caracteres após `strip` | `422` | `FALHA_VALIDACAO` |
+| transição fora de `CONFIRMADO` ou da janela de horário | `409` | `TRANSICAO_AGENDAMENTO_INVALIDA` |
+| cliente com reserva `CONFIRMADO` de início futuro | `409` | `CLIENTE_POSSUI_RESERVA_FUTURA` |
+| cliente já anonimizado | `409` | `CLIENTE_JA_ANONIMIZADO` |
 
 Mensagens podem evoluir. `status`, `codigo` e a estrutura documentada são o contrato estável. Os campos `type`, `title`, `status`, `detail` e `instance` preservam os nomes definidos pela RFC 9457; as extensões próprias usam português. Respostas nunca expõem stack trace, mensagem SQL, nomes de tabelas ou detalhes de exceções internas.
 

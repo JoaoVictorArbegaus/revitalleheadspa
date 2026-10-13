@@ -102,8 +102,8 @@ Representa uma pessoa que realizou uma reserva.
 | Campo conceitual | Regra |
 |---|---|
 | id | identificador interno |
-| nome | nome informado mais recente, com 1 a 120 caracteres após `strip`, enquanto o cliente não estiver anonimizado |
-| celular | celular brasileiro normalizado como `+55` seguido de 10 ou 11 dígitos, obrigatório e único enquanto não anonimizado |
+| nome | nome informado mais recente, com 1 a 120 caracteres após `strip`; nulo depois da anonimização |
+| celular | celular brasileiro normalizado como `+55` seguido de 10 ou 11 dígitos, único enquanto presente; nulo depois da anonimização |
 | anonimizadoEm | instante em que os identificadores foram removidos |
 | criadoEm / atualizadoEm | instantes auditáveis |
 
@@ -148,8 +148,13 @@ Representa a reserva de um serviço para um cliente.
 | versaoAvisoPrivacidade | versão apresentada ao cliente na criação |
 | cienciaAvisoPrivacidadeEm | instante em que o cliente confirmou a ciência |
 | origem | `PUBLICO` ou `ADMINISTRACAO` |
+| criadoPor | usuário administrativo autor da criação; presente somente na origem `ADMINISTRACAO` |
 | criadoEm / atualizadoEm | instantes auditáveis |
-| motivoCancelamento | motivo quando aplicável |
+| estadoAlteradoEm / estadoAlteradoPor | instante e usuário da transição a partir de `CONFIRMADO`; nulos enquanto confirmado |
+| motivoCancelamento | motivo de 1 a 500 caracteres, presente somente em `CANCELADO` |
+
+`nomeClienteInformado` e `celularClienteInformado` tornam-se nulos quando o cliente é
+anonimizado; os demais valores operacionais permanecem.
 
 A reserva sempre ocupa o profissional proprietário do serviço e nasce em `CONFIRMADO`, tanto no fluxo público quanto no administrativo.
 
@@ -182,6 +187,18 @@ com limite exclusivo.
 `hashChave` é único enquanto o registro estiver vigente. `hashRequisicao` representa
 o conteúdo relevante depois da normalização de nome, celular e valores temporais.
 Não existe token, referência pública ou reprodução por HMAC na API V1.
+
+### AnonimizacaoCliente
+
+Registra a auditoria de uma anonimização manual, sem copiar os dados removidos.
+
+| Campo conceitual | Regra |
+|---|---|
+| id | identificador interno |
+| clienteId | cliente anonimizado |
+| autorId | `PROPRIETARIO` que executou a ação |
+| motivo | texto operacional de 1 a 500 caracteres, sem dados pessoais |
+| anonimizadoEm | instante da ação |
 
 ## Estados de Agendamento
 

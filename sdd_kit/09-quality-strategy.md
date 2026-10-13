@@ -107,10 +107,10 @@ Cobrem poucos fluxos críticos completos:
 
 ## Dados de teste
 
-Para concluir B3, a suíte acrescenta proporcionalmente ao baseline de B2: criação
-pública, cliente normalizado, aviso vigente, snapshots, alocações, ocupações na
-disponibilidade, concorrência de profissional e recursos, idempotência, expiração e
-limpeza oportunista. Criação, ciclo e consulta administrativos permanecem em B4.
+Para concluir B4, a suíte acrescenta proporcionalmente ao baseline de B3: consulta
+administrativa com escopo, criação administrativa fora dos limites públicos e
+idempotente, transições com janelas de horário e concorrência, auditoria das
+transições, cliente restrito ao `PROPRIETARIO` e anonimização com sua auditoria.
 
 - não usar celulares, nomes ou emails administrativos de pessoas reais;
 - manter geradores de dados válidos e claramente fictícios;

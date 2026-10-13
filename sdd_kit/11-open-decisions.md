@@ -285,6 +285,50 @@ Documentos afetados: `TASKS.md`, `SESSION.md`, `sdd_kit/03-domain-model.md`,
 `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md`,
 `sdd_kit/16-scheduling-and-availability.md` e `sdd_kit/18-technical-foundation.md`.
 
+### D-033 — Contrato operacional da administração de reservas e anonimização — `DECIDED`
+
+Contexto: B4 precisa fechar representação, filtros, transições, auditoria e
+anonimização antes de alterar o banco, sem criar infraestrutura genérica de eventos.
+
+Decisão: a administração usa uma única representação de agendamento em listagem,
+detalhe, criação e transições, com identificadores, estado, origem, fotografias do
+serviço, do profissional e do cliente, intervalos, fuso, preço, moeda, aviso,
+recursos alocados e campos de auditoria. A listagem exige período de até 31 datas
+locais pelo início, aceita `profissionalId` e `estado` opcionais e ordena por
+`inicioEm` e `id`; para `FUNCIONARIO` o profissional é sempre o vinculado.
+
+A criação administrativa recebe o mesmo corpo da criação pública, exige
+`Chave-Idempotencia` e CSRF, retorna `201` com `Location` e a representação
+administrativa e registra origem `ADMINISTRACAO` e autor. Ela ignora antecedência e
+horizonte públicos, rejeita início anterior ao instante atual e mantém grade,
+expediente, bloqueios, conflito, capacidade e concorrência. A impressão digital
+inclui o autor; a retentativa válida devolve `201` com a representação atual da
+reserva produzida, de modo que o registro idempotente não guarda dados pessoais.
+
+Cancelar exige motivo de 1 a 500 caracteres após `strip` e só é aceito antes de
+`inicioEm`; concluir e registrar ausência não recebem corpo e só são aceitos a partir
+de `inicioEm`. Toda transição parte de `CONFIRMADO`, bloqueia a reserva, grava
+`estadoAlteradoEm` e `estadoAlteradoPor` e retorna `200`. Transição fora do estado
+ou da janela retorna `409 TRANSICAO_AGENDAMENTO_INVALIDA`.
+
+A anonimização é exclusiva de `PROPRIETARIO`, exige motivo de 1 a 500 caracteres,
+bloqueia o cliente antes de verificar reservas `CONFIRMADO` com início futuro e
+retorna `204`. Ela limpa nome e celular do cliente e das fotografias de todas as suas
+reservas, grava `anonimizadoEm` e registra em `anonimizacao_cliente` cliente,
+autor, instante e motivo. `GET /api/v1/administracao/clientes/{id}` também é exclusivo
+de `PROPRIETARIO`; o identificador do cliente é obtido pela representação
+administrativa da reserva, sem busca por celular.
+
+Consequências: autoria e instantes ficam consultáveis no próprio banco sem tabela
+genérica de auditoria; um cliente anonimizado deixa de ocupar o índice de celular,
+e uma nova reserva com o mesmo número cria outro cliente; o motivo é texto
+operacional e não deve conter dados pessoais.
+
+Documentos afetados: `TASKS.md`, `SESSION.md`, `sdd_kit/03-domain-model.md`,
+`sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md`,
+`sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md` e
+`sdd_kit/11-open-decisions.md`.
+
 ### D-015 — Confirmação automática — `DECIDED`
 
 Contexto: a V1 precisa de um único fluxo de reserva correto e simples, sem processo periódico ou estados transitórios de aprovação.

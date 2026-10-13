@@ -2,6 +2,7 @@
 @email = proprietario@example.test
 @senha = substitua-por-uma-senha-local
 @chaveIdempotencia = 550e8400-e29b-41d4-a716-446655440000
+@chaveIdempotenciaAdministrativa = 6f1c2d3e-4b5a-4c6d-8e7f-901234567890
 
 ### Obter CSRF e cookies
 GET {{baseUrl}}/api/v1/administracao/autenticacao/csrf
@@ -164,6 +165,63 @@ client.test("A chave divergente e rejeitada", function () {
   client.assert(response.body.codigo === "CONFLITO_IDEMPOTENCIA", "Esperado conflito de idempotencia");
 });
 %}
+
+### Criar reserva administrativa
+POST {{baseUrl}}/api/v1/administracao/agendamentos
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+Chave-Idempotencia: {{chaveIdempotenciaAdministrativa}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "2026-10-12T10:30:00-03:00",
+  "cliente": {
+    "nome": "Cliente Balcao",
+    "celular": "(11) 98888-0000"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.global.set("agendamentoId", response.body.id);
+client.global.set("clienteId", response.body.cliente.id);
+%}
+
+### Listar reservas do período
+GET {{baseUrl}}/api/v1/administracao/agendamentos?dataInicial=2026-10-12&dataFinal=2026-10-18&estado=CONFIRMADO
+
+### Consultar reserva
+GET {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}
+
+### Cancelar reserva antes do início
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/cancelar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "motivo": "Cliente solicitou cancelamento por telefone"
+}
+
+### Concluir reserva a partir do início
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/concluir
+X-CSRF-TOKEN: {{csrf}}
+
+### Registrar ausência a partir do início
+POST {{baseUrl}}/api/v1/administracao/agendamentos/{{agendamentoId}}/nao-compareceu
+X-CSRF-TOKEN: {{csrf}}
+
+### Consultar cliente (somente PROPRIETARIO)
+GET {{baseUrl}}/api/v1/administracao/clientes/{{clienteId}}
+
+### Anonimizar cliente sem reserva futura confirmada (somente PROPRIETARIO)
+POST {{baseUrl}}/api/v1/administracao/clientes/{{clienteId}}/anonimizar
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{
+  "motivo": "Solicitacao do titular verificada pelo canal operacional"
+}
 
 ### Remover bloqueio
 DELETE {{baseUrl}}/api/v1/administracao/agenda/bloqueios/{{bloqueioId}}
