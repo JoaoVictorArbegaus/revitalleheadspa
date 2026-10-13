@@ -11,6 +11,13 @@ reservas. `Agendamento`, `AlocacaoRecursoAgendamento`, idempotência, locks e
 revalidação transacional pertencem a B3. Não se cria porta ou implementação vazia de
 ocupações em B2.
 
+## Recorte de B3
+
+B3 persiste e cria somente reservas públicas auto-confirmadas, suas alocações e sua
+idempotência, além de incorporar essas ocupações à disponibilidade. Criação,
+consulta, cancelamento, conclusão e registro de ausência administrativos pertencem a
+B4.
+
 ## Fonte de verdade
 
 O PostgreSQL é a autoridade sobre disponibilidade. O frontend recebe opções calculadas pela API e nunca decide sozinho que um horário está livre.
@@ -26,7 +33,7 @@ Uma consulta de disponibilidade é uma fotografia momentânea. Ela não cria blo
 | bloqueio de agenda | `BloqueioAgenda` | intervalo indisponível pertencente a um profissional |
 | serviço | `Servico` | profissional, duração e intervalo de limpeza em minutos |
 | requisitos de recursos | `RequisitoRecursoServico` | recurso e quantidade positiva fixa usada em toda reserva do serviço |
-| reserva | `Agendamento` | persistida em B3 com cliente, serviço, profissional, instantes, estado e fotografias |
+| reserva | `Agendamento` | persistida em B3 com cliente, serviço, profissional, instantes, estado e fotografias, incluindo nomes contratados, preço e moeda |
 | alocação | `AlocacaoRecursoAgendamento` | persistida em B3 como fotografia automática e não editável |
 
 Recursos operacionais possuem capacidade, mas não possuem expediente ou bloqueios próprios. Sua disponibilidade resulta do estado ativo, da capacidade e das alocações sobrepostas. A quantidade exigida pelo serviço não pode ser alterada na criação nem depois dela, e uma alocação não pode ser editada, removida, acrescentada ou realocada.
@@ -123,12 +130,18 @@ Dentro de uma única transação, a aplicação:
 2. bloqueia as linhas dos recursos necessários em ordem crescente de identificador;
 3. revalida serviço, grade, expediente e bloqueios do profissional, sobreposição e capacidades;
 4. localiza ou cria o cliente;
-5. grava `Agendamento` como `CONFIRMADO`, fotografias e alocações automáticas com as quantidades fixas do serviço;
+5. grava `Agendamento` como `CONFIRMADO`, incluindo os nomes contratados de serviço e
+   profissional, `precoContratado` e `moedaContratada`, e alocações automáticas com
+   as quantidades fixas do serviço;
 6. confirma a transação.
 
 O bloqueio das linhas no PostgreSQL serializa somente reservas que disputam o mesmo profissional ou recurso e funciona mesmo se futuramente houver mais de uma instância da aplicação. A ordem fixa dos recursos reduz risco de deadlock.
 
-Se qualquer validação falhar, nenhuma parte é persistida. Um conflito de ocupação retorna `409 CONFLITO_AGENDAMENTO`. Repetir a mesma criação pública e a mesma chave idempotente devolve o resultado original. Criações públicas e administrativas sempre resultam em `CONFIRMADO`.
+Se qualquer validação falhar, nenhuma parte é persistida. Um conflito de ocupação
+retorna `409 CONFLITO_AGENDAMENTO`. Repetir a mesma criação pública e a mesma chave
+idempotente devolve o resultado original enquanto `agora < expiraEm`. No limite
+exclusivo, o registro deixa de valer e sua remoção ocorre oportunisticamente no fluxo
+de criação, sem job. B3 não cria reservas administrativas.
 
 ## Visão do fluxo
 

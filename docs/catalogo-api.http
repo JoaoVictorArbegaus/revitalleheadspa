@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:8080
 @email = proprietario@example.test
 @senha = substitua-por-uma-senha-local
+@chaveIdempotencia = 550e8400-e29b-41d4-a716-446655440000
 
 ### Obter CSRF e cookies
 GET {{baseUrl}}/api/v1/administracao/autenticacao/csrf
@@ -103,6 +104,66 @@ GET {{baseUrl}}/api/v1/administracao/agenda/bloqueios?profissionalId={{profissio
 
 ### Consultar disponibilidade pública
 GET {{baseUrl}}/api/v1/publico/servicos/{{servicoId}}/disponibilidade?dataInicial=2026-10-12&dataFinal=2026-10-18
+
+### Consultar aviso de privacidade
+GET {{baseUrl}}/api/v1/publico/aviso-privacidade
+
+> {% client.global.set("versaoAvisoPrivacidade", response.body.versao); %}
+
+### Criar reserva pública
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chaveIdempotencia}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "2026-10-12T09:00:00-03:00",
+  "cliente": {
+    "nome": "Cliente Exemplo",
+    "celular": "(11) 99999-0000"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+### Repetir criação com o mesmo resultado
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chaveIdempotencia}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "2026-10-12T09:00:00-03:00",
+  "cliente": {
+    "nome": "Cliente Exemplo",
+    "celular": "+5511999990000"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+### Rejeitar a mesma chave com conteúdo diferente
+POST {{baseUrl}}/api/v1/publico/agendamentos
+Content-Type: application/json
+Chave-Idempotencia: {{chaveIdempotencia}}
+
+{
+  "servicoId": "{{servicoId}}",
+  "inicioEm": "2026-10-12T09:15:00-03:00",
+  "cliente": {
+    "nome": "Cliente Exemplo",
+    "celular": "+5511999990000"
+  },
+  "versaoAvisoPrivacidade": "{{versaoAvisoPrivacidade}}",
+  "cienteAvisoPrivacidade": true
+}
+
+> {%
+client.test("A chave divergente e rejeitada", function () {
+  client.assert(response.status === 409, "Esperado estado 409");
+  client.assert(response.body.codigo === "CONFLITO_IDEMPOTENCIA", "Esperado conflito de idempotencia");
+});
+%}
 
 ### Remover bloqueio
 DELETE {{baseUrl}}/api/v1/administracao/agenda/bloqueios/{{bloqueioId}}

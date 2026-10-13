@@ -80,13 +80,17 @@ Somente reservas `CONFIRMADO` bloqueiam agenda e capacidade. `CANCELADO`, `CONCL
 ## Criação de cliente e reserva
 
 1. Exigir nome, celular, versão apresentada e confirmação da ciência do aviso de privacidade.
-2. Rejeitar a versão desatualizada e normalizar o celular brasileiro com `+55`.
-3. Localizar o cliente pelo celular normalizado ou criá-lo quando não existir.
-4. Reutilizar o cliente encontrado e atualizar seu nome canônico, preservando a fotografia dos dados na reserva.
-5. Revalidar serviço, profissional e todos os recursos exigidos sob controle transacional.
-6. Criar `Agendamento` diretamente em `CONFIRMADO`, com fotografias do serviço, do nome e celular informados, da versão do aviso e do instante da ciência.
-7. Criar automaticamente as alocações com as quantidades fixas vigentes nos requisitos do serviço.
-8. Confirmar a transação.
+2. Aplicar `strip` ao nome e exigir de 1 a 120 caracteres no resultado.
+3. Rejeitar a versão desatualizada e normalizar o celular brasileiro, recebido com
+   formatação comum e `+55` opcional, para `+55` seguido de 10 ou 11 dígitos.
+4. Localizar o cliente pelo celular normalizado ou criá-lo quando não existir.
+5. Reutilizar o cliente encontrado e atualizar seu nome canônico, preservando a fotografia dos dados na reserva.
+6. Revalidar serviço, profissional e todos os recursos exigidos sob controle transacional.
+7. Criar `Agendamento` diretamente em `CONFIRMADO`, com fotografias do serviço, do
+   profissional, do preço e da moeda contratados, do nome e celular informados, da
+   versão do aviso e do instante da ciência.
+8. Criar automaticamente as alocações com as quantidades fixas vigentes nos requisitos do serviço.
+9. Confirmar a transação.
 
 Se o horário tiver sido ocupado, retornar conflito de negócio e permitir ao frontend atualizar as opções.
 
@@ -101,17 +105,24 @@ Se o horário tiver sido ocupado, retornar conflito de negócio e permitir ao fr
 
 ## Idempotência
 
-A criação pública exige `Chave-Idempotencia` com 16 a 128 caracteres seguros. Cada intenção do usuário recebe uma chave nova; retentativas usam a mesma.
+A criação pública exige `Chave-Idempotencia` no formato
+`[A-Za-z0-9._~-]{16,128}`. Cada intenção do usuário recebe uma chave nova;
+retentativas usam a mesma.
 
 - o hash da chave é único;
-- a mesma chave e o mesmo conteúdo devolvem por 24 horas o resultado de sucesso original;
+- a impressão digital usa o conteúdo relevante após normalizar nome, celular e valores temporais;
+- a mesma chave e o mesmo conteúdo devolvem o resultado original enquanto `agora < expiraEm`;
 - a mesma chave com conteúdo diferente retorna `409 CONFLITO_IDEMPOTENCIA`;
 - somente comandos concluídos com sucesso consomem a chave;
 - validação, indisponibilidade e erro inesperado permitem nova tentativa;
 - chamadas simultâneas com a mesma chave produzem no máximo uma reserva;
-- registros vencidos são removidos por processamento interno idempotente.
+- no instante `expiraEm` o registro deixa de valer e a chave pode iniciar novo comando;
+- registros vencidos são removidos oportunisticamente pelo fluxo de criação, sem job.
 
 ## Operação administrativa de reservas
+
+Esta seção pertence a B4. B3 cria somente reservas públicas e não expõe operações
+administrativas de agendamento.
 
 - Reservas públicas e administrativas nascem em `CONFIRMADO`.
 - `PROPRIETARIO` pode criar e operar reservas de qualquer profissional.

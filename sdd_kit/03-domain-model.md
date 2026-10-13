@@ -91,6 +91,7 @@ Configuração única da instalação com políticas transversais do agendamento
 | antecedenciaMinimaReservaMinutos | recebido por `NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS`; de 0 a 43200; padrão 60 |
 | horizonteReservaDias | recebido por `NEGOCIO_HORIZONTE_RESERVA_DIAS`; de 1 a 365; padrão 90 |
 | versaoAvisoPrivacidade | versão vigente apresentada antes da reserva |
+| textoAvisoPrivacidade | texto vigente apresentado antes da reserva |
 
 Os limites públicos são avaliados pelo relógio do servidor e pelo fuso IANA da instalação.
 
@@ -101,8 +102,8 @@ Representa uma pessoa que realizou uma reserva.
 | Campo conceitual | Regra |
 |---|---|
 | id | identificador interno |
-| nome | nome informado mais recente enquanto o cliente não estiver anonimizado |
-| celular | celular brasileiro normalizado com `+55`, obrigatório e único enquanto não anonimizado |
+| nome | nome informado mais recente, com 1 a 120 caracteres após `strip`, enquanto o cliente não estiver anonimizado |
+| celular | celular brasileiro normalizado como `+55` seguido de 10 ou 11 dígitos, obrigatório e único enquanto não anonimizado |
 | anonimizadoEm | instante em que os identificadores foram removidos |
 | criadoEm / atualizadoEm | instantes auditáveis |
 
@@ -138,8 +139,10 @@ Representa a reserva de um serviço para um cliente.
 | ocupadoAte | término do atendimento mais intervalo de limpeza |
 | estado | estado atual |
 | nomeServicoContratado | nome contratado |
+| nomeProfissionalContratado | nome público do profissional na criação |
 | duracaoContratadaMinutos | duração contratada |
 | precoContratado | preço contratado |
+| moedaContratada | código da moeda vigente quando a reserva foi criada |
 | nomeClienteInformado | nome informado na criação |
 | celularClienteInformado | celular normalizado informado na criação |
 | versaoAvisoPrivacidade | versão apresentada ao cliente na criação |
@@ -164,7 +167,8 @@ As alocações são criadas na mesma transação da reserva, não podem ser ajus
 
 ### RegistroIdempotencia
 
-Registra por 24 horas o resultado de uma criação pública concluída com sucesso.
+Registra o resultado de uma criação pública concluída com sucesso até `expiraEm`,
+com limite exclusivo.
 
 | Campo conceitual | Regra |
 |---|---|
@@ -173,9 +177,11 @@ Registra por 24 horas o resultado de uma criação pública concluída com suces
 | statusResposta | status HTTP original |
 | corpoResposta | resposta original |
 | agendamentoId | reserva produzida |
-| criadoEm / expiraEm | controle da janela de 24 horas |
+| criadoEm / expiraEm | início e limite exclusivo da janela de 24 horas |
 
-`hashChave` é único. Não existe token, referência pública ou reprodução por HMAC na API V1.
+`hashChave` é único enquanto o registro estiver vigente. `hashRequisicao` representa
+o conteúdo relevante depois da normalização de nome, celular e valores temporais.
+Não existe token, referência pública ou reprodução por HMAC na API V1.
 
 ## Estados de Agendamento
 

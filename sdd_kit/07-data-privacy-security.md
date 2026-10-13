@@ -27,7 +27,8 @@ O cliente final informa somente nome e celular. CPF, email de cliente, documento
 
 ## Celular
 
-- receber sem campo de país e normalizar números brasileiros para o formato canônico com `+55`;
+- receber sem campo de país, aceitar formatação comum e `+55` opcional e normalizar
+  números brasileiros para `+55` seguido de 10 ou 11 dígitos;
 - manter unicidade por instalação e usar o valor normalizado para localizar o cliente;
 - mascarar por padrão quando o valor completo não for necessário;
 - nunca usar o celular isoladamente para autenticar o cliente ou autorizar acesso a uma reserva.
@@ -58,7 +59,9 @@ A V1 não emite referência ou token de acesso e não oferece consulta, cancelam
 - Cookie de sessão `HttpOnly`, `SameSite=Lax`, limitado a `/api` e `Secure` em produção.
 - Timeout de 30 minutos de inatividade; reinício da aplicação encerra as sessões.
 - Proteção contra session fixation no login.
-- CSRF obrigatório em operações administrativas mutáveis.
+- CSRF obrigatório em operações administrativas mutáveis. `POST /api/v1/publico/agendamentos`
+  é a única escrita isenta, porque não usa sessão nem autenticação e é protegida por
+  idempotência e limite de requisições públicas.
 - Limitação em memória para tentativas de login, inicialmente cinco tentativas por origem em quinze minutos, configurável.
 - Mudança de senha exige a senha atual, invalida todas as sessões e força novo login.
 - Rotas públicas são declaradas explicitamente e todo caminho não reconhecido é negado.
@@ -111,7 +114,10 @@ O cookie que transporta o token CSRF precisa ser legível pelo frontend; ele nã
 
 ## Aviso de privacidade e anonimização manual
 
-- A instalação mantém uma versão vigente do aviso de privacidade antes de aceitar reservas em produção.
+- A instalação configura a versão e o texto vigentes do aviso de privacidade; o
+  perfil `prod` recusa inicialização quando qualquer um estiver ausente ou vazio.
+- `GET /api/v1/publico/aviso-privacidade` expõe somente essa versão e esse texto para
+  apresentação antes da confirmação.
 - A API registra na reserva a versão apresentada e o instante da ciência.
 - Somente `PROPRIETARIO` pode anonimizar manualmente um cliente, após verificação operacional do pedido.
 - A operação exige motivo e é rejeitada enquanto existir reserva futura `CONFIRMADO`.

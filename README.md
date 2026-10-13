@@ -100,6 +100,11 @@ Rotas públicas compartilham um limite por origem configurado por
 `PUBLICO_REQUISICOES_MAXIMO` (padrão `120`) e `PUBLICO_REQUISICOES_JANELA` (padrão
 `1m`). Excesso retorna `429` com `Retry-After`.
 
+O aviso apresentado antes da reserva usa `NEGOCIO_VERSAO_AVISO_PRIVACIDADE` e
+`NEGOCIO_TEXTO_AVISO_PRIVACIDADE`. O perfil `prod` exige os dois valores e não inicia
+quando algum deles estiver ausente. Em desenvolvimento, valores locais explícitos
+permitem exercitar o fluxo sem representar um aviso válido para produção.
+
 `FORWARD_HEADERS_STRATEGY` permanece `NONE` por padrão. Uma instalação atrás de
 proxy só deve habilitar cabeçalhos encaminhados depois de configurar a plataforma
 para remover valores enviados diretamente pelo cliente e confiar apenas no proxy.
@@ -118,8 +123,8 @@ domínio cria, conforme a necessidade real, os pacotes:
 
 Uma funcionalidade não acessa diretamente o repositório de outra. A coordenação
 ocorre por casos de uso explícitos, mantendo regras de negócio independentes de
-HTTP, JPA e provedores externos. A fundação atual possui somente classes reais em
-`compartilhado`; os demais módulos serão criados nas tarefas funcionais.
+HTTP, JPA e provedores externos. Os módulos são materializados somente quando uma
+funcionalidade entregue exige classes reais.
 
 ## Como a documentação está organizada
 

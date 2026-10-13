@@ -23,16 +23,27 @@ public class ConsultaServicoDisponibilidade {
 
     public DadosServicoDisponibilidade obter(UUID id) {
         Servico servico = repositorioServico.findById(id).orElse(null);
+        return dados(servico);
+    }
+
+    public DadosServicoDisponibilidade bloquear(UUID id) {
+        Servico servico = repositorioServico.bloquearPorId(id).orElse(null);
+        return dados(servico);
+    }
+
+    private DadosServicoDisponibilidade dados(Servico servico) {
         if (servico == null) {
             return null;
         }
         return new DadosServicoDisponibilidade(
                 servico.getId(),
                 servico.getProfissionalId(),
+                servico.getNome(),
                 servico.getDuracaoMinutos(),
                 servico.getIntervaloLimpezaMinutos(),
+                servico.getPreco(),
                 servico.isAtivo(),
-                repositorioRequisito.findAllByServicoId(id).stream()
+                repositorioRequisito.findAllByServicoId(servico.getId()).stream()
                         .map(requisito -> new DadosRequisitoDisponibilidade(
                                 requisito.getRecursoOperacionalId(), requisito.getQuantidade()))
                         .toList());

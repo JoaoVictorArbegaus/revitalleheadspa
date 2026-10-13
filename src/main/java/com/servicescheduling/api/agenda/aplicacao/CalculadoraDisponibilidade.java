@@ -5,6 +5,9 @@ import com.servicescheduling.api.agenda.dominio.DiaSemana;
 import com.servicescheduling.api.agenda.dominio.ExpedienteSemanal;
 import com.servicescheduling.api.agenda.infraestrutura.persistencia.RepositorioBloqueioAgenda;
 import com.servicescheduling.api.agenda.infraestrutura.persistencia.RepositorioExpedienteSemanal;
+import com.servicescheduling.api.agenda.aplicacao.ConsultaOcupacoesAgenda.AlocacaoOcupada;
+import com.servicescheduling.api.agenda.aplicacao.ConsultaOcupacoesAgenda.DadosOcupacoesAgenda;
+import com.servicescheduling.api.agenda.aplicacao.ConsultaOcupacoesAgenda.IntervaloOcupado;
 import com.servicescheduling.api.compartilhado.aplicacao.ExcecaoRegraNegocio;
 import com.servicescheduling.api.compartilhado.aplicacao.ExcecaoRegraNegocio.Tipo;
 import com.servicescheduling.api.compartilhado.infraestrutura.configuracao.PropriedadesNegocio;
@@ -42,6 +45,7 @@ public class CalculadoraDisponibilidade {
     private final ConsultaRecursoOperacional consultaRecurso;
     private final RepositorioExpedienteSemanal repositorioExpediente;
     private final RepositorioBloqueioAgenda repositorioBloqueio;
+    private final ConsultaOcupacoesAgenda consultaOcupacoes;
     private final Clock relogio;
     private final ZoneId fusoHorario;
     private final int intervaloGradeMinutos;
@@ -54,6 +58,7 @@ public class CalculadoraDisponibilidade {
             ConsultaRecursoOperacional consultaRecurso,
             RepositorioExpedienteSemanal repositorioExpediente,
             RepositorioBloqueioAgenda repositorioBloqueio,
+            ConsultaOcupacoesAgenda consultaOcupacoes,
             Clock relogio,
             PropriedadesNegocio propriedades) {
         this.consultaServico = consultaServico;
@@ -61,6 +66,7 @@ public class CalculadoraDisponibilidade {
         this.consultaRecurso = consultaRecurso;
         this.repositorioExpediente = repositorioExpediente;
         this.repositorioBloqueio = repositorioBloqueio;
+        this.consultaOcupacoes = consultaOcupacoes;
         this.relogio = relogio;
         this.fusoHorario = propriedades.getFusoHorario();
         this.intervaloGradeMinutos = propriedades.getIntervaloGradeMinutos();
@@ -71,13 +77,30 @@ public class CalculadoraDisponibilidade {
     public DadosDisponibilidade calcular(UUID servicoId, LocalDate dataInicial, LocalDate dataFinal) {
         validarPeriodo(dataInicial, dataFinal);
         DadosServicoDisponibilidade servico = consultaServico.obter(servicoId);
+        return calcular(servicoId, servico, dataInicial, dataFinal);
+    }
+
+    public boolean horarioDisponivel(DadosServicoDisponibilidade servico, Instant inicioEm) {
+        LocalDate data = inicioEm.atZone(fusoHorario).toLocalDate();
+        DadosDisponibilidade disponibilidade = calcular(servico.id(), servico, data, data);
+        return disponibilidade.dias().stream()
+                .flatMap(dia -> dia.horarios().stream())
+                .anyMatch(horario -> horario.inicioEm().toInstant().equals(inicioEm));
+    }
+
+    private DadosDisponibilidade calcular(
+            UUID servicoId,
+            DadosServicoDisponibilidade servico,
+            LocalDate dataInicial,
+            LocalDate dataFinal) {
         Profissional profissional = servico == null ? null : consultaProfissional.obter(servico.profissionalId());
         if (servico == null || !servico.ativo() || profissional == null || !profissional.isAtivo()) {
             throw new ExcecaoRegraNegocio(
                     Tipo.NAO_ENCONTRADO, "SERVICO_NAO_ENCONTRADO", "Servico nao encontrado");
         }
 
-        if (!recursosDisponiveis(servico.requisitos())) {
+        Map<UUID, RecursoOperacional> recursos = recursosDisponiveis(servico.requisitos());
+        if (recursos == null) {
             return respostaVazia(servicoId, dataInicial, dataFinal);
         }
 
@@ -91,6 +114,8 @@ public class CalculadoraDisponibilidade {
         List<BloqueioAgenda> bloqueios = repositorioBloqueio
                 .findAllByProfissionalIdAndInicioEmLessThanAndFimEmGreaterThanOrderByInicioEmAsc(
                         servico.profissionalId(), fimPeriodo, inicioPeriodo);
+        DadosOcupacoesAgenda ocupacoes = consultaOcupacoes.consultar(
+                servico.profissionalId(), recursos.keySet(), inicioPeriodo, fimPeriodo);
 
         Map<DiaSemana, List<ExpedienteSemanal>> expedientePorDia = new HashMap<>();
         for (ExpedienteSemanal janela : expediente) {
@@ -114,7 +139,10 @@ public class CalculadoraDisponibilidade {
                     bloqueios,
                     servico.duracaoMinutos(),
                     ocupacaoMinutos,
-                    primeiroInicio);
+                    primeiroInicio,
+                    servico.requisitos(),
+                    recursos,
+                    ocupacoes);
             if (!horarios.isEmpty()) {
                 dias.add(new DadosDiaDisponivel(data, horarios));
             }
@@ -130,7 +158,10 @@ public class CalculadoraDisponibilidade {
             List<BloqueioAgenda> bloqueios,
             int duracaoServicoMinutos,
             int ocupacaoMinutos,
-            Instant primeiroInicio) {
+            Instant primeiroInicio,
+            List<DadosRequisitoDisponibilidade> requisitos,
+            Map<UUID, RecursoOperacional> recursos,
+            DadosOcupacoesAgenda ocupacoes) {
         List<DadosHorarioDisponivel> horarios = new ArrayList<>();
         for (ExpedienteSemanal janela : janelas) {
             LocalTime inicioAlinhado = alinhar(janela.getInicio());
@@ -148,7 +179,10 @@ public class CalculadoraDisponibilidade {
                     Instant inicio = candidato.toInstant();
                     Instant ocupadoAte = inicio.plus(ocupacaoMinutos, ChronoUnit.MINUTES);
                     if (inicio.isBefore(inicioJanela) || ocupadoAte.isAfter(fimJanela)
-                            || inicio.isBefore(primeiroInicio) || sobrepoeBloqueio(inicio, ocupadoAte, bloqueios)) {
+                            || inicio.isBefore(primeiroInicio)
+                            || sobrepoeBloqueio(inicio, ocupadoAte, bloqueios)
+                            || sobrepoeOcupacaoProfissional(inicio, ocupadoAte, ocupacoes.profissional())
+                            || excedeCapacidade(inicio, ocupadoAte, requisitos, recursos, ocupacoes.recursos())) {
                         continue;
                     }
                     horarios.add(new DadosHorarioDisponivel(
@@ -191,19 +225,66 @@ public class CalculadoraDisponibilidade {
                 .anyMatch(bloqueio -> inicio.isBefore(bloqueio.getFimEm()) && bloqueio.getInicioEm().isBefore(fim));
     }
 
-    private boolean recursosDisponiveis(List<DadosRequisitoDisponibilidade> requisitos) {
+    private Map<UUID, RecursoOperacional> recursosDisponiveis(List<DadosRequisitoDisponibilidade> requisitos) {
         if (requisitos.isEmpty()) {
-            return true;
+            return Map.of();
         }
         Map<UUID, RecursoOperacional> recursos = new HashMap<>();
         for (RecursoOperacional recurso : consultaRecurso.obterTodos(
                 requisitos.stream().map(DadosRequisitoDisponibilidade::recursoId).toList())) {
             recursos.put(recurso.getId(), recurso);
         }
-        return requisitos.stream().allMatch(requisito -> {
+        boolean disponiveis = requisitos.stream().allMatch(requisito -> {
             RecursoOperacional recurso = recursos.get(requisito.recursoId());
             return recurso != null && recurso.isAtivo() && recurso.getCapacidade() >= requisito.quantidade();
         });
+        return disponiveis ? recursos : null;
+    }
+
+    private boolean sobrepoeOcupacaoProfissional(
+            Instant inicio,
+            Instant fim,
+            List<IntervaloOcupado> ocupacoes) {
+        return ocupacoes.stream()
+                .anyMatch(ocupacao -> inicio.isBefore(ocupacao.ocupadoAte())
+                        && ocupacao.inicioEm().isBefore(fim));
+    }
+
+    private boolean excedeCapacidade(
+            Instant inicio,
+            Instant fim,
+            List<DadosRequisitoDisponibilidade> requisitos,
+            Map<UUID, RecursoOperacional> recursos,
+            List<AlocacaoOcupada> alocacoes) {
+        for (DadosRequisitoDisponibilidade requisito : requisitos) {
+            List<EventoCapacidade> eventos = new ArrayList<>();
+            for (AlocacaoOcupada alocacao : alocacoes) {
+                if (alocacao.recursoId().equals(requisito.recursoId())
+                        && inicio.isBefore(alocacao.ocupadoAte())
+                        && alocacao.inicioEm().isBefore(fim)) {
+                    eventos.add(new EventoCapacidade(
+                            alocacao.inicioEm().isBefore(inicio) ? inicio : alocacao.inicioEm(),
+                            alocacao.quantidade()));
+                    eventos.add(new EventoCapacidade(
+                            alocacao.ocupadoAte().isAfter(fim) ? fim : alocacao.ocupadoAte(),
+                            -alocacao.quantidade()));
+                }
+            }
+            eventos.sort(Comparator.comparing(EventoCapacidade::instante)
+                    .thenComparingInt(EventoCapacidade::variacao));
+            int consumido = requisito.quantidade();
+            int capacidade = recursos.get(requisito.recursoId()).getCapacidade();
+            for (EventoCapacidade evento : eventos) {
+                consumido += evento.variacao();
+                if (consumido > capacidade) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private record EventoCapacidade(Instant instante, int variacao) {
     }
 
     private void validarPeriodo(LocalDate dataInicial, LocalDate dataFinal) {

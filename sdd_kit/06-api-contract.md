@@ -18,6 +18,19 @@ Prefixo definitivo: `/api/v1`.
 
 ## Recursos públicos
 
+### `GET /api/v1/publico/aviso-privacidade`
+
+Retorna `200` com o aviso vigente configurado pela instalação:
+
+```json
+{
+  "versao": "2026-01",
+  "texto": "Texto do aviso de privacidade da instalação."
+}
+```
+
+O perfil `prod` não inicia sem versão e texto não vazios.
+
 ### `GET /api/v1/publico/servicos`
 
 Lista serviços ativos com o profissional proprietário. Pode aceitar filtro por profissional.
@@ -42,24 +55,34 @@ Entrada conceitual:
 - `cliente.celular`;
 - `versaoAvisoPrivacidade`, igual à versão apresentada;
 - `cienteAvisoPrivacidade`, obrigatoriamente `true`;
-- chave de idempotência no cabeçalho.
+- `Chave-Idempotencia` no cabeçalho, no formato `[A-Za-z0-9._~-]{16,128}`.
 
 Saída conceitual:
 
 - estado `CONFIRMADO`;
-- fotografia pública do serviço;
-- profissional;
-- data, hora, fuso e preço contratado.
+- fotografias públicas contratadas do serviço e do profissional;
+- `inicioEm` e `fimServicoEm`;
+- `fusoHorario`;
+- `precoContratado` e `moedaContratada`.
 
-A resposta não devolve identificador interno do cliente.
+A criação retorna `201`, sem `Location`. A resposta não devolve `agendamentoId`,
+`clienteId`, referência, token ou outra credencial de acesso posterior.
 
-Nome e celular são os únicos dados do cliente aceitos. O frontend não envia país separadamente; a API aceita formatos brasileiros documentados e normaliza para `+55`. O contrato público não revela se o celular já estava cadastrado.
+Nome e celular são os únicos dados do cliente aceitos. O nome passa por `strip` e
+deve possuir de 1 a 120 caracteres depois dessa normalização. O frontend não envia
+país separadamente; a API aceita celular brasileiro com espaços, parênteses e hífen,
+com `+55` opcional, e normaliza para `+55` seguido de 10 ou 11 dígitos. O contrato
+público não revela se o celular já estava cadastrado.
 
 A API compara `versaoAvisoPrivacidade` com a versão vigente antes de associá-la à reserva e registrar o instante da ciência. Uma versão desatualizada retorna `409 AVISO_PRIVACIDADE_DESATUALIZADO`, para que o frontend apresente o novo texto antes de repetir a confirmação. `cienteAvisoPrivacidade` confirma somente que o aviso apresentado foi lido; não representa consentimento de marketing nem introduz outro dado do cliente.
 
 O cliente envia apenas o `inicioEm` retornado pela disponibilidade. A API calcula os términos, revalida o horário sob bloqueio transacional e responde `409 CONFLITO_AGENDAMENTO` quando outra reserva o ocupou.
 
-A chave de idempotência possui de 16 a 128 caracteres do conjunto documentado e vale por 24 horas. Retentativa idêntica devolve o resultado original; conteúdo divergente retorna `409 CONFLITO_IDEMPOTENCIA`.
+A impressão digital idempotente usa o conteúdo relevante depois da normalização de
+nome, celular e valores temporais. A retentativa idêntica devolve o `201` e o corpo
+originais enquanto `agora < expiraEm`; conteúdo divergente retorna
+`409 CONFLITO_IDEMPOTENCIA`. Em `expiraEm`, a chave pode iniciar novo comando e o
+registro vencido é removido oportunisticamente, sem job.
 
 A API V1 não oferece consulta, cancelamento ou reagendamento públicos e não emite referência ou token de acesso à reserva.
 
@@ -67,6 +90,10 @@ A API V1 não oferece consulta, cancelamento ou reagendamento públicos e não e
 
 As rotas de autenticação e usuários abaixo estão implementadas em F2. As demais
 rotas desta seção descrevem entregas posteriores da V1.
+
+Criação e operações administrativas de reservas pertencem a B4; B3 implementa
+somente `POST /api/v1/publico/agendamentos` e o efeito das reservas públicas na
+disponibilidade.
 
 - `GET /api/v1/administracao/autenticacao/csrf`;
 - `POST /api/v1/administracao/autenticacao/entrar`;
@@ -352,6 +379,7 @@ Para B1, os códigos adicionais do catálogo são:
 | recurso informado inexistente | `422` | `RECURSO_INVALIDO` |
 | quantidade exigida acima da capacidade | `422` | `QUANTIDADE_SUPERIOR_A_CAPACIDADE` |
 | redução de capacidade abaixo de requisito existente | `409` | `CAPACIDADE_INFERIOR_AO_REQUISITO` |
+| redução de capacidade abaixo do consumo simultâneo confirmado | `409` | `CAPACIDADE_INFERIOR_AS_RESERVAS` |
 
 Para B2, os códigos adicionais da agenda são:
 
@@ -363,6 +391,14 @@ Para B2, os códigos adicionais da agenda são:
 | bloqueios sobrepostos | `422` | `BLOQUEIO_SOBREPOSTO` |
 | janela semanal com intervalo inválido | `422` | `INTERVALO_EXPEDIENTE_INVALIDO` |
 | bloqueio com intervalo inválido | `422` | `INTERVALO_BLOQUEIO_INVALIDO` |
+
+Para B3, os códigos adicionais da reserva pública são:
+
+| Situação | Status | `codigo` |
+|---|---:|---|
+| chave ausente ou fora do formato | `422` | `FALHA_VALIDACAO` |
+| nome vazio ou acima de 120 caracteres após `strip` | `422` | `FALHA_VALIDACAO` |
+| celular brasileiro inválido | `422` | `FALHA_VALIDACAO` |
 
 Mensagens podem evoluir. `status`, `codigo` e a estrutura documentada são o contrato estável. Os campos `type`, `title`, `status`, `detail` e `instance` preservam os nomes definidos pela RFC 9457; as extensões próprias usam português. Respostas nunca expõem stack trace, mensagem SQL, nomes de tabelas ou detalhes de exceções internas.
 

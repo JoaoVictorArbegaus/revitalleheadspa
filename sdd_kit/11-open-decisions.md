@@ -250,6 +250,41 @@ atrás de proxy seguem a política de cabeçalhos encaminhados já definida.
 
 Documentos afetados: `README.md`, `sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/18-technical-foundation.md`.
 
+### D-032 — Contrato operacional da reserva pública — `DECIDED`
+
+Contexto: B3 precisa fechar aviso de privacidade, validação, resposta e ciclo da
+idempotência antes de persistir reservas, sem antecipar a operação administrativa de
+B4 nem criar credencial pública pós-reserva.
+
+Decisão: `GET /api/v1/publico/aviso-privacidade` devolve `versao` e `texto` vigentes,
+configurados pela instalação. `POST /api/v1/publico/agendamentos` exige o cabeçalho
+`Chave-Idempotencia` no formato `[A-Za-z0-9._~-]{16,128}`. O nome possui de 1 a 120
+caracteres após `strip`. O celular brasileiro aceita formatação comum, com `+55`
+opcional, e é normalizado para `+55` seguido de 10 ou 11 dígitos.
+
+A criação bem-sucedida retorna `201`, sem `Location`, `agendamentoId`, `clienteId`,
+referência ou token. O corpo contém estado, fotografias públicas contratadas de
+serviço e profissional, `inicioEm`, `fimServicoEm`, fuso, preço e moeda. O snapshot
+de `Agendamento` persiste `moedaContratada` junto de `precoContratado`.
+
+A impressão digital idempotente usa o conteúdo relevante depois das normalizações.
+O resultado permanece válido somente enquanto `agora < expiraEm`; no instante
+`expiraEm` a chave pode iniciar novo comando. Registros vencidos são removidos
+oportunisticamente pelo fluxo de criação, sem job. O perfil `prod` exige versão e
+texto não vazios do aviso. B3 implementa somente a criação pública e seu efeito na
+disponibilidade; criação e operações administrativas de reservas pertencem a B4.
+
+Consequências: retentativas semanticamente iguais compartilham o resultado mesmo
+quando nome ou celular chegam em formatos equivalentes; a confirmação inicial não
+expõe identificadores internos nem meio de acesso posterior; preço e moeda históricos
+não dependem da configuração atual; a instalação não entra em produção sem o aviso.
+
+Documentos afetados: `TASKS.md`, `SESSION.md`, `sdd_kit/03-domain-model.md`,
+`sdd_kit/04-business-rules.md`, `sdd_kit/05-user-flows.md`,
+`sdd_kit/06-api-contract.md`, `sdd_kit/07-data-privacy-security.md`,
+`sdd_kit/09-quality-strategy.md`, `sdd_kit/11-open-decisions.md`,
+`sdd_kit/16-scheduling-and-availability.md` e `sdd_kit/18-technical-foundation.md`.
+
 ### D-015 — Confirmação automática — `DECIDED`
 
 Contexto: a V1 precisa de um único fluxo de reserva correto e simples, sem processo periódico ou estados transitórios de aprovação.

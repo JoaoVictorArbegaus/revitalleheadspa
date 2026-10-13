@@ -23,6 +23,8 @@ aplicacao:
     fuso-horario: ${NEGOCIO_FUSO_HORARIO:America/Sao_Paulo}
     antecedencia-minima-reserva-minutos: ${NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS:60}
     horizonte-reserva-dias: ${NEGOCIO_HORIZONTE_RESERVA_DIAS:90}
+    versao-aviso-privacidade: ${NEGOCIO_VERSAO_AVISO_PRIVACIDADE:desenvolvimento}
+    texto-aviso-privacidade: ${NEGOCIO_TEXTO_AVISO_PRIVACIDADE:Aviso de privacidade para desenvolvimento local.}
   acesso:
     bootstrap:
       nome: ${BOOTSTRAP_PROPRIETARIO_NOME:}

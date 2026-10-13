@@ -43,10 +43,15 @@ Cobrem poucos fluxos críticos completos:
 - reserva usando exatamente a quantidade fixa de cada recurso configurada no serviço;
 - rejeição de redução de capacidade abaixo das alocações futuras vigentes;
 - repetição idempotente da mesma criação pública;
+- chave de idempotência ausente, curta, longa ou com caractere fora de `[A-Za-z0-9._~-]` rejeitada;
 - chave idempotente reutilizada com conteúdo diferente;
+- nome com 1 e 120 caracteres após `strip` aceito, e nome vazio ou acima do limite rejeitado;
+- formatos comuns equivalentes do celular, com e sem `+55`, produzindo o mesmo valor canônico;
+- fingerprint idempotente tratando nome, celular e instante normalizados como conteúdo equivalente;
 - criações concorrentes com a mesma chave produzindo um único efeito;
 - chave não sendo consumida por validação, indisponibilidade ou falha inesperada;
-- expiração e limpeza do registro de idempotência após 24 horas;
+- resultado idempotente válido imediatamente antes de `expiraEm`, inválido no limite
+  exclusivo e registro vencido removido oportunisticamente sem job;
 - serviço desativado entre consulta e confirmação;
 - cancelamento administrativo concorrente com outra ação;
 - logs, métricas e erros sem dados pessoais, credenciais, tokens ou segredos;
@@ -83,8 +88,12 @@ Cobrem poucos fluxos críticos completos:
 - formatos brasileiros equivalentes do mesmo celular reutilizam um único cliente;
 - dois clientes não podem persistir com o mesmo celular normalizado;
 - contrato, persistência e respostas de cliente não possuem CPF, email, marketing ou campos adicionais;
-- produção recusa inicialização sem versão vigente do aviso de privacidade;
+- endpoint público devolve exatamente a versão e o texto configurados do aviso;
+- produção recusa inicialização sem versão ou texto vigente do aviso de privacidade;
 - criação pública e administrativa persistem exatamente a versão apresentada e o instante da ciência;
+- criação pública retorna `201` sem `Location`, identificadores internos, referência
+  ou token e com estado, snapshots públicos, intervalo, fuso, preço e moeda;
+- snapshot de agendamento preserva preço e `moedaContratada` após mudança da configuração;
 - criação com versão desatualizada do aviso é rejeitada antes de reservar o horário;
 - anonimização manual é proibida para `FUNCIONARIO`;
 - anonimização é rejeitada com reserva futura e bem-sucedida depois do fim da relação operacional;
@@ -98,14 +107,10 @@ Cobrem poucos fluxos críticos completos:
 
 ## Dados de teste
 
-Para concluir B2, a suíte cobre de forma proporcional: substituição integral e
-limpeza do expediente; rejeição atômica de janela inválida ou sobreposta; adjacência;
-escopo do funcionário; criação, listagem e remoção de bloqueios sem motivo; rejeição
-de bloqueios sobrepostos; grade, contenção integral no expediente, bloqueio parcial e
-integral; serviço, profissional e recurso inativos; períodos com 1, 31 e 32 datas;
-antecedência, horizonte por data local e fuso com relógio controlado; CSRF, acesso
-público, limite público por origem e OpenAPI. Concorrência de reservas, idempotência e capacidade consumida
-permanecem critérios de B3.
+Para concluir B3, a suíte acrescenta proporcionalmente ao baseline de B2: criação
+pública, cliente normalizado, aviso vigente, snapshots, alocações, ocupações na
+disponibilidade, concorrência de profissional e recursos, idempotência, expiração e
+limpeza oportunista. Criação, ciclo e consulta administrativos permanecem em B4.
 
 - não usar celulares, nomes ou emails administrativos de pessoas reais;
 - manter geradores de dados válidos e claramente fictícios;

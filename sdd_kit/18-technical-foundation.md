@@ -91,7 +91,8 @@ Controladores dependem de casos de uso da própria funcionalidade. Repositórios
 - nomes JSON em `camelCase`;
 - nomes de domínio no JSON e nos recursos HTTP em português sem acentos;
 - instantes em ISO 8601 com offset ou `Z`;
-- a resposta de criação pública não oferece referência ou credencial para operar a reserva posteriormente.
+- a criação pública retorna `201` sem `Location`, identificadores de agendamento ou
+  cliente, referência ou credencial para operar a reserva posteriormente.
 
 Swagger UI e a descrição OpenAPI ficam habilitados em desenvolvimento e teste. Em produção, sua exposição é desabilitada por padrão e pode ser habilitada conscientemente pela instalação.
 
@@ -103,6 +104,7 @@ O contrato fonte é gerado e validado junto da aplicação. Antes da V1, R1 tamb
 - instantes absolutos usam `Instant` no domínio e `timestamptz` no PostgreSQL;
 - datas e horas recorrentes de expediente usam tipos locais acompanhados do fuso IANA da instalação;
 - dinheiro usa decimal com duas casas, nunca `double` ou `float`, e sempre trafega com moeda explícita;
+- snapshots de agendamento persistem preço e moeda contratados, sem reconstruí-los da configuração atual;
 - durações e intervalos usam minutos inteiros;
 - enums persistem nomes textuais estáveis, nunca posições ordinais;
 - nomes de tabela e coluna usam `snake_case` em português sem acentos;
@@ -135,11 +137,25 @@ Configurações do catálogo e da agenda:
 | `NEGOCIO_FUSO_HORARIO` | fuso IANA da instalação | `America/Sao_Paulo` | `ZoneId` válido |
 | `NEGOCIO_ANTECEDENCIA_MINIMA_RESERVA_MINUTOS` | antecedência pública mínima | `60` | 0 a 43200 |
 | `NEGOCIO_HORIZONTE_RESERVA_DIAS` | quantidade de datas locais elegíveis | `90` | 1 a 365 |
+| `NEGOCIO_VERSAO_AVISO_PRIVACIDADE` | versão vigente apresentada antes da reserva | `desenvolvimento` fora de `prod` | 1 a 64 caracteres; obrigatória em `prod` |
+| `NEGOCIO_TEXTO_AVISO_PRIVACIDADE` | texto vigente apresentado antes da reserva | texto local explícito fora de `prod` | 1 a 10000 caracteres; obrigatório em `prod` |
 | `PUBLICO_REQUISICOES_MAXIMO` | requisições públicas por origem e janela | `120` | positivo |
 | `PUBLICO_REQUISICOES_JANELA` | duração da janela do limite público | `1m` | duração positiva |
 
 São configurações comuns da instalação, carregadas por `@ConfigurationProperties`,
 validadas no início e não alteradas por HTTP.
+
+Os valores locais do aviso são apenas fictícios para desenvolvimento e teste. O
+perfil `prod` não possui fallback e falha na inicialização sem versão e texto
+fornecidos pela instalação.
+
+## Idempotência da criação pública
+
+O cabeçalho `Chave-Idempotencia` aceita somente `[A-Za-z0-9._~-]{16,128}` e não é
+persistido em claro. A impressão digital determinística usa o conteúdo relevante já
+normalizado. O resultado é reutilizado somente enquanto `agora < expiraEm`; registros
+vencidos são removidos oportunisticamente no fluxo de criação para liberar a chave,
+sem scheduler, worker ou job.
 
 ## Observabilidade
 

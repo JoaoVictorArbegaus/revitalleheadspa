@@ -135,6 +135,10 @@ public class ConfiguracaoOpenApi {
                     "200", "400", "401", "403", "404", "415", "422", "500");
             configurar(openApi, "/api/v1/publico/servicos", "get", false, false,
                     "200", "429", "500");
+            configurar(openApi, "/api/v1/publico/aviso-privacidade", "get", false, false,
+                    "200", "429", "500");
+            configurar(openApi, "/api/v1/publico/agendamentos", "post", false, false,
+                    "201", "400", "404", "409", "415", "422", "429", "500");
             configurar(openApi, "/api/v1/administracao/agenda/semanal", "get", true, false,
                     "200", "400", "401", "403", "404", "422", "500");
             configurar(openApi, "/api/v1/administracao/agenda/semanal", "put", true, true,

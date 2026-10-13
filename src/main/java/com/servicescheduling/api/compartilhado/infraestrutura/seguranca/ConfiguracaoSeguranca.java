@@ -49,6 +49,10 @@ public class ConfiguracaoSeguranca {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/publico/servicos/*/disponibilidade")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/publico/aviso-privacidade")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/publico/agendamentos")
+                        .permitAll()
                         .requestMatchers("/api/v1/administracao/usuarios/**")
                         .hasRole("PROPRIETARIO")
                         .requestMatchers("/api/v1/administracao/profissionais/**")
@@ -69,7 +73,10 @@ public class ConfiguracaoSeguranca {
                 .cors(configuracao -> configuracao.disable())
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(repositorioCsrf)
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers(
+                                requisicao -> requisicao.getMethod().equals(HttpMethod.POST.name())
+                                        && requisicao.getRequestURI().equals("/api/v1/publico/agendamentos")))
                 .sessionManagement(sessao -> sessao
                         .sessionFixation(fixacao -> fixacao.changeSessionId())
                         .maximumSessions(-1)

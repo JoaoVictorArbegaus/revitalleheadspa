@@ -6,6 +6,7 @@ import com.servicescheduling.api.recursos.dominio.RecursoOperacional;
 import com.servicescheduling.api.recursos.infraestrutura.persistencia.RepositorioRecursoOperacional;
 import java.util.List;
 import java.util.UUID;
+import java.time.Clock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +16,18 @@ public class ServicoRecursosOperacionais {
 
     private final RepositorioRecursoOperacional repositorio;
     private final ConsultaRequisitosRecurso consultaRequisitos;
+    private final ConsultaCapacidadeReservada consultaCapacidadeReservada;
+    private final Clock relogio;
 
     public ServicoRecursosOperacionais(
             RepositorioRecursoOperacional repositorio,
-            ConsultaRequisitosRecurso consultaRequisitos) {
+            ConsultaRequisitosRecurso consultaRequisitos,
+            ConsultaCapacidadeReservada consultaCapacidadeReservada,
+            Clock relogio) {
         this.repositorio = repositorio;
         this.consultaRequisitos = consultaRequisitos;
+        this.consultaCapacidadeReservada = consultaCapacidadeReservada;
+        this.relogio = relogio;
     }
 
     public List<DadosRecursoOperacional> listar() {
@@ -44,6 +51,12 @@ public class ServicoRecursosOperacionais {
                     Tipo.CONFLITO,
                     "CAPACIDADE_INFERIOR_AO_REQUISITO",
                     "A capacidade nao pode ser menor que a quantidade exigida por um servico");
+        }
+        if (capacidade < consultaCapacidadeReservada.maiorConsumoSimultaneo(id, relogio.instant())) {
+            throw new ExcecaoRegraNegocio(
+                    Tipo.CONFLITO,
+                    "CAPACIDADE_INFERIOR_AS_RESERVAS",
+                    "A capacidade nao pode ser menor que o consumo das reservas confirmadas");
         }
         recurso.alterar(nome, capacidade, ativo);
         return dados(repositorio.saveAndFlush(recurso));

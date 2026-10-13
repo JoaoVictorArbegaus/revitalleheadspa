@@ -10,11 +10,14 @@ Os fluxos descrevem as jornadas que a API deve suportar. A implementação visua
 4. Sistema apresenta dias e horários disponíveis dentro do horizonte permitido, considerando a agenda do profissional e a capacidade dos recursos exigidos.
 5. Cliente seleciona um horário.
 6. Cliente informa somente nome e celular.
-7. Sistema apresenta o resumo, o aviso de privacidade vigente e sua versão.
+7. Frontend consulta `GET /api/v1/publico/aviso-privacidade` e apresenta no resumo o
+   texto e a versão vigentes.
 8. Cliente confirma a ciência dessa versão e a reserva.
 9. Frontend envia uma nova `Chave-Idempotencia`; em retentativas da mesma confirmação, reutiliza essa chave.
 10. API valida novamente o horário, registra a versão do aviso e o instante da ciência e cria a reserva uma única vez, diretamente em `CONFIRMADO`.
-11. Interface exibe confirmação, serviço, profissional, data, hora e valor.
+11. API retorna `201` sem identificadores ou credencial de acesso posterior, e a
+    interface exibe estado, fotografias contratadas de serviço e profissional,
+    início, fim, fuso, preço e moeda.
 
 ### Exceções
 
@@ -82,6 +85,8 @@ disponibilidade pertence a B3.
 
 ## Operação diária
 
+Este fluxo administrativo pertence a B4 e não faz parte da implementação de B3.
+
 1. Usuário autorizado consulta reservas por dia ou período dentro do próprio escopo.
 2. Abre os detalhes de uma reserva.
 3. Cria, cancela, conclui ou registra ausência conforme o estado e o horário permitirem.
@@ -90,6 +95,8 @@ disponibilidade pertence a B3.
 Não existe confirmação, rejeição ou reagendamento na API V1.
 
 ## Reserva administrativa
+
+Este fluxo pertence a B4. B3 não cria reserva administrativa.
 
 1. Usuário autorizado seleciona um serviço dentro do próprio escopo e um horário.
 2. Sistema determina automaticamente os recursos e quantidades fixas exigidos pelo serviço.

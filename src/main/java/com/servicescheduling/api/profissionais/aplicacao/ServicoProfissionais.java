@@ -34,7 +34,8 @@ public class ServicoProfissionais {
 
     @Transactional
     public DadosProfissional alterar(UUID id, String nome, boolean ativo) {
-        Profissional profissional = obter(id);
+        Profissional profissional = repositorio.bloquearPorId(id).orElseThrow(() -> new ExcecaoRegraNegocio(
+                Tipo.NAO_ENCONTRADO, "PROFISSIONAL_NAO_ENCONTRADO", "Profissional nao encontrado"));
         profissional.alterar(nome, ativo);
         return dados(repositorio.saveAndFlush(profissional));
     }

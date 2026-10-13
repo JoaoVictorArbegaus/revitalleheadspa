@@ -10,6 +10,11 @@ springdoc:
   swagger-ui:
     enabled: ${SWAGGER_UI_HABILITADA:false}
 
+aplicacao:
+  negocio:
+    versao-aviso-privacidade: ${NEGOCIO_VERSAO_AVISO_PRIVACIDADE:}
+    texto-aviso-privacidade: ${NEGOCIO_TEXTO_AVISO_PRIVACIDADE:}
+
 server:
   servlet:
     session:
