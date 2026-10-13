@@ -2,8 +2,8 @@
 
 Toda falha da API usa `Content-Type: application/problem+json` (RFC 9457, D-006).
 O consumidor decide o comportamento por `status` e `codigo`; o texto de `detail` e
-`title` pode mudar sem aviso. Os códigos desta página são estáveis dentro da versão
-principal da API.
+`title` pode mudar sem aviso. Os códigos desta página são estáveis; qualquer mudança
+é feita junto com este catálogo e fica explícita no histórico do Git.
 
 ```json
 {

@@ -1,4 +1,4 @@
-# Releases e projetos de clientes
+# Projetos de clientes
 
 ## Objetivo
 
@@ -10,23 +10,24 @@ Manter `service-scheduling-api` como produto-base genérico no GitHub e criar um
 2. Atualizar contrato, migrações, testes e documentação afetados.
 3. Executar as validações aplicáveis e registrar o estado em `TASKS.md` e `SESSION.md`.
 4. Criar um commit coerente e enviá-lo para `main`.
-5. Ao concluir os critérios de R2, publicar uma release seguindo versionamento semântico.
-6. Manter notas de versão com mudanças, migrações e incompatibilidades para orientar cópias futuras.
 
-A branch `main` representa desenvolvimento contínuo e pode conter uma V1 incompleta. A primeira versão apta a originar clientes será `v1.0.0`; a GitHub Release e a tag só podem ser criadas quando R2 estiver concluída.
+Não há tags, GitHub Releases nem notas de versão (D-034). O histórico do Git, as
+mensagens de commit e a especificação registram mudanças, migrações e
+incompatibilidades. Um commit de `main` está apto a originar um cliente quando
+`TASKS.md` não tem tarefa em andamento e `clean verify` passa.
 
 ## Criação de um projeto de cliente
 
-1. Selecionar uma release estável da API, nunca uma branch de desenvolvimento.
-2. Criar um novo repositório para o cliente a partir dessa versão.
-3. Registrar a release de origem no README do projeto.
+1. Clonar este repositório (`git clone`) em um commit de `main` apto, conforme acima.
+2. Criar um novo repositório para o cliente a partir desse clone.
+3. Registrar o commit de origem no README do projeto.
 4. Configurar banco, segredos, domínio e ambientes exclusivos.
 5. Escolher hospedagem, proxy reverso, certificados, backup e monitoramento do cliente.
 6. Hospedar o frontend estático no mesmo domínio e encaminhar `/api` ao container da API.
 7. Criar os frontends e adaptações do cliente no novo projeto.
 8. Validar que nenhuma credencial, dado ou identidade de outro cliente foi herdada.
 
-Revitalle será o primeiro projeto criado por esse processo depois da V1.
+Revitalle será o primeiro projeto criado por esse processo.
 
 ## Regra de proveniência
 
@@ -49,7 +50,7 @@ Depois de criado, o projeto do cliente é independente. Quando uma necessidade n
 
 Cada projeto registra:
 
-- release de origem;
+- commit de origem;
 - correções posteriormente copiadas de outros projetos;
 - personalizações locais;
 - migrações adicionais próprias;
@@ -59,14 +60,12 @@ O produto-base fornece imagem Docker, Compose local e configuração de exemplo 
 
 Não haverá atualização automática, pacote compartilhado obrigatório ou sincronização contínua com o produto-base. Quando uma correção precisar ser transportada, ela deve ocorrer por commit identificado ou implementação equivalente, com revisão de conflitos e testes completos no destino.
 
-## Versionomento
+## Compatibilidade
 
-- `MAJOR`: mudança incompatível no contrato ou comportamento suportado.
-- `MINOR`: funcionalidade compatível adicionada.
-- `PATCH`: correção compatível.
-
-Antes da V1, não existe garantia de compatibilidade. Depois da V1, toda incompatibilidade exige nova versão principal e guia de migração.
+Não há numeração de versões. Uma mudança incompatível de contrato em `main` deve
+ser explícita na mensagem de commit e na especificação, para que uma cópia que
+queira transportá-la saiba o que adaptar.
 
 ## Limites
 
-Este processo não cria multitenancy, banco compartilhado ou atualização automática de todos os clientes. Releases novas servem principalmente como origem para clientes futuros; projetos existentes seguem sua própria linha de evolução.
+Este processo não cria multitenancy, banco compartilhado ou atualização automática de todos os clientes. Commits novos de `main` servem como origem para clientes futuros; projetos existentes seguem sua própria linha de evolução.

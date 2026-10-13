@@ -83,6 +83,6 @@ Itens fora da API V1 podem ser priorizados depois. Eles não devem ser antecipad
 - cada serviço ocupa um período contínuo;
 - a cobrança acontece fora do sistema;
 - telefone sem verificação não autoriza consulta ou alteração pública de reservas;
-- projetos de clientes são cópias independentes de uma release da API-base.
+- projetos de clientes são cópias independentes de um commit da API-base.
 
 Premissas alteradas devem gerar atualização de domínio, regras, contrato e backlog.

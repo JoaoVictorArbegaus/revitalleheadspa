@@ -44,9 +44,9 @@ Se documentos e implementação divergirem, interrompa a expansão da tarefa, id
 - Atualize testes, contrato da API e documentação afetada na mesma tarefa.
 - Toda mudança de contrato deve atualizar OpenAPI, exemplos executáveis e o catálogo de erros ou configuração aplicável.
 - Não declare uma tarefa concluída sem executar a validação aplicável.
-- Siga `sdd_kit/13-release-and-client-derivation.md` ao preparar uma versão ou iniciar um projeto de cliente.
+- Siga `sdd_kit/13-release-and-client-derivation.md` ao iniciar um projeto de cliente.
 - Faça commits coesos e pushes para `main` conforme o trabalho validado avança, mantendo documentação, testes e implementação correspondentes no mesmo conjunto.
-- Não publique uma GitHub Release nem crie a tag estável `v1.0.0` antes da tarefa R2 e de seus critérios de aceite.
+- Não crie tags nem GitHub Releases; projetos de clientes partem de um clone de `main` (D-034).
 - Siga `sdd_kit/15-api-consumer-documentation.md` ao criar ou alterar qualquer endpoint.
 - Siga `sdd_kit/16-scheduling-and-availability.md` ao alterar agenda, disponibilidade, reservas ou calendário.
 - Siga `sdd_kit/18-technical-foundation.md` ao alterar stack, pacotes, persistência, configuração, observabilidade ou build.

@@ -4,9 +4,9 @@ API genérica e reutilizável para agendamento de serviços. Este repositório s
 
 Repositório oficial: [JoaoVictorArbegaus/service-scheduling-api](https://github.com/JoaoVictorArbegaus/service-scheduling-api).
 
-O desenvolvimento é versionado continuamente na branch `main`. A tag `v1.0.0` e a primeira GitHub Release só serão publicadas quando os critérios da etapa R2 estiverem concluídos.
+O desenvolvimento é versionado continuamente na branch `main`. Não há tags nem GitHub Releases: a V1 está concluída em `main`, e um projeto de cliente começa por um `git clone` deste repositório (D-034).
 
-Depois da V1, cada cliente terá um projeto próprio derivado de uma versão estável desta API, com banco, frontend e personalizações independentes. O produto não é multitenant: não existe compartilhamento de dados entre empresas nem identificação de tenant nas entidades do domínio.
+Cada cliente terá um projeto próprio derivado de um clone desta API, com banco, frontend e personalizações independentes. O produto não é multitenant: não existe compartilhamento de dados entre empresas nem identificação de tenant nas entidades do domínio.
 
 A API-base é distribuída como imagem Docker e usa PostgreSQL com migrações Flyway. Docker Compose atende o desenvolvimento local; hospedagem, domínio, proxy, certificados, backups e monitoramento são definidos separadamente em cada projeto de cliente.
 
@@ -14,7 +14,7 @@ A API-base é distribuída como imagem Docker e usa PostgreSQL com migrações F
 
 Entregar uma API completa para que o responsável por um negócio administre profissionais, recursos, serviços, preços, duração e horários, enquanto o cliente final consulta a disponibilidade e agenda sem criar conta, informando somente nome e celular.
 
-A V1 termina com contrato OpenAPI, banco versionado, segurança administrativa, testes, documentação de execução e uma versão estável publicada. Frontends, identidade visual e regras próprias da Revitalle começam depois, em um projeto de cliente derivado da V1.
+A V1 termina com contrato OpenAPI, banco versionado, segurança administrativa, testes e documentação de execução, validada em `main`. Frontends, identidade visual e regras próprias da Revitalle começam depois, em um projeto de cliente derivado da V1.
 
 O catálogo público expõe os serviços ativos. Na administração, `PROPRIETARIO`
 gerencia todo o catálogo; `FUNCIONARIO` mantém somente os serviços do profissional
@@ -132,7 +132,7 @@ funcionalidade entregue exige classes reais.
 - [TASKS.md](TASKS.md): plano operacional e estado das entregas.
 - [SESSION.md](SESSION.md): fotografia curta do contexto atual.
 - [sdd_kit/00-index.md](sdd_kit/00-index.md): índice das especificações duráveis do produto.
-- [sdd_kit/13-release-and-client-derivation.md](sdd_kit/13-release-and-client-derivation.md): processo para publicar a API e iniciar projetos de clientes.
+- [sdd_kit/13-release-and-client-derivation.md](sdd_kit/13-release-and-client-derivation.md): processo para iniciar e manter projetos de clientes.
 - [sdd_kit/15-api-consumer-documentation.md](sdd_kit/15-api-consumer-documentation.md): contrato e guia para desenvolvimento do frontend.
 - [sdd_kit/18-technical-foundation.md](sdd_kit/18-technical-foundation.md): identidade, stack e convenções para iniciar o código.
 - [docs/autenticacao-administrativa.md](docs/autenticacao-administrativa.md): bootstrap, sessão, CSRF, usuários e recuperação administrativa.
@@ -150,5 +150,5 @@ Antes de codificar, resolva as decisões bloqueantes registradas em `sdd_kit/11-
 4. Preço e duração contratados são preservados no agendamento, mesmo que o serviço mude depois.
 5. O domínio de agenda não depende de WhatsApp, provedor de pagamentos ou framework de frontend.
 6. A API V1 deve ser funcional e utilizável sem frontend próprio.
-7. Cada cliente parte de uma versão estável da API, nunca do projeto personalizado de outro cliente.
+7. Cada cliente parte de um clone validado desta API, nunca do projeto personalizado de outro cliente.
 8. Cada cópia evolui de forma independente; correções podem ser levadas manualmente entre o produto-base e os projetos quando houver interesse.

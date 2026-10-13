@@ -10,7 +10,8 @@ de trabalho concluído no Git.
 - F1, F2, B1, B2, B3, B4 e R1 foram concluídas e são preservadas no histórico do Git.
   R1 passou em `clean verify` com 68 testes, incluindo `ContratoDocumentacaoTest`, e
   os exemplos `.http` executaram contra a API em Docker Compose sem falhas.
-- R2 é a próxima tarefa liberada e ainda não foi iniciada.
+- Não há tarefa ativa. Tags e releases não são usadas (D-034); C1 é a derivação
+  por `git clone`, feita pelo responsável fora deste repositório quando houver uso.
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -21,8 +22,7 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | R2 | Publicar a release da API V1 | TODO | liberada | `sdd_kit/13-release-and-client-derivation.md` |
-| 2 | C1 | Derivar o projeto Revitalle | TODO | R2 | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | C1 | Derivar o projeto Revitalle por clone | TODO | liberada | `sdd_kit/13-release-and-client-derivation.md` |
 
 ## Migrations
 

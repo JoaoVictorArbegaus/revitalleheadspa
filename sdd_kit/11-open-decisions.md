@@ -68,7 +68,7 @@ Consequências: o reinício posterior elimina sessões em memória; a senha não
 
 Contexto: a API precisa servir como ponto de partida reutilizável sem criar uma plataforma multitenant.
 
-Decisão: este projeto será o repositório-base da API no GitHub. A API publicará versões estáveis. Revitalle e clientes futuros receberão uma cópia integral de uma release, em projetos próprios, e seguirão de forma independente.
+Decisão: este projeto será o repositório-base da API no GitHub. Revitalle e clientes futuros receberão uma cópia integral da API, obtida por clone conforme D-034, em projetos próprios, e seguirão de forma independente.
 
 Consequências: não haverá vínculo automático, dependência de biblioteca ou obrigação de atualização. Correções precisam ser levadas manualmente às cópias interessadas. Nenhum cliente novo parte do código personalizado de outro.
 
@@ -78,9 +78,9 @@ Documentos afetados: `README.md`, `SESSION.md`, `TASKS.md`, `sdd_kit/01-product-
 
 Contexto: impedir qualquer push até a V1 deixaria o trabalho sem histórico remoto incremental e confundiria publicação do código em desenvolvimento com publicação de uma versão estável.
 
-Decisão: tarefas coesas e validadas podem gerar commits e pushes para a branch `main` durante toda a implementação. Cada commit mantém juntos código, testes, contrato e documentação afetados. A presença de código em `main` não declara estabilidade. GitHub Release e tag `v1.0.0` permanecem bloqueadas até a conclusão de R2.
+Decisão: tarefas coesas e validadas podem gerar commits e pushes para a branch `main` durante toda a implementação. Cada commit mantém juntos código, testes, contrato e documentação afetados. A presença de código em `main` não declara estabilidade. Tags e GitHub Releases não são usadas (D-034).
 
-Consequências: o GitHub acompanha a evolução e serve como histórico remoto; estados incompletos continuam identificados em `TASKS.md`; projetos de clientes só derivam de tags estáveis, nunca de `main`.
+Consequências: o GitHub acompanha a evolução e serve como histórico remoto; estados incompletos continuam identificados em `TASKS.md`; projetos de clientes derivam de um commit validado de `main` (D-034).
 
 Documentos afetados: `AGENTS.md`, `README.md`, `SESSION.md`, `TASKS.md`, `sdd_kit/11-open-decisions.md` e `sdd_kit/13-release-and-client-derivation.md`.
 
@@ -328,6 +328,28 @@ Documentos afetados: `TASKS.md`, `SESSION.md`, `sdd_kit/03-domain-model.md`,
 `sdd_kit/04-business-rules.md`, `sdd_kit/06-api-contract.md`,
 `sdd_kit/07-data-privacy-security.md`, `sdd_kit/09-quality-strategy.md` e
 `sdd_kit/11-open-decisions.md`.
+
+### D-034 — Derivação por clone, sem releases — `DECIDED`
+
+Contexto: o produto-base é usado somente pelo próprio responsável, que inicia
+projetos de clientes clonando o repositório. Tag, GitHub Release e notas de versão
+não teriam consumidor.
+
+Decisão: não criar tags, GitHub Releases nem numeração de versões. A tarefa R2 é
+removida. Um projeto de cliente começa por `git clone` de um commit de `main` sem
+tarefa em andamento e com `clean verify` aprovado, e registra esse commit de origem
+no próprio README.
+
+Consequências: o histórico do Git substitui notas de versão; mudanças incompatíveis
+de contrato ficam explícitas no commit e na especificação; o restante de D-005
+permanece: cópias independentes, sem dependência nem atualização automática.
+
+Documentos afetados: `AGENTS.md`, `README.md`, `TASKS.md`, `SESSION.md`,
+`sdd_kit/00-index.md`, `sdd_kit/01-product-vision.md`,
+`sdd_kit/02-scope-and-requirements.md`, `sdd_kit/10-roadmap.md`,
+`sdd_kit/11-open-decisions.md`, `sdd_kit/12-glossary.md`,
+`sdd_kit/13-release-and-client-derivation.md`,
+`sdd_kit/15-api-consumer-documentation.md` e `docs/catalogo-erros.md`.
 
 ### D-015 — Confirmação automática — `DECIDED`
 

@@ -8,7 +8,7 @@ Negócios que vendem serviços precisam publicar seus horários, reduzir o traba
 
 Construir primeiro uma API reutilizável e funcional de agendamento de serviços. O produto-base se chama `service-scheduling-api` e será versionado no GitHub, independente de frontend, marca ou cliente específico.
 
-Depois da V1, cada cliente receberá um projeto próprio derivado de uma versão estável da API. Esse projeto poderá receber frontend, marca, integrações e regras específicas. A Revitalle, uma clínica de estética, será a primeira implantação e começará somente depois da V1 da API.
+Depois da V1, cada cliente receberá um projeto próprio derivado de um clone validado da API. Esse projeto poderá receber frontend, marca, integrações e regras específicas. A Revitalle, uma clínica de estética, será a primeira implantação e começará somente depois da V1 da API.
 
 ## Públicos
 
@@ -22,7 +22,7 @@ Precisa encontrar um serviço e concluir a reserva com pouco atrito, recebendo u
 
 ### Equipe de desenvolvimento
 
-Precisa baixar uma versão estável da API, iniciar um projeto independente e personalizá-lo sem carregar identidade visual ou regras exclusivas de outro cliente.
+Precisa clonar a API, iniciar um projeto independente e personalizá-lo sem carregar identidade visual ou regras exclusivas de outro cliente.
 
 ## Modelo de implantação
 
@@ -32,7 +32,7 @@ Precisa baixar uma versão estável da API, iniciar um projeto independente e pe
 - frontend substituível ou personalizável;
 - evolução do núcleo por versões controladas;
 - extensões específicas implementadas por módulos claros quando houver necessidade concreta;
-- projeto de código independente derivado de uma release conhecida da API.
+- projeto de código independente derivado de um commit conhecido da API.
 
 Não haverá `tenant_id`, seleção de organização ou dados de clientes diferentes na mesma instância.
 
@@ -48,7 +48,7 @@ Projetos derivados não acompanham automaticamente a API-base. Depois da cópia,
 - impedir sobreposição de reservas;
 - oferecer contrato OpenAPI completo e exemplos para consumidores;
 - ser instalável e testável sem um frontend;
-- publicar uma release estável que possa originar projetos de clientes.
+- manter em `main` uma versão validada que possa originar projetos de clientes por clone.
 
 ## Fora da construção da API V1
 

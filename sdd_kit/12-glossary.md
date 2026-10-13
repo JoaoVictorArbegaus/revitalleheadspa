@@ -25,4 +25,4 @@
 | personalização | marca, conteúdo, integração ou regra periférica específica de uma instalação |
 | produto-base | repositório genérico que produz as versões estáveis da API |
 | projeto de cliente | código independente derivado de uma versão do produto-base e personalizado para um contratante |
-| release de origem | versão estável da API usada para iniciar a cópia independente de um projeto de cliente |
+| commit de origem | commit de `main` da API clonado para iniciar a cópia independente de um projeto de cliente |

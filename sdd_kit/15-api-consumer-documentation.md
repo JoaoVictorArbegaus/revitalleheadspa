@@ -63,7 +63,7 @@ O guia documenta a ciência do aviso e a anonimização manual iniciada por `PRO
 
 ### Catálogo de erros
 
-Cada código estável informa status HTTP, significado, condição de ocorrência e ação esperada do consumidor. Mensagens humanas podem evoluir; códigos não mudam silenciosamente dentro da mesma versão principal.
+Cada código estável informa status HTTP, significado, condição de ocorrência e ação esperada do consumidor. Mensagens humanas podem evoluir; códigos não mudam silenciosamente: toda mudança acompanha o catálogo e fica explícita no commit.
 
 ## Critérios de validação
 

@@ -16,7 +16,7 @@ Leia este arquivo primeiro e abra apenas os documentos necessários para a taref
 | [10-roadmap.md](10-roadmap.md) | sequência de entregas e evolução do produto |
 | [11-open-decisions.md](11-open-decisions.md) | escolhas pendentes e registro de decisões |
 | [12-glossary.md](12-glossary.md) | linguagem comum do projeto |
-| [13-release-and-client-derivation.md](13-release-and-client-derivation.md) | publicação da API V1 e criação de projetos por cliente |
+| [13-release-and-client-derivation.md](13-release-and-client-derivation.md) | criação e manutenção de projetos por cliente |
 | [14-v1-boundaries.md](14-v1-boundaries.md) | limites funcionais, técnicos e de atuação da LLM na V1 |
 | [15-api-consumer-documentation.md](15-api-consumer-documentation.md) | contrato e guia necessários ao desenvolvimento do frontend |
 | [16-scheduling-and-availability.md](16-scheduling-and-availability.md) | persistência da agenda, cálculo de horários, concorrência e integração do calendário |

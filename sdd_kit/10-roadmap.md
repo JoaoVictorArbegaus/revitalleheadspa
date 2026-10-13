@@ -24,13 +24,9 @@ Resultado: usuários autenticados operam o ciclo das reservas dentro do próprio
 
 Resultado: OpenAPI fiel, guia curto de autenticação, CSRF, permissões, estados, erros e idempotência e exemplos `.http` permitem desenvolver o frontend sem ler a implementação.
 
-## R2 — Release da API V1
-
-Resultado: a API reduzida está validada, documentada e publicada como versão estável apta a originar projetos de clientes.
-
 ## C1 — Derivação
 
-Resultado: um projeto separado é derivado da release estável e pode receber frontend, identidade visual e regras aprovadas para o cliente.
+Resultado: um projeto separado é derivado por `git clone` de um commit validado de `main` e pode receber frontend, identidade visual e regras aprovadas para o cliente. A derivação é feita pelo responsável quando houver uso concreto; não há release intermediária (D-034).
 
 ## Possibilidades futuras
 
@@ -38,4 +34,4 @@ Notificações não são tarefa ativa nem parte da V1. Uma integração de comun
 
 ## Critério de avanço
 
-A ordem da V1 é exatamente B1, B2, B3, B4, R1, R2 e C1. Um item só avança quando suas dependências, critérios de aceite e decisões aplicáveis estiverem satisfeitos.
+A ordem da V1 é exatamente B1, B2, B3, B4, R1 e C1. Um item só avança quando suas dependências, critérios de aceite e decisões aplicáveis estiverem satisfeitos.
