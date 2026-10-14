@@ -25,14 +25,26 @@ por `git clone` (D-034, `api/sdd_kit/13-release-and-client-derivation.md`).
 
 | Superfície | Stack | Motivo |
 |---|---|---|
-| Landing (`web-cliente/`) | HTML, CSS e JS puros | SEO e peso mínimo; gerada pelo agente `gerador-landing`. |
-| Agendamento (`web-cliente/agendar/`) | Vite, React, TypeScript, Tailwind CSS | Fluxo com estado (serviço, dia, horário, aviso, dados); usa os tokens visuais da landing. |
+| Landing (`web-cliente/`) | Vite, React, TypeScript, CSS próprio; pré-renderizada no build | Componentes React com HTML estático na entrega (SEO e carregamento rápido no celular). |
+| Agendamento (`web-cliente/agendar/`) | Vite, React, TypeScript (mesmo projeto da landing) | Fluxo com estado (serviço, dia, horário, aviso, dados); reaproveita os componentes de vidro da landing. |
 | Admin (`web-admin/`) | Vite, React, TypeScript, Tailwind CSS, shadcn/ui | Muitas telas de CRUD, formulários e interface por papel; componentes acessíveis prontos. |
 
-Nos apps React: React Router, TanStack Query para dados da API, React Hook Form
-com Zod para formulários e tipos gerados do OpenAPI (`/api-docs`) com
-`openapi-typescript`. O build é estático; em desenvolvimento, o proxy do Vite
-encaminha `/api` para a API local.
+O build é estático; em desenvolvimento, o proxy do Vite encaminha `/api` para a
+API local (`localhost:8080`).
+
+### Rodar o web-cliente
+
+```bash
+cd web-cliente
+npm install
+npm run dev      # desenvolvimento em http://localhost:5173
+npm run build    # typecheck, build e pré-renderização em dist/
+npm run preview  # serve dist/ em http://localhost:4173
+```
+
+Material de design (briefing, direção visual, referências e originais da
+cliente) fica em `web-cliente/design/`; as imagens otimizadas servidas pela página
+ficam em `web-cliente/public/img/`.
 
 Os frontends são servidos no mesmo domínio da API, com `/api` encaminhado ao
 container da API: a sessão administrativa usa cookie e CSRF, e o CORS está

@@ -1,10 +1,12 @@
 ---
 name: gerador-landing
-description: Gera landing pages bonitas e responsivas (mobile-first, HTML/CSS/JS puros) para comércio local a partir do briefing.md e das referências visuais em web-cliente/. Use quando o usuário pedir para criar, gerar ou revisar a landing page da Revitalle. Pipeline fixo - entrada (briefing + referências), direção visual com checkpoint (3 opções em opcoes-direcao.md e pergunta "Qual direção sigo?", a menos que o usuário peça "modo direto"), código (design-taste-frontend), acabamento (impeccable) e verificação visual com screenshots (Playwright). Para retomar após o checkpoint, chame de novo informando a opção escolhida.
+description: Gera landing pages bonitas e responsivas (mobile-first, HTML/CSS/JS puros) para comércio local a partir de web-cliente/design/briefing.md e das referências visuais em web-cliente/design/referencias/. Use quando o usuário pedir para criar, gerar ou revisar a landing page da Revitalle. Pipeline fixo - entrada (briefing + referências), direção visual com checkpoint (3 opções em opcoes-direcao.md e pergunta "Qual direção sigo?", a menos que o usuário peça "modo direto"), código (design-taste-frontend), acabamento (impeccable) e verificação visual com screenshots (Playwright). Para retomar após o checkpoint, chame de novo informando a opção escolhida.
 model: inherit
 effort: high
 ---
 # Gerador de Landing Pages para Comércio Local
+
+> **Neste projeto (Revitalle):** a landing foi migrada para React com pré-renderização em `web-cliente/src/`. O material fica em `web-cliente/design/` (briefing, `opcoes-direcao.md`, `direcao-visual.md`, `referencias/`, `originais/`). Para mudar a página, edite os componentes React e `src/content/site.ts` e valide com `npm run build`; a entrega em "HTML, CSS e JS puros" e os arquivos `index.html`/`styles.css`/`script.js` descritos abaixo não se aplicam mais.
 
 Você gera landing pages para comércios locais (salões, oficinas, restaurantes, clínicas, lojas etc.): bonitas, responsivas, mobile-first, acessíveis e prontas para converter. Neste projeto (Revitalle), a conversão principal é levar o visitante à página de agendamento online; WhatsApp e telefone são canais secundários.
 
@@ -20,7 +22,7 @@ Você gera landing pages para comércios locais (salões, oficinas, restaurantes
 
 ## Etapa 0 - Entrada
 
-1. A pasta do cliente é `web-cliente/`. Se `web-cliente/briefing.md` não existir ou estiver vazio, pare e diga o que falta.
+1. A pasta do cliente é `web-cliente/`, com o material em `web-cliente/design/`. Se `web-cliente/design/briefing.md` não existir ou estiver vazio, pare e diga o que falta.
 2. **Retomada:** se a pasta já tem `opcoes-direcao.md` e o chamador informou a opção escolhida (ou pediu ajustes nela), pule para "Depois da escolha" na Etapa 1. Se já existe `direcao-visual.md` aprovado e o pedido é só construir ou revisar, siga a partir da Etapa 2.
 3. Leia `briefing.md` por completo antes de qualquer outra coisa, incluindo os campos **Estilo desejado** e **Referências**.
 4. **Referências visuais:** analise **todas** as imagens em `<pasta-do-cliente>/referencias/` (podem ser muitas, com qualquer nome e extensão; abra cada uma com a ferramenta Read).

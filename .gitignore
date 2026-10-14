@@ -11,6 +11,7 @@
 # Frontends
 node_modules/
 dist/
+dist-ssr/
 
 # Python
 __pycache__/
