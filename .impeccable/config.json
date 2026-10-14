@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "web-cliente/index.html"
+        ],
+        "createdAt": "2026-10-14T21:09:22.392Z",
+        "reason": "Claude (assistant) decided: static-scan false positive; #EDE3D4 text sits inside .chapter sections with espresso background (areia on espresso ~14:1), scanner resolved the body cream as background; screenshots at 1440/375 confirm dark backgrounds"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "web-cliente/index.html"
+        ],
+        "createdAt": "2026-10-14T21:09:22.575Z",
+        "reason": "Claude (assistant) decided: static-scan false positive; full-bleed hero/reviews/visit sections inset their content via .wrap padding-inline var(--gutter); screenshots show no text flush to edges"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "web-cliente/index.html"
+        ],
+        "createdAt": "2026-10-14T21:09:22.769Z",
+        "reason": "Claude (assistant) decided: sanctioned exception; cream/areia background comes from the client's brand kit (Areia Suave #EDE3D4) recorded in briefing.md and direcao-visual.md"
+      }
+    ]
+  }
+}

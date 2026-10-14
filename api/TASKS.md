@@ -22,7 +22,16 @@ explicitamente liberado.
 
 | Ordem | ID | Tarefa | Estado | Dependência | Fonte principal |
 |---:|---|---|---|---|---|
-| 1 | C1 | Derivar o projeto Revitalle por clone | TODO | liberada | `sdd_kit/13-release-and-client-derivation.md` |
+| 1 | C1 | Derivar o projeto Revitalle por clone | IN_PROGRESS | liberada | `sdd_kit/13-release-and-client-derivation.md` |
+
+### C1 — escopo operacional
+
+- Feito: clone de `main`, repositório próprio `revitalleheadspa` com a API em
+  `api/`, commit de origem no `README.md` da raiz, `upstream` sem push e pastas
+  `web-cliente/` e `web-admin/`.
+- Pendente: banco, segredos, domínio e ambientes exclusivos; hospedagem, proxy,
+  certificados, backup e monitoramento; verificação de que nenhuma credencial ou
+  identidade herdada permanece; `clean verify` no novo repositório.
 
 ## Migrations
 

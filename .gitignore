@@ -1,7 +1,16 @@
-target/
-.idea/
-.classpath
-.project
-.settings/
-*.log
-.env
+# Claude Code
+.claude/settings.local.json
+
+# Impeccable (estado local)
+.impeccable/*.local.json
+.impeccable/hook.cache.json
+.impeccable/critique/
+.impeccable/live/
+.impeccable/review/
+
+# Frontends
+node_modules/
+dist/
+
+# Python
+__pycache__/
