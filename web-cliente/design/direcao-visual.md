@@ -120,8 +120,9 @@ Comparação renderizada (Cormorant Garamond, Playfair Display, Bodoni Moda, Gil
 | --- | --- | --- |
 | Vidro escuro | espresso 0,38-0,55 | pílula de navegação, selos do hero, depoimentos, bloco de contato e horários, nota 5,0 |
 | Vidro claro | creme 0,5-0,6 | cartões dos pilares, placas de serviço, legendas de foto, botão secundário no claro |
-| Vidro claro sobre foto | branco 0,14-0,2 | botão secundário no hero |
-| Vidro dourado | ouro 0,8 | botão principal "Agendar" (texto espresso) |
+| Vidro claro sobre foto | branco 0,06-0,22 em degradê | botões secundários sobre foto e no escuro (texto claro) |
+| Vidro champanhe | ouro-claro 0,16-0,30 em degradê, borda dourada interna | botão principal "Agendar" sobre foto e no escuro (texto claro, **nunca** amarelo chapado, **sem** halo colorido) |
+| Vidro espresso | noz/espresso 0,72-0,82, borda dourada | botões "Agendar" sobre fundo claro (texto claro, AA) |
 | Vidro verde | verde-wa 0,8 | WhatsApp flutuante |
 | Vidro escuro denso | espresso 0,9 | menu móvel aberto (legibilidade) |
 
@@ -133,21 +134,25 @@ Comparação renderizada (Cormorant Garamond, Playfair Display, Bodoni Moda, Gil
 - Filetes finos (1px, ouro a 40-60%) na linha do tempo de "Como funciona" e na citação de "Sobre".
 - Numeração tipográfica discreta (Playfair, ouro-texto) nos passos e nas placas de serviço. Sem círculos.
 
-### Movimento
+### Movimento (Motion + Lenis, aprovado pelo usuário com nota 10)
 
-- **Título do hero:** revelação palavra por palavra (subida + opacidade, 70ms por palavra).
-- **Selos e CTAs do hero:** entrada em sequência.
-- **Foto do hero:** parallax suave e leve aproximação inicial (1,08 → 1).
-- **Header:** muda ao rolar (tinta mais densa, altura menor, sombra).
-- **Entradas no scroll** encadeadas por seção: título → texto → elementos, stagger de 80ms, subida de 24px.
-- **Contadores:** 5,0 e 11 avaliações sobem ao entrar na tela.
-- **Manchas de luz:** deriva lenta e contínua.
-- **Hover:**
-  - placas e cartões: subida, borda especular acesa, reflexo seguindo o ponteiro, refração mais forte;
-  - botões: brilho deslizante e subida;
-  - links: sublinhado que cresce.
-- Rolagem suave entre âncoras.
-- **`prefers-reduced-motion`:** tudo estático e visível, sem parallax, contadores no valor final, sem rolagem suave.
+Implementado em `src/components/Motion.tsx` e nos componentes de seção; manter esta intensidade.
+
+- **Rolagem suave com inércia** (Lenis, `lerp` 0,085); âncoras descontam 96px do cabeçalho.
+- **Hero:**
+  - título palavra por palavra e selos/CTAs em sequência por CSS (rodam antes da hidratação, sem atrasar o LCP);
+  - ao rolar para fora: foto aproxima (1 → 1,18) e desce; conteúdo sobe, encolhe (0,9), desfoca e some;
+  - CTA principal **magnético** (segue o cursor e volta com mola).
+- **Títulos de seção:** cada palavra sobe de dentro de uma máscara, em sequência (`SplitHeading`).
+- **Entradas:** subida de 56px saindo do desfoque, com stagger (`rise`); pilares "se levantam" em 3D (`flipUp`).
+- **Inclinação 3D** que segue o cursor em pilares, placas de serviço e depoimentos (`useTilt`); só com mouse.
+- **Fotos** abrem de dentro para fora (máscara `clip-path`) com a imagem desacelerando o zoom (`PhotoReveal`).
+- **Linha do tempo** se desenha em dourado conforme a rolagem.
+- **Citação de "Sobre"** acende palavra por palavra conforme a rolagem (`ScrollText`).
+- **Avaliações** em faixa contínua que pausa no hover e no foco.
+- **Contadores** 5,0 e 11 sobem ao entrar na tela; manchas de luz em deriva lenta; header muda ao rolar.
+- **Hover:** reflexo do vidro segue o ponteiro, refração mais forte, brilho deslizante e seta que avança nos botões.
+- **`prefers-reduced-motion`:** tudo estático e visível, sem Lenis, sem faixa animada (vira rolagem manual), contadores no valor final.
 
 ## Tratamento das fotos
 
@@ -186,9 +191,8 @@ Todas com altura ≤ ~900px em 1440x900. CTA "Agendar" → `/agendar/` no cabeç
 5. **Como funciona** (areia com manchas): foto da recepção à esquerda; à direita, título e linha do tempo fina com 4 passos numerados tipograficamente.
 6. **Sobre** (creme): texto da cliente, citação com filete, assinatura; foto provisória da Marineuza com legenda em vidro.
 7. **Avaliações** (início do capítulo escuro, sem emenda):
-   - título e nota 5,0 em vidro com contador e estrelas;
-   - CTA;
-   - 5 depoimentos em vidro escuro, em duas colunas.
+   - cabeçalho centralizado: título, nota 5,0 em pílula de vidro com contador e estrelas ao lado do CTA grande;
+   - faixa contínua de 5 depoimentos em vidro escuro, todos em Jost (sem itálico), com estrelas, texto, inicial em círculo dourado, nome e "Avaliação no Google".
 8. **Agende sua visita** (mesmo fundo escuro): título, frase da cliente e CTAs soltos; ao lado, bloco de vidro com endereço, horários e contato.
 9. **Rodapé** (mesmo fundo): logo vertical dourado ≤ 80px, frase, navegação e legal.
 10. **WhatsApp flutuante** em vidro verde: 56px, `aria-label`, safe-area; some quando o bloco final está visível.

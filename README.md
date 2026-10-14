@@ -25,7 +25,7 @@ por `git clone` (D-034, `api/sdd_kit/13-release-and-client-derivation.md`).
 
 | Superfície | Stack | Motivo |
 |---|---|---|
-| Landing (`web-cliente/`) | Vite, React, TypeScript, CSS próprio; pré-renderizada no build | Componentes React com HTML estático na entrega (SEO e carregamento rápido no celular). |
+| Landing (`web-cliente/`) | Vite, React, TypeScript, CSS próprio, Motion e Lenis; pré-renderizada no build | Componentes React com HTML estático na entrega (SEO e carregamento rápido no celular); Motion para animações de entrada, rolagem e 3D, Lenis para rolagem suave. |
 | Agendamento (`web-cliente/agendar/`) | Vite, React, TypeScript (mesmo projeto da landing) | Fluxo com estado (serviço, dia, horário, aviso, dados); reaproveita os componentes de vidro da landing. |
 | Admin (`web-admin/`) | Vite, React, TypeScript, Tailwind CSS, shadcn/ui | Muitas telas de CRUD, formulários e interface por papel; componentes acessíveis prontos. |
 

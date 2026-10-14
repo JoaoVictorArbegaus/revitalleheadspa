@@ -495,6 +495,23 @@ strong { font-weight: 600; }
   .footer__nav { justify-content: flex-end; }
 }
 
+/* ---------- Motion (componentes React) ---------- */
+/* elementos com transform controlado pelo Motion: sem transição CSS de transform, que atrasaria cada quadro */
+.m { transition-property: box-shadow, background-color, -webkit-backdrop-filter, backdrop-filter; transform-style: preserve-3d; }
+.split-w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
+.split-w__in { display: inline-block; transform-origin: 0 100%; }
+.magnetic { display: inline-block; }
+.timeline__progress {
+  position: absolute; left: calc(1.05rem - .5px); top: .6rem; bottom: .6rem; width: 2px; z-index: 0; border-radius: 2px;
+  background: linear-gradient(180deg, var(--ouro-claro), var(--ouro), #8A6A3A); transform-origin: 50% 0;
+}
+
+/* Lenis (rolagem suave) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+
 /* ---------- Movimento reduzido ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

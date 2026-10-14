@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { m } from 'motion/react';
 import { AGENDAR_HREF, avaliacaoGoogle, contato, depoimentos, horarios, navegacao } from '../content/site';
 import { prefersReducedMotion } from '../hooks/useLandingEffects';
 import { Button } from './Button';
 import { CountUp } from './CountUp';
 import { Glass } from './Glass';
 import { Stars, WhatsAppIcon } from './Icons';
+import { Magnetic, Reveal, SplitHeading, inView, useTilt } from './Motion';
 
 function ReviewCard({ nome, texto, copia = false }: { nome: string; texto: string; copia?: boolean }) {
+  const tilt = useTilt(7);
   return (
-    <Glass as="li" className="review" aria-hidden={copia || undefined}>
+    <Glass as={m.li} className="review m" aria-hidden={copia || undefined} {...tilt}>
       <div className="review__top">
         <Stars label="5 de 5 estrelas" />
         <span className="review__src">Google</span>
@@ -44,28 +47,26 @@ function Marquee() {
   }, []);
 
   return (
-    <div ref={ref} className={rodando ? 'marquee is-running' : 'marquee'} data-reveal>
+    <m.div ref={ref} className={rodando ? 'marquee is-running' : 'marquee'} {...inView(3)}>
       <ul className="marquee__track" aria-label="Depoimentos de clientes">
         {depoimentos.map((d) => (
           <ReviewCard key={d.nome} {...d} />
         ))}
         {rodando && depoimentos.map((d) => <ReviewCard key={`${d.nome}-copia`} {...d} copia />)}
       </ul>
-    </div>
+    </m.div>
   );
 }
 
 export function Reviews() {
   return (
     <section className="reviews" id="avaliacoes" aria-labelledby="avaliacoes-titulo">
-      <div className="wrap reviews__head" data-reveal-group>
-        <p className="label label--dark" data-reveal>
+      <div className="wrap reviews__head">
+        <Reveal as="p" className="label label--dark">
           Avaliações
-        </p>
-        <h2 id="avaliacoes-titulo" data-reveal>
-          Quem passou por aqui
-        </h2>
-        <div className="reviews__bar" data-reveal>
+        </Reveal>
+        <SplitHeading id="avaliacoes-titulo" text="Quem passou por aqui" />
+        <Reveal i={2} className="reviews__bar">
           <Glass className="score">
             <p className="score__n">
               <CountUp to={avaliacaoGoogle.nota} decimals={1} />
@@ -77,10 +78,12 @@ export function Reviews() {
               </p>
             </div>
           </Glass>
-          <Button href={AGENDAR_HREF} size="xl" arrow>
-            Agendar minha experiência
-          </Button>
-        </div>
+          <Magnetic>
+            <Button href={AGENDAR_HREF} size="xl" arrow>
+              Agendar minha experiência
+            </Button>
+          </Magnetic>
+        </Reveal>
       </div>
       <Marquee />
     </section>
@@ -91,26 +94,28 @@ export function Visit() {
   return (
     <section className="visit" id="visite" aria-labelledby="visite-titulo">
       <div className="wrap visit__grid">
-        <div className="visit__text" data-reveal-group>
-          <p className="label label--dark" data-reveal>
+        <div className="visit__text">
+          <Reveal as="p" className="label label--dark">
             Agende sua visita
-          </p>
-          <h2 id="visite-titulo" data-reveal>
-            Um espaço criado para cuidar de você por inteiro.
-          </h2>
-          <p data-reveal>Escolha o tratamento e o horário na agenda online. Se preferir, fale com a gente pelo WhatsApp.</p>
-          <div className="actions" data-reveal>
-            <Button href={AGENDAR_HREF} size="xl" arrow>
-              Agendar horário
-            </Button>
+          </Reveal>
+          <SplitHeading id="visite-titulo" text="Um espaço criado para cuidar de você por inteiro." />
+          <Reveal as="p" i={1}>
+            Escolha o tratamento e o horário na agenda online. Se preferir, fale com a gente pelo WhatsApp.
+          </Reveal>
+          <Reveal i={2} className="actions">
+            <Magnetic>
+              <Button href={AGENDAR_HREF} size="xl" arrow>
+                Agendar horário
+              </Button>
+            </Magnetic>
             <Button href={contato.whatsappAgendar} variant="clear" external>
               <WhatsAppIcon />
               Falar no WhatsApp
             </Button>
-          </div>
+          </Reveal>
         </div>
 
-        <Glass className="info" data-reveal-group>
+        <Glass as={m.div} className="info m" {...inView(2)} data-reveal-group>
           <div className="info__block" data-reveal>
             <h3>Endereço</h3>
             <address>

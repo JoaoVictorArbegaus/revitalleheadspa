@@ -12,17 +12,13 @@ export function useLandingEffects() {
     const brands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
     if (brands?.some((b) => /Chromium/.test(b.brand))) doc.classList.add('has-refraction');
 
-    // Cabeçalho muda ao rolar + parallax da foto do hero (um único rAF por quadro).
-    const heroImg = document.querySelector<HTMLElement>('[data-parallax]');
-    const hero = document.getElementById('topo');
+    // Cabeçalho muda ao rolar (um único rAF por quadro).
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY;
-        doc.classList.toggle('is-scrolled', y > 40);
-        if (heroImg && hero && !reduce && y < hero.offsetHeight) heroImg.style.setProperty('--py', `${(y * 0.28).toFixed(1)}px`);
+        doc.classList.toggle('is-scrolled', window.scrollY > 40);
         ticking = false;
       });
     };
