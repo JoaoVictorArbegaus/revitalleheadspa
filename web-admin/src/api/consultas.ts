@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api, qs, type S } from './client';
 
 const ADM = '/administracao';
@@ -80,6 +80,41 @@ export const transicionar = (id: string, acao: 'cancelar' | 'concluir' | 'nao-co
     method: 'POST',
     body: acao === 'cancelar' ? { motivo } : undefined,
   });
+
+/**
+ * Agendamentos de um período qualquer: a API aceita no máximo 31 datas por consulta, então o período
+ * é dividido em blocos e o resultado é unido. Ao trocar o período, mantém os dados anteriores na tela.
+ */
+export function useAgendamentosPeriodo(dataInicial: string, dataFinal: string, profissionalId?: string, habilitado = true) {
+  const blocos: [string, string][] = [];
+  for (let ini = dataInicial; ini <= dataFinal; ) {
+    const d = new Date(`${ini}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 30);
+    const fim = d.toISOString().slice(0, 10) < dataFinal ? d.toISOString().slice(0, 10) : dataFinal;
+    blocos.push([ini, fim]);
+    const prox = new Date(`${fim}T12:00:00Z`);
+    prox.setUTCDate(prox.getUTCDate() + 1);
+    ini = prox.toISOString().slice(0, 10);
+  }
+  return useQueries({
+    queries: blocos.map(([ini, fim]) => {
+      const f: FiltroAgendamentos = { dataInicial: ini, dataFinal: fim, profissionalId };
+      return {
+        queryKey: chaves.agendamentos(f),
+        queryFn: () => api<S['DadosAgendamentoAdministrativo'][]>(`${ADM}/agendamentos${qs(f)}`),
+        enabled: habilitado,
+        placeholderData: keepPreviousData,
+        staleTime: 60_000,
+      };
+    }),
+    combine: (rs) => ({
+      dados: rs.flatMap((r) => r.data ?? []),
+      carregando: rs.some((r) => r.isPending),
+      atualizando: rs.some((r) => r.isFetching),
+      erro: rs.find((r) => r.error)?.error,
+    }),
+  });
+}
 
 // aviso vigente (rota pública): a criação administrativa confirma a ciência do cliente nessa versão
 export const useAvisoPrivacidade = (habilitado: boolean) =>

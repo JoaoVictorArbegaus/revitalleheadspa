@@ -58,10 +58,14 @@ Para atualizar o contrato depois de mudar a API:
 `docker compose exec -T api wget -qO- http://localhost:8080/api-docs > web-admin/src/api/openapi.json`
 e então `npm run api:tipos`.
 
-O painel cobre: login e troca de senha obrigatória, agenda do dia e da semana
+O painel cobre: login e troca de senha obrigatória, visão geral (faturamento
+estimado realizado e previsto, estados das reservas, comparecimento, ocupação,
+reservas pelo site, serviços e horários mais procurados), agenda do dia e da semana
 (concluir, ausência e cancelamento com motivo), criação de agendamento pelo painel,
 serviços com preço, duração, limpeza e recursos, expediente semanal, bloqueios,
-recursos e profissionais. Ficam para a próxima entrega: contas de funcionários e
+recursos e profissionais. Os gráficos são SVG próprio com a paleta validada pela
+skill `dataviz` (tokens `--viz-*` e `--seq-*` em `src/index.css`); o cartão de
+faturamento e os anéis são adaptados de kokonutui (MIT). Ficam para a próxima entrega: contas de funcionários e
 consulta e anonimização de clientes.
 
 ### Ambiente completo em Docker

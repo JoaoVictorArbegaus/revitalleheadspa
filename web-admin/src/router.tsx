@@ -11,6 +11,7 @@ import { ProfissionaisPage } from '@/pages/ProfissionaisPage';
 import { RecursosPage } from '@/pages/RecursosPage';
 import { ServicosPage } from '@/pages/ServicosPage';
 import { TrocarSenhaPage } from '@/pages/TrocarSenhaPage';
+import { VisaoGeralPage } from '@/pages/VisaoGeralPage';
 
 /** Exige sessão; com senha temporária, só a troca de senha fica disponível. */
 function ComSessao({ trocaDeSenha = false }: { trocaDeSenha?: boolean }) {
@@ -42,6 +43,7 @@ export const router = createBrowserRouter(
           element: <Layout />,
           children: [
             { index: true, element: <AgendaPage /> },
+            { path: 'visao-geral', element: <VisaoGeralPage /> },
             { path: 'servicos', element: <ServicosPage /> },
             { path: 'expediente', element: <ExpedientePage /> },
             { path: 'recursos', element: <RecursosPage /> },

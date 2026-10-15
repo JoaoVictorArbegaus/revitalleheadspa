@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Boxes, CalendarDays, Clock, LogOut, Sparkles, UserRound, Users } from 'lucide-react';
+import { Boxes, CalendarDays, ChartNoAxesColumn, Clock, LogOut, Sparkles, UserRound, Users } from 'lucide-react';
 import { sair } from '@/api/consultas';
 import {
   Sidebar,
@@ -24,6 +24,7 @@ import { useSessao } from '@/lib/sessao';
 
 const NAV = [
   { to: '/', rotulo: 'Agenda', icone: CalendarDays, end: true },
+  { to: '/visao-geral', rotulo: 'Visão geral', icone: ChartNoAxesColumn },
   { to: '/servicos', rotulo: 'Serviços', icone: Sparkles },
   { to: '/expediente', rotulo: 'Expediente e bloqueios', icone: Clock },
   { to: '/recursos', rotulo: 'Recursos', icone: Boxes },

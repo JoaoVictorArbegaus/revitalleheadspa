@@ -85,6 +85,31 @@
     --sidebar-ring: #C8A062;
 }
 
+:root {
+    /* gráficos (validados com a skill dataviz contra a superfície #FFFCF7) */
+    --viz-surface: #FFFCF7;
+    --viz-grid: #EDE4D6;
+    --viz-axis: #D9CAB4;
+    --viz-ink: #23140F;
+    --viz-ink-2: #5E4A3C;
+    --viz-muted: #7A6A5A;
+    --viz-realizado: #7E5228;   /* rampa ordinal: realizado (escuro) */
+    --viz-previsto: #D2AC72;    /* e previsto (claro, 2,08:1) */
+    --viz-cinza: #C9BBA8;       /* ênfase: o que não é o foco */
+    --viz-ok: #0CA30C;          /* status: concluído */
+    --viz-ausencia: #EC835A;    /* status: não compareceu (sub-3:1: sempre com rótulo) */
+    --viz-cancelado: #A89A88;   /* status: cancelado (sub-3:1: sempre com rótulo) */
+    --viz-up: #2F6B2A;          /* texto de variação positiva */
+    --viz-down: #A13A2E;        /* texto de variação negativa */
+    --seq-0: #F4ECE0;
+    --seq-1: #E9D3AE;
+    --seq-2: #D8B67F;
+    --seq-3: #C29457;
+    --seq-4: #A27138;
+    --seq-5: #7E5228;
+    --seq-6: #5A3519;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
