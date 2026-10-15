@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,18 +52,56 @@ function Digito({ d }: { d: number }) {
   );
 }
 
-/** Cada dígito gira na própria roda; separadores ficam parados. */
+const SAIDA_MS = 520;
+
+/** Coluna que abre ao entrar e fecha ao sair, para o número não pular de largura. */
+function Coluna({ fechando, children }: { fechando: boolean; children: ReactNode }) {
+  const [aberta, setAberta] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAberta(!fechando));
+    return () => cancelAnimationFrame(id);
+  }, [fechando]);
+  return (
+    <span
+      className="inline-grid transition-[grid-template-columns,opacity] duration-[520ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+      style={{ gridTemplateColumns: aberta ? '1fr' : '0fr', opacity: aberta ? 1 : 0 }}
+    >
+      <span className="min-w-0 overflow-hidden">{children}</span>
+    </span>
+  );
+}
+
+/**
+ * Cada dígito gira na própria roda; prefixo ("R$ ") fica parado. Posições contadas da direita:
+ * quando o número encolhe, os dígitos que sobram à esquerda giram até 0 e recolhem antes de sair.
+ */
 function NumeroRolando({ valor }: { valor: string }) {
-  const cs = valor.split('');
+  const [, prefixo = '', corpo = ''] = /^(\D*)(.*)$/.exec(valor) ?? [];
+  const [estado, setEstado] = useState({ corpo, saindo: '' });
+  if (estado.corpo !== corpo) {
+    const antes = estado.saindo + estado.corpo;
+    setEstado({ corpo, saindo: antes.length > corpo.length ? antes.slice(0, antes.length - corpo.length) : '' });
+  }
+  useEffect(() => {
+    if (!estado.saindo) return;
+    const t = setTimeout(() => setEstado((e) => ({ ...e, saindo: '' })), SAIDA_MS);
+    return () => clearTimeout(t);
+  }, [estado.saindo]);
+
+  const cs = (estado.saindo + corpo).split('');
+  const nSaindo = estado.saindo.length;
   return (
     <span aria-hidden="true" className="inline-flex">
-      {cs.map((c, i) =>
-        /\d/.test(c) ? (
-          <Digito key={`d${cs.length - i}`} d={Number(c)} />
-        ) : (
-          <span key={`s${cs.length - i}`}>{c}</span>
-        ),
-      )}
+      {prefixo && <span className="whitespace-pre">{prefixo}</span>}
+      {cs.map((c, i) => {
+        const sai = i < nSaindo;
+        const digito = /\d/.test(c);
+        return (
+          <Coluna key={`${digito ? 'd' : 's'}${cs.length - i}`} fechando={sai}>
+            {digito ? <Digito d={sai ? 0 : Number(c)} /> : <span>{c}</span>}
+          </Coluna>
+        );
+      })}
     </span>
   );
 }
