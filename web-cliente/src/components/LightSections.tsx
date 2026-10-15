@@ -1,9 +1,12 @@
-import { useRef, type ReactNode } from 'react';
-import { m, useScroll, useSpring } from 'motion/react';
-import { AGENDAR_HREF, etapas, pilares, servicos } from '../content/site';
+import { useRef, type PointerEvent, type ReactNode } from 'react';
+import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react';
+import { AGENDAR_HREF, etapas, pilares, servicos, whatsapp } from '../content/site';
+import { BorderGlowLayers, borderGlowMove } from './BorderGlow';
+import { FlipCard } from './FlipCard';
+import { FlowLines } from './FlowLines';
 import { Button } from './Button';
 import { Glass } from './Glass';
-import { PillarIcon } from './Icons';
+import { PillarIcon, WhatsAppIcon } from './Icons';
 import { EASE, Reveal, ScrollText, SplitHeading, flipUp, inView, useTilt } from './Motion';
 
 const numero = (i: number) => String(i).padStart(2, '0');
@@ -11,7 +14,18 @@ const numero = (i: number) => String(i).padStart(2, '0');
 function PillarCard({ i, icone, titulo, texto }: { i: number; icone: (typeof pilares)[number]['icone']; titulo: string; texto: string }) {
   const tilt = useTilt(9);
   return (
-    <Glass as={m.li} tone="light" className="pillar m" {...inView(i, flipUp)} {...tilt}>
+    <Glass
+      as={m.li}
+      tone="light"
+      className="pillar m bglow"
+      {...inView(i, flipUp)}
+      {...tilt}
+      onPointerMove={(e: PointerEvent<HTMLElement>) => {
+        tilt.onPointerMove(e);
+        borderGlowMove(e);
+      }}
+    >
+      <BorderGlowLayers />
       <PillarIcon name={icone} />
       <h2>{titulo}</h2>
       <p>{texto}</p>
@@ -31,18 +45,67 @@ export function Pillars() {
   );
 }
 
-function Plate({ i, className = 'plate', children }: { i: number; className?: string; children: ReactNode }) {
-  const tilt = useTilt(5);
+const FlipHint = () => (
+  <span className="flip__hint" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <path d="M4 12a8 8 0 0 1 13.66-5.66L20 8.7M20 4v4.7h-4.7M20 12a8 8 0 0 1-13.66 5.66L4 15.3M4 20v-4.7h4.7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    Virar para agendar
+  </span>
+);
+
+function ServiceFlip({ i, nome, descricao }: { i: number; nome: string; descricao: string }) {
   return (
-    <Glass as={m.li} tone="light" className={`${className} m`} {...inView(i % 4)} {...tilt}>
-      {children}
-    </Glass>
+    <m.li className="service" {...inView(i % 3)}>
+      <FlipCard
+        label={nome}
+        front={
+          <div className="service__front">
+            <span className="plate__n" aria-hidden="true">
+              {numero(i + 2)}
+            </span>
+            <h3>{nome}</h3>
+            <p>{descricao}</p>
+            <FlipHint />
+          </div>
+        }
+        back={
+          <div className="service__back">
+            <p className="plate__tag">Agende online</p>
+            <h3>{nome}</h3>
+            <p>Escolha o dia e o horário na agenda online. Na primeira visita, o atendimento começa pela consulta.</p>
+            <div className="service__actions">
+              <Button href={AGENDAR_HREF} arrow hoverText="Ver horários livres">
+                Agendar
+              </Button>
+              <Button
+                href={whatsapp(`Olá! Vi o site da Revitalle e gostaria de saber mais sobre ${nome}.`)}
+                variant="clear"
+                size="sm"
+                external
+                burst
+                hoverText={
+                  <>
+                    <WhatsAppIcon />
+                    Abrir conversa
+                  </>
+                }
+              >
+                <WhatsAppIcon />
+                Tirar dúvidas
+              </Button>
+            </div>
+          </div>
+        }
+      />
+    </m.li>
   );
 }
 
 export function Services() {
   return (
     <section className="services" id="servicos" aria-labelledby="servicos-titulo">
+      <FlowLines className="flow--light" count={30} angle={-6} />
       <div className="wrap">
         <header className="section-head">
           <Reveal as="p" className="label">
@@ -54,8 +117,7 @@ export function Services() {
           </Reveal>
         </header>
 
-        <ol className="plates">
-          <Plate i={0} className="plate plate--feature">
+        <Glass as={m.div} tone="light" className="plate plate--feature m" {...inView(0)}>
             <span className="plate__n" aria-hidden="true">
               01
             </span>
@@ -67,23 +129,21 @@ export function Services() {
                 primeiro passo antes de qualquer tratamento.
               </p>
             </div>
-            <Button href={AGENDAR_HREF}>Agendar consulta</Button>
-          </Plate>
+            <Button href={AGENDAR_HREF} arrow hoverText="Ver horários livres">
+              Agendar consulta
+            </Button>
+        </Glass>
+
+        <ol className="services__grid">
           {servicos.map((s, i) => (
-            <Plate key={s.nome} i={i + 1} className={i === servicos.length - 1 ? 'plate plate--wide' : 'plate'}>
-              <span className="plate__n" aria-hidden="true">
-                {numero(i + 2)}
-              </span>
-              <h3>{s.nome}</h3>
-              <p>{s.descricao}</p>
-            </Plate>
+            <ServiceFlip key={s.nome} i={i} {...s} />
           ))}
         </ol>
 
         <div className="services__foot">
           <Reveal as="p">Valores, duração e horários livres aparecem na agenda online. Os tratamentos não substituem o acompanhamento médico.</Reveal>
           <Reveal i={1}>
-            <Button href={AGENDAR_HREF} variant="dark">
+            <Button href={AGENDAR_HREF} variant="dark" arrow hoverText="Abrir a agenda">
               Ver horários e agendar
             </Button>
           </Reveal>
@@ -120,28 +180,52 @@ export function Ritual() {
   // a linha da linha do tempo se desenha conforme a rolagem
   const { scrollYProgress } = useScroll({ target: listRef, offset: ['start 0.8', 'end 0.55'] });
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
+  const reduce = useReducedMotion();
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: mediaP } = useScroll({ target: mediaRef, offset: ['start end', 'end start'] });
+  const segundaY = useTransform(mediaP, [0, 1], [90, -90]);
 
   return (
     <section className="ritual" id="como-funciona" aria-labelledby="ritual-titulo">
       <div className="wrap ritual__grid">
-        <figure className="photo ritual__photo">
-          <PhotoReveal>
-            <picture>
-              <source media="(max-width: 599px)" srcSet="/img/recepcao-480.webp" width={480} height={640} />
-              <img
-                src="/img/recepcao.webp"
-                width={683}
-                height={910}
-                loading="lazy"
-                decoding="async"
-                alt="Recepção da Revitalle Head Spa: painel de madeira ripada com o logo dourado, paredes verdes, mesa branca com pés dourados e poltrona creme"
-              />
-            </picture>
-          </PhotoReveal>
-          <Glass as={m.figcaption} tone="light" className="chip photo__cap m" {...inView(4)}>
-            Recepção · Bairro Beatriz, Lages
-          </Glass>
-        </figure>
+        <div ref={mediaRef} className="ritual__media">
+          <figure className="photo ritual__photo">
+            <PhotoReveal>
+              <picture>
+                <source media="(max-width: 599px)" srcSet="/img/recepcao-480.webp" width={480} height={640} />
+                <img
+                  src="/img/recepcao.webp"
+                  width={683}
+                  height={910}
+                  loading="lazy"
+                  decoding="async"
+                  alt="Recepção da Revitalle Head Spa: painel de madeira ripada com o logo dourado, paredes verdes, mesa branca com pés dourados e poltrona creme"
+                />
+              </picture>
+            </PhotoReveal>
+            <Glass as={m.figcaption} tone="light" className="chip photo__cap m" {...inView(4)}>
+              Recepção · Bairro Beatriz, Lages
+            </Glass>
+          </figure>
+          {/* segunda foto sobreposta, em moldura de vidro, com parallax próprio */}
+          <m.figure className="photo ritual__photo2" style={reduce ? undefined : { y: segundaY }}>
+            <Glass as={m.div} tone="light" className="ritual__glassframe m" {...inView(2)}>
+              <PhotoReveal>
+                <img
+                  src="/img/hero-sala.webp"
+                  width={876}
+                  height={871}
+                  loading="lazy"
+                  decoding="async"
+                  alt="Sala de atendimento: maca com lavatório iluminado, prateleiras com plantas e velas acesas"
+                />
+              </PhotoReveal>
+            </Glass>
+            <Glass as={m.figcaption} tone="light" className="chip photo__cap m" {...inView(5)}>
+              Sala de atendimento
+            </Glass>
+          </m.figure>
+        </div>
 
         <div className="ritual__text">
           <Reveal as="p" className="label">
@@ -196,14 +280,14 @@ export function About() {
           </Reveal>
         </div>
         <figure className="photo about__photo">
-          {/* PLACEHOLDER: recorte provisório de design/originais/servicos/0.png (arte do Instagram com texto). Pedir a foto original sem texto. */}
+          {/* PLACEHOLDER: recorte provisório de design/originais/servicos/0.png (arte do Instagram com texto; recorte quadrado sem os textos). Pedir a foto original sem texto. */}
           <PhotoReveal>
             <img
-              src="/img/marineuza.webp"
-              srcSet="/img/marineuza-440.webp 440w, /img/marineuza.webp 658w"
-              sizes="(min-width: 960px) 540px, 92vw"
-              width={658}
-              height={456}
+              src="/img/marineuza-q.webp"
+              srcSet="/img/marineuza-q-320.webp 320w, /img/marineuza-q.webp 458w"
+              sizes="(min-width: 960px) 480px, 92vw"
+              width={458}
+              height={458}
               loading="lazy"
               decoding="async"
               alt="Marineuza Branco, de jaleco branco com o logo da Revitalle, preparando um produto para o tratamento"

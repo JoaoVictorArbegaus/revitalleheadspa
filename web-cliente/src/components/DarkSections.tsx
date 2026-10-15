@@ -1,62 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { m } from 'motion/react';
-import { AGENDAR_HREF, avaliacaoGoogle, contato, depoimentos, horarios, navegacao } from '../content/site';
-import { prefersReducedMotion } from '../hooks/useLandingEffects';
+import { AGENDAR_HREF, avaliacaoGoogle, contato, horarios, navegacao } from '../content/site';
 import { Button } from './Button';
 import { CountUp } from './CountUp';
 import { Glass } from './Glass';
 import { Stars, WhatsAppIcon } from './Icons';
-import { Magnetic, Reveal, SplitHeading, inView, useTilt } from './Motion';
-
-function ReviewCard({ nome, texto, copia = false }: { nome: string; texto: string; copia?: boolean }) {
-  const tilt = useTilt(7);
-  return (
-    <Glass as={m.li} className="review m" aria-hidden={copia || undefined} {...tilt}>
-      <div className="review__top">
-        <Stars label="5 de 5 estrelas" />
-        <span className="review__src">Google</span>
-      </div>
-      <blockquote>
-        <p>{texto}</p>
-      </blockquote>
-      <p className="review__who">
-        <span className="review__avatar" aria-hidden="true">
-          {nome[0]}
-        </span>
-        <span>
-          {nome}
-          <small>Avaliação no Google</small>
-        </span>
-      </p>
-    </Glass>
-  );
-}
-
-/** Faixa contínua: a segunda cópia (oculta de leitores de tela) fecha o loop sem emenda; pausa no hover e no foco. */
-function Marquee() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [rodando, setRodando] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || prefersReducedMotion()) return;
-    const track = el.querySelector<HTMLElement>('.marquee__track')!;
-    // medido antes da cópia: uma volta completa a ~40px/s
-    el.style.setProperty('--marquee-dur', `${Math.round(track.scrollWidth / 40)}s`);
-    setRodando(true);
-  }, []);
-
-  return (
-    <m.div ref={ref} className={rodando ? 'marquee is-running' : 'marquee'} {...inView(3)}>
-      <ul className="marquee__track" aria-label="Depoimentos de clientes">
-        {depoimentos.map((d) => (
-          <ReviewCard key={d.nome} {...d} />
-        ))}
-        {rodando && depoimentos.map((d) => <ReviewCard key={`${d.nome}-copia`} {...d} copia />)}
-      </ul>
-    </m.div>
-  );
-}
+import { Magnetic, Reveal, SplitHeading, inView } from './Motion';
+import { ReviewRail } from './ReviewRail';
 
 export function Reviews() {
   return (
@@ -79,13 +29,15 @@ export function Reviews() {
             </div>
           </Glass>
           <Magnetic>
-            <Button href={AGENDAR_HREF} size="xl" arrow>
+            <Button href={AGENDAR_HREF} size="xl" arrow hoverText="Escolher meu horário">
               Agendar minha experiência
             </Button>
           </Magnetic>
         </Reveal>
       </div>
-      <Marquee />
+      <m.div {...inView(3)}>
+        <ReviewRail />
+      </m.div>
     </section>
   );
 }
@@ -104,11 +56,11 @@ export function Visit() {
           </Reveal>
           <Reveal i={2} className="actions">
             <Magnetic>
-              <Button href={AGENDAR_HREF} size="xl" arrow>
+              <Button href={AGENDAR_HREF} size="xl" arrow hoverText="Ver horários livres">
                 Agendar horário
               </Button>
             </Magnetic>
-            <Button href={contato.whatsappAgendar} variant="clear" external>
+            <Button href={contato.whatsappAgendar} variant="clear" external burst hoverText={<><WhatsAppIcon />Abrir conversa</>}>
               <WhatsAppIcon />
               Falar no WhatsApp
             </Button>

@@ -149,18 +149,25 @@ Implementado em `src/components/Motion.tsx` e nos componentes de seção; manter
 - **Fotos** abrem de dentro para fora (máscara `clip-path`) com a imagem desacelerando o zoom (`PhotoReveal`).
 - **Linha do tempo** se desenha em dourado conforme a rolagem.
 - **Citação de "Sobre"** acende palavra por palavra conforme a rolagem (`ScrollText`).
-- **Avaliações** em faixa contínua que pausa no hover e no foco.
+- **Avaliações** em trilho arrastável com inércia, encaixe com mola, elástico nas pontas e profundidade coverflow ligada à rolagem (`ReviewRail`), com setas e contador.
+- **Serviços** em cartões que giram com arrasto, clique ou teclado (`FlipCard`): frente com a descrição, verso escuro com "Agendar" e WhatsApp citando o serviço.
+- **Ondas suaves** em canvas no fundo de "Como funciona" e "Sobre": três senoides em areia, ouro e creme que deslizam e respiram devagar (`Waves`).
+- **Linhas fluindo** em canvas atrás dos serviços (sutis) e do capítulo escuro (douradas), que se afastam do cursor (`FlowLines`).
+- **Borda que acende** perto do cursor nos pilares e nos depoimentos (`BorderGlow`), só com mouse.
+- **Botões:** texto que desliza revelando uma variação no hover ("Agendar horário" → "Ver horários livres"); estouro de partículas douradas só em ações que não trocam de página (WhatsApp).
+- **Menu do celular** em cartões ("Tratamentos", "A Revitalle", "Visite") que se expandem da pílula do cabeçalho.
 - **Contadores** 5,0 e 11 sobem ao entrar na tela; manchas de luz em deriva lenta; header muda ao rolar.
 - **Hover:** reflexo do vidro segue o ponteiro, refração mais forte, brilho deslizante e seta que avança nos botões.
-- **`prefers-reduced-motion`:** tudo estático e visível, sem Lenis, sem faixa animada (vira rolagem manual), contadores no valor final.
+- **`prefers-reduced-motion`:** tudo estático e visível, sem Lenis, sem coverflow, linhas desenhadas paradas, cartões giram sem animação, sem partículas, contadores no valor final.
 
 ## Tratamento das fotos
 
 | Foto | Onde | Tamanho máximo | Tratamento |
 | --- | --- | --- | --- |
 | `fotos/espaço2.png` (876x871) | Fundo do hero, tela cheia | tela cheia (ampliada) | **Exceção registrada:** é o único jeito de ter o hero "como a referência". Origem sem desfoque além de 1px, leve aquecimento para neutralizar o azul do LED, degradê quente escuro e grão por cima para mascarar a ampliação |
-| `fotos/espaço.png` (683x910) | Como funciona | ~420x560 CSS px | Retângulo com cantos de 20px, legenda em vidro "Recepção · Bairro Beatriz, Lages" |
-| `servicos/0.png` recortada (658x456) | Sobre | ≤ 560px de largura | **Provisório** (comentário PLACEHOLDER), cantos de 20px, legenda em vidro |
+| `fotos/espaço.png` (683x910) | Como funciona, foto principal da colagem | ~480x640 CSS px | Retângulo com cantos de 20px, abre por máscara, legenda em vidro "Recepção · Bairro Beatriz, Lages" (no topo no celular) |
+| `fotos/espaço2.png` (876x871) | Como funciona, segunda foto sobreposta | ~50% da colagem | Quadrada, em moldura de vidro claro, com parallax próprio e legenda "Sala de atendimento" |
+| `servicos/0.png` recortada em quadrado (458x458, sem os textos embutidos) | Sobre | ≤ 480px (ampliação leve) | **Provisório** (comentário PLACEHOLDER), cantos de 20px, moldura fina dourada deslocada atrás, legenda em vidro |
 | `fotos/2.png`, `fotos/image.png` | - | - | Não usar (briefing) |
 
 **Logo:**
@@ -192,7 +199,7 @@ Todas com altura ≤ ~900px em 1440x900. CTA "Agendar" → `/agendar/` no cabeç
 6. **Sobre** (creme): texto da cliente, citação com filete, assinatura; foto provisória da Marineuza com legenda em vidro.
 7. **Avaliações** (início do capítulo escuro, sem emenda):
    - cabeçalho centralizado: título, nota 5,0 em pílula de vidro com contador e estrelas ao lado do CTA grande;
-   - faixa contínua de 5 depoimentos em vidro escuro, todos em Jost (sem itálico), com estrelas, texto, inicial em círculo dourado, nome e "Avaliação no Google".
+   - trilho arrastável de 5 depoimentos em vidro escuro, todos em Jost (sem itálico), com estrelas, texto, inicial em círculo dourado, nome e "Avaliação no Google".
 8. **Agende sua visita** (mesmo fundo escuro): título, frase da cliente e CTAs soltos; ao lado, bloco de vidro com endereço, horários e contato.
 9. **Rodapé** (mesmo fundo): logo vertical dourado ≤ 80px, frase, navegação e legal.
 10. **WhatsApp flutuante** em vidro verde: 56px, `aria-label`, safe-area; some quando o bloco final está visível.

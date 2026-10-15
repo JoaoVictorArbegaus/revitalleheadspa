@@ -61,11 +61,11 @@ export function Hero() {
         </p>
         <div className="actions actions--center hero__in" style={ordem(6)}>
           <Magnetic>
-            <Button href={AGENDAR_HREF} size="xl" arrow>
+            <Button href={AGENDAR_HREF} size="xl" arrow hoverText="Ver horários livres">
               Agendar horário
             </Button>
           </Magnetic>
-          <Button href={contato.whatsappDuvida} variant="clear" external>
+          <Button href={contato.whatsappDuvida} variant="clear" external burst hoverText={<><WhatsAppIcon />Abrir conversa</>}>
             <WhatsAppIcon />
             Tirar dúvidas no WhatsApp
           </Button>

@@ -33,6 +33,7 @@ Você cria e evolui a landing page da Revitalle Head Spa: bonita, responsiva, mo
 | `src/App.tsx` | Composição das seções, `LazyMotion`, `MotionConfig`, Lenis |
 | `src/components/Button.tsx`, `Glass.tsx` | Botão (`gold`/`clear`/`dark`, `sm`/`xl`, `arrow`) e superfície de liquid glass (`tone`, `as`) |
 | `src/components/Motion.tsx` | Primitivas: `rise`, `flipUp`, `inView()`, `Reveal`, `SplitHeading`, `useTilt`, `Magnetic`, `ScrollText` |
+| `src/components/FlipCard.tsx`, `ReviewRail.tsx`, `FlowLines.tsx`, `BorderGlow.tsx` | Componentes adaptados de kokonutui e React Bits (MIT): cartão giratório, trilho arrastável, linhas em canvas e borda luminosa |
 | `src/components/*Sections.tsx`, `Hero.tsx`, `Header.tsx` | Seções |
 | `src/hooks/useLandingEffects.ts` | Efeitos globais: refração no Chromium, header ao rolar, reflexo do vidro, `data-reveal` restante |
 | `public/img/` | Imagens otimizadas servidas pela página (`/img/...`) |
@@ -72,7 +73,7 @@ Invoque a skill `design-taste-frontend` e siga suas instruções **tendo `direca
 **Organização:**
 
 - Texto novo ou alterado vai em `src/content/site.ts`, nunca espalhado nos componentes. Links de WhatsApp usam o helper `whatsapp(mensagem)` (url-encode automático).
-- Reaproveite `Button`, `Glass` e as primitivas de `Motion.tsx` antes de criar algo novo. Uma primitiva nova entra em `Motion.tsx` só se for reutilizável.
+- Reaproveite `Button` (props `hoverText` e `burst`), `Glass`, as primitivas de `Motion.tsx` e os componentes adaptados antes de criar algo novo. Componente de terceiros (kokonutui, React Bits, shadcn) entra **adaptado**: Tailwind vira CSS próprio, `framer-motion`/GSAP viram `m.*` do Motion, ícones viram SVG próprio, sem dependência nova; mantenha o comentário de crédito e licença. Uma primitiva nova entra em `Motion.tsx` só se for reutilizável.
 - Uma seção por componente (ou agrupadas como em `LightSections.tsx`/`DarkSections.tsx`); estado local com hooks; sem bibliotecas de estado.
 - `<head>` (title, description, Open Graph, canonical, JSON-LD) fica em `index.html`, não em componentes.
 - Imagens novas: otimize para WebP em `public/img/`, com `width`/`height`, `loading="lazy"` fora da primeira dobra e `srcSet` quando houver versão menor.
@@ -85,7 +86,8 @@ Invoque a skill `design-taste-frontend` e siga suas instruções **tendo `direca
 - **Transform controlado pelo Motion** em elemento com transição CSS de `transform` (como `.glass`/`.btn`) precisa da classe `m`, que remove essa transição; senão cada quadro atrasa.
 - **Texto dividido em máscaras:** o espaço entre palavras fica **fora** do `inline-block` (senão as palavras grudam).
 - **Movimento reduzido:** `MotionConfig reducedMotion="user"` cuida do Motion; efeitos próprios checam `prefersReducedMotion()`/`useReducedMotion()`; Lenis não liga; a faixa animada vira rolagem manual. Tudo continua visível.
-- Efeitos de ponteiro (tilt, magnético) só com `pointerType === 'mouse'`.
+- Efeitos de ponteiro (tilt, magnético, borda luminosa) só com mouse; camadas decorativas que saem do elemento (halos com `inset` negativo) ficam escondidas sem `(hover: hover) and (pointer: fine)`, senão alargam a página no celular.
+- `backdrop-filter` não funciona dentro de `transform-style: preserve-3d`: faces 3D usam vidro simulado (tinta, borda e brilho).
 - **HTML válido:** nada além de `li` dentro de `ul`/`ol`; elementos decorativos ficam num invólucro.
 
 **Requisitos de produto:**

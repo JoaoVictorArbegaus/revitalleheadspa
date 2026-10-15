@@ -52,7 +52,8 @@ desabilitado (`api/docs/guia-frontend.md`).
 
 ## Personalizações locais
 
-Nenhuma ainda.
+- Landing própria da Revitalle em `web-cliente/` (React pré-renderizado).
+- Componentes adaptados de [kokonutui](https://kokonutui.com) (Card Flip, Carousel Cards, Background Paths, Particle Button, Slide Text Button) e [React Bits](https://reactbits.dev) (BorderGlow, CardNav), sob licença MIT, reescritos sem Tailwind, GSAP ou dependências novas.
 
 ## Migrações próprias
 

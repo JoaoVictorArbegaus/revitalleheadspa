@@ -1,7 +1,7 @@
 // Conteúdo da landing. Fonte: design/briefing.md (textos novos aprovados conforme design/direcao-visual.md).
 
 const WHATSAPP = '5549999657420';
-const whatsapp = (mensagem: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
+export const whatsapp = (mensagem: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
 
 export const contato = {
   telefone: '(49) 99965-7420',

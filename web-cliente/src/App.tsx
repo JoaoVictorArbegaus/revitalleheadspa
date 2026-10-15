@@ -2,7 +2,9 @@ import { LazyMotion, MotionConfig, domAnimation, useReducedMotion } from 'motion
 import { ReactLenis } from 'lenis/react';
 import { About, Pillars, Ritual, Services } from './components/LightSections';
 import { Footer, Reviews, Visit, WhatsAppFloat } from './components/DarkSections';
+import { FlowLines } from './components/FlowLines';
 import { Header } from './components/Header';
+import { Waves } from './components/Waves';
 import { Hero } from './components/Hero';
 import { SvgDefs } from './components/Icons';
 import { useLandingEffects } from './hooks/useLandingEffects';
@@ -36,8 +38,12 @@ export function App() {
             </div>
             <Pillars />
             <Services />
-            <Ritual />
-            <About />
+            {/* "Como funciona" e "Sobre" dividem o mesmo fundo de ondas suaves */}
+            <div className="calm">
+              <Waves />
+              <Ritual />
+              <About />
+            </div>
           </div>
 
           {/* Capítulo escuro contínuo: avaliações, visite e rodapé */}
@@ -48,6 +54,7 @@ export function App() {
               ))}
             </div>
             <div className="grain grain--soft" aria-hidden="true" />
+            <FlowLines className="flow--dark" count={42} />
             <Reviews />
             <Visit />
             <Footer />
