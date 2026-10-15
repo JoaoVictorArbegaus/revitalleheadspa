@@ -172,9 +172,9 @@ export function VisaoGeralPage() {
         <Vazio titulo="Sem reservas neste período">Escolha outro período acima.</Vazio>
       ) : (
         // ao trocar o período, mantém o quadro anterior esmaecido até chegar o novo (sem pular o layout)
-        <div className={cn('grid gap-4 transition-opacity md:grid-cols-4', atualizando && 'opacity-60')}>
+        <div className={cn('grid gap-4 transition-opacity sm:grid-cols-2 xl:grid-cols-4', atualizando && 'opacity-60')}>
           <CartaoMetrica
-            className="md:col-span-2 md:row-span-2"
+            className="sm:col-span-2 xl:row-span-2"
             rotulo="Faturamento realizado"
             atual={m.linha}
             anterior={m.linhaAnt}
@@ -203,15 +203,15 @@ export function VisaoGeralPage() {
           />
           <Indicador rotulo="Clientes atendidas" valor={String(r.clientes)} detalhe={`${r.clientesNovas} ${r.clientesNovas === 1 ? 'nova' : 'novas'} · ${r.clientesRecorrentes} ${r.clientesRecorrentes === 1 ? 'recorrente' : 'recorrentes'}`} />
 
-          <Bloco titulo="Faturamento por dia" descricao={`${formatarMoeda(r.realizado)} realizados e ${formatarMoeda(r.previsto)} previstos no período.`} className="md:col-span-4">
+          <Bloco titulo="Faturamento por dia" descricao={`${formatarMoeda(r.realizado)} realizados e ${formatarMoeda(r.previsto)} previstos no período.`} className="sm:col-span-2 xl:col-span-4">
             <FaturamentoPorDia pontos={m.diario} rotuloDia={diaPorExtenso} rotuloCurto={(d) => `${Number(d.slice(8))}/${d.slice(5, 7)}`} />
           </Bloco>
 
-          <Bloco titulo="Reservas por estado" descricao={`Perdido com ausências e cancelamentos: ${formatarMoeda(r.perdido)}.`} className="md:col-span-2">
+          <Bloco titulo="Reservas por estado" descricao={`Perdido com ausências e cancelamentos: ${formatarMoeda(r.perdido)}.`} className="sm:col-span-2">
             <DistribuicaoEstados valores={{ concluidos: r.concluidos, confirmados: r.confirmados, ausencias: r.ausencias, cancelados: r.cancelados }} />
           </Bloco>
 
-          <Bloco titulo="Saúde da agenda" descricao="Proporções do período, de 0 a 100%." className="md:col-span-2">
+          <Bloco titulo="Saúde da agenda" descricao="Proporções do período, de 0 a 100%." className="sm:col-span-2">
             <Aneis
               key={presetId}
               aneis={[
@@ -222,11 +222,11 @@ export function VisaoGeralPage() {
             />
           </Bloco>
 
-          <Bloco titulo="Serviços que mais faturaram" descricao="Somente atendimentos concluídos." className="md:col-span-2">
+          <Bloco titulo="Serviços que mais faturaram" descricao="Somente atendimentos concluídos." className="sm:col-span-2">
             {m.servicos.length ? <RankingServicos linhas={m.servicos} /> : <p className="text-sm text-[var(--viz-ink-2)]">Nenhum atendimento concluído no período.</p>}
           </Bloco>
 
-          <Bloco titulo="Dias e horários mais procurados" descricao="Reservas não canceladas pela hora de início." className="md:col-span-2">
+          <Bloco titulo="Dias e horários mais procurados" descricao="Reservas não canceladas pela hora de início." className="sm:col-span-2">
             <MapaDeCalor
               dias={m.mapa.dias.map((d) => ({ valor: d.valor, rotulo: DIAS_SEMANA.find((x) => x.valor === d.valor)!.rotulo }))}
               horas={m.mapa.horas}

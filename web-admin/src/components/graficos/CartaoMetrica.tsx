@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +28,30 @@ function caminho(alturas: number[]) {
   return d;
 }
 
+/** Um dígito numa roda: nasce no 0 e gira até o valor, então dígitos novos também animam. */
+function Digito({ d }: { d: number }) {
+  const [atual, setAtual] = useState(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAtual(d));
+    return () => cancelAnimationFrame(id);
+  }, [d]);
+  return (
+    <span className="relative inline-block h-[1em] overflow-hidden leading-none">
+      <span className="invisible">0</span>
+      <span
+        className="absolute inset-x-0 top-0 flex flex-col transition-transform duration-[520ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+        style={{ transform: `translateY(-${atual * 10}%)` }}
+      >
+        {DIGITOS.map((x) => (
+          <span key={x} className="block h-[1em] leading-none">
+            {x}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
 /** Cada dígito gira na própria roda; separadores ficam parados. */
 function NumeroRolando({ valor }: { valor: string }) {
   const cs = valor.split('');
@@ -35,19 +59,7 @@ function NumeroRolando({ valor }: { valor: string }) {
     <span aria-hidden="true" className="inline-flex">
       {cs.map((c, i) =>
         /\d/.test(c) ? (
-          <span key={`d${cs.length - i}`} className="relative inline-block h-[1em] overflow-hidden leading-none">
-            <span className="invisible">0</span>
-            <span
-              className="absolute inset-x-0 top-0 flex flex-col transition-transform duration-[380ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
-              style={{ transform: `translateY(-${Number(c) * 10}%)` }}
-            >
-              {DIGITOS.map((d) => (
-                <span key={d} className="block h-[1em] leading-none">
-                  {d}
-                </span>
-              ))}
-            </span>
-          </span>
+          <Digito key={`d${cs.length - i}`} d={Number(c)} />
         ) : (
           <span key={`s${cs.length - i}`}>{c}</span>
         ),

@@ -1,27 +1,31 @@
-import { useRef, type PointerEvent } from 'react';
+import { useRef, useState, type PointerEvent } from 'react';
 import { CheckCircle2, CircleSlash, UserX, CalendarClock } from 'lucide-react';
 import { formatarMoeda } from '@/lib/formato';
 import type { LinhaServico, PontoDia } from '@/lib/metricas';
 import { escala, eixoMoeda, Legenda, LinhaDica, TabelaDados, useDica } from './base';
+import { useLargura } from './largura';
 
 // ---------------------------------------------------------------------------
 // Faturamento por dia: colunas empilhadas realizado (escuro) + previsto (claro), uma rampa só.
 // ---------------------------------------------------------------------------
 export function FaturamentoPorDia({ pontos, rotuloDia, rotuloCurto }: { pontos: PontoDia[]; rotuloDia: (d: string) => string; rotuloCurto: (d: string) => string }) {
-  const W = 720;
-  const H = 220;
-  const M = { t: 12, r: 8, b: 26, l: 58 };
+  // desenhado na largura real do cartão: texto sempre 11px, colunas e rótulos se ajustam ao espaço
+  const { ref: medida, largura: W } = useLargura<HTMLDivElement>();
+  const H = W < 480 ? 180 : 240;
+  const M = { t: 12, r: 8, b: 26, l: W < 480 ? 50 : 58 };
+  const [foco, setFoco] = useState<string | null>(null);
   const iw = W - M.l - M.r;
   const ih = H - M.t - M.b;
   const { topo, passos } = escala(Math.max(...pontos.map((p) => p.realizado + p.previsto), 0));
   const banda = iw / Math.max(1, pontos.length);
   const larg = Math.min(24, Math.max(3, banda - 2)); // ≤ 24px e 2px de respiro entre colunas
   const yv = (v: number) => (v / topo) * ih;
-  const cada = Math.max(1, Math.ceil(pontos.length / 10)); // rótulos do eixo x sem colisão
+  const cada = Math.max(1, Math.ceil(pontos.length / Math.max(2, Math.floor(iw / 56)))); // ~56px por rótulo, sem colisão
   const caixa = useRef<HTMLDivElement>(null);
   const { dica, mostrar, esconder } = useDica();
 
   const sobre = (e: PointerEvent<SVGRectElement>, p: PontoDia) => {
+    setFoco(p.data);
     const r = caixa.current!.getBoundingClientRect();
     const alvo = (e.target as SVGRectElement).getBoundingClientRect();
     mostrar({
@@ -40,8 +44,9 @@ export function FaturamentoPorDia({ pontos, rotuloDia, rotuloCurto }: { pontos: 
   return (
     <div>
       <Legenda itens={[{ cor: 'var(--viz-realizado)', rotulo: 'Realizado (concluídos)' }, { cor: 'var(--viz-previsto)', rotulo: 'Previsto (confirmados)' }]} />
-      <div ref={caixa} className="relative mt-3" onPointerLeave={esconder}>
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Faturamento por dia, realizado e previsto">
+      <div ref={medida} className="mt-3 w-full">
+      <div ref={caixa} className="relative" onPointerLeave={() => (esconder(), setFoco(null))}>
+        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="block" role="img" aria-label="Faturamento por dia, realizado e previsto">
           <g transform={`translate(${M.l},${M.t})`}>
             {passos.map((v) => (
               <g key={v} transform={`translate(0,${ih - yv(v)})`}>
@@ -57,22 +62,26 @@ export function FaturamentoPorDia({ pontos, rotuloDia, rotuloCurto }: { pontos: 
               const hp = yv(p.previsto);
               const gap = hr > 0 && hp > 0 ? 2 : 0;
               return (
-                <g key={p.data}>
+                <g key={p.data} className="transition-opacity duration-150" opacity={foco && foco !== p.data ? 0.45 : 1}>
                   {hr > 0 && <path d={coluna(x, ih - hr, larg, hr, hp === 0)} fill="var(--viz-realizado)" />}
                   {hp > 0 && <path d={coluna(x, ih - hr - gap - hp, larg, hp, true)} fill="var(--viz-previsto)" />}
                   {/* alvo do hover: a banda inteira, maior que a coluna */}
                   <rect x={i * banda} y={0} width={banda} height={ih} fill="transparent" onPointerMove={(e) => sobre(e, p)} />
-                  {i % cada === 0 && (
-                    <text x={i * banda + banda / 2} y={ih + 17} textAnchor="middle" className="fill-[var(--viz-muted)] text-[11px] tabular-nums">
-                      {rotuloCurto(p.data)}
-                    </text>
-                  )}
                 </g>
               );
             })}
+            {/* rótulos fora do grupo esmaecido: o eixo continua legível durante o hover */}
+            {pontos.map((p, i) =>
+              i % cada === 0 ? (
+                <text key={p.data} x={i * banda + banda / 2} y={ih + 17} textAnchor="middle" className="pointer-events-none fill-[var(--viz-muted)] text-[11px] tabular-nums">
+                  {rotuloCurto(p.data)}
+                </text>
+              ) : null,
+            )}
           </g>
         </svg>
         {dica}
+      </div>
       </div>
       <TabelaDados colunas={['Dia', 'Realizado', 'Previsto']} linhas={pontos.map((p) => [rotuloDia(p.data), formatarMoeda(p.realizado), formatarMoeda(p.previsto)])} />
     </div>
