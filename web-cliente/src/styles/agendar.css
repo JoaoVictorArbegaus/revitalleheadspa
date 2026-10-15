@@ -308,25 +308,57 @@ button.btn { border: 0; cursor: pointer; font-family: var(--sans); }
 
 /* ---------- Concluído ---------- */
 .ag-done { display: grid; justify-items: center; }
-.ag-done__seal {
-  display: grid; place-items: center; width: 76px; height: 76px; margin-bottom: 1rem; border-radius: 50%; color: var(--espresso);
-  background: radial-gradient(circle at 35% 30%, #F8EBCF, var(--ouro-claro) 50%, var(--ouro));
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .8), 0 0 0 8px rgba(226, 198, 147, .22), 0 18px 30px -14px rgba(99, 72, 32, .6);
+/* recibo impresso (Recibo.tsx): impressora em espresso e ouro, papel creme que pende da fenda */
+.rp { position: relative; width: 100%; max-width: 380px; height: 520px; margin: .25rem auto 0; user-select: none; -webkit-user-select: none; }
+.rp__carcaca {
+  position: absolute; inset: 0 0 auto; z-index: 2; height: 58px; padding: 0 1.1rem; border-radius: 18px 18px 14px 14px;
+  display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px;
+  background: linear-gradient(180deg, #5A3826, var(--espresso) 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 200, .35), inset 0 0 0 1px rgba(226, 198, 147, .35), 0 14px 26px -16px rgba(35, 20, 15, .8);
+  color: var(--areia); font-size: .8125rem;
 }
-.ag-done__seal svg { width: 38px; height: 38px; }
-.ag-ticket {
-  display: grid; width: 100%; margin: .25rem 0 0; padding: .5rem 1.25rem; border-radius: 20px;
-  background: rgba(255, 255, 255, .62); border: 1px solid rgba(200, 160, 98, .35);
+.rp__nome { font: 500 .95rem/1 var(--serif); color: var(--ouro-claro); letter-spacing: .02em; }
+.rp__status { display: inline-flex; align-items: center; gap: .4rem; color: var(--areia-2); }
+.rp__status i { width: 7px; height: 7px; border-radius: 50%; background: #7BC79A; box-shadow: 0 0 8px rgba(123, 199, 154, .8); }
+.is-imprimindo .rp__status i { background: var(--ouro-claro); box-shadow: 0 0 8px rgba(226, 198, 147, .9); animation: piscar .5s ease-in-out infinite alternate; }
+@keyframes piscar { to { opacity: .35; } }
+.rp__fenda { position: absolute; left: 1.6rem; right: 1.6rem; bottom: 7px; height: 5px; border-radius: 999px; background: #120A07; box-shadow: inset 0 1px 2px #000, 0 1px 0 rgba(255, 236, 200, .18); }
+/* o papel só aparece abaixo da fenda; dos lados, pode balançar para fora (a sombra fica aqui: a máscara do papel a cortaria) */
+.rp__saida { position: absolute; inset: 58px 0 0; clip-path: inset(0 -100vw -100vw -100vw); filter: drop-shadow(0 10px 14px rgba(35, 20, 15, .18)) drop-shadow(0 1px 1px rgba(35, 20, 15, .12)); }
+.rp__papel {
+  --rw: min(300px, calc(100% - 28px));
+  position: absolute; top: 0; left: 50%; width: var(--rw); margin-left: calc(var(--rw) / -2); transform-origin: 0 0;
+  padding: 1.35rem 1.25rem 1.6rem; color: var(--espresso); text-align: left; touch-action: pan-y;
+  background: linear-gradient(180deg, rgba(200, 160, 98, .12), transparent 28px), #FFFDF8;
 }
-.ag-ticket div { display: grid; align-content: start; gap: .1rem; padding: .8rem 0; border-bottom: 1px dashed rgba(200, 160, 98, .5); }
-.ag-ticket div:last-child { border-bottom: 0; }
-.ag-ticket dt { font-size: .8125rem; color: var(--ouro-texto); letter-spacing: .04em; }
-.ag-ticket dd { margin: 0; color: var(--espresso); font-weight: 500; }
-.ag-ticket dd .ag-link { margin-left: .6rem; font-size: .875rem; }
-@media (min-width: 600px) {
-  .ag-ticket { grid-template-columns: 1fr 1fr; column-gap: 1.5rem; }
-  .ag-ticket div:nth-last-child(2) { border-bottom: 0; }
+.is-parado .rp__papel { visibility: hidden; }
+.is-pendurado .rp__papel { cursor: grab; touch-action: none; }
+.is-pendurado .rp__papel:active { cursor: grabbing; }
+.rp__marca { text-align: center; font: 500 1.35rem/1 var(--serif); letter-spacing: .14em; text-transform: uppercase; }
+.rp__sub { margin-top: .3rem; text-align: center; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ouro-texto); }
+.rp__tipo { margin-top: .75rem; text-align: center; font-size: .8125rem; color: var(--noz); }
+.rp__corte { margin: .8rem 0; border: 0; border-top: 1.5px dashed rgba(74, 44, 27, .3); }
+.rp__linhas { display: grid; gap: .45rem; margin: 0; font-size: .875rem; }
+.rp__linhas div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.rp__linhas dt { flex: none; color: var(--noz); }
+.rp__linhas dd { margin: 0; text-align: right; font-weight: 500; }
+.rp__total { display: flex; justify-content: space-between; align-items: baseline; }
+.rp__total span { font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .8125rem; }
+.rp__total strong { font: 500 1.5rem/1 var(--serif); font-variant-numeric: tabular-nums; }
+.rp__obs { margin-top: .2rem; text-align: right; font-size: .75rem; color: var(--noz); }
+.rp__carimbo {
+  padding: .3rem .65rem; border-radius: 8px;
+  border: 2px solid rgba(99, 72, 32, .7); outline: 1px solid rgba(99, 72, 32, .45); outline-offset: 2px;
+  font: 700 .8125rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: rgba(99, 72, 32, .78);
+  transform: rotate(-12deg); mix-blend-mode: multiply; opacity: 0;
 }
+/* carimbo cai quando o papel termina de sair */
+.is-pendurado .rp__carimbo { animation: carimbar .45s cubic-bezier(.3, 1.6, .5, 1) .15s both; }
+@keyframes carimbar { from { opacity: 0; transform: rotate(-12deg) scale(1.8); } to { opacity: 1; transform: rotate(-12deg) scale(1); } }
+.rp__pe { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: 1.2rem; }
+.rp__barras { display: flex; gap: 1px; height: 30px; color: var(--espresso); }
+.rp__rodape { margin-top: .8rem; text-align: center; font-size: .75rem; line-height: 1.55; color: var(--noz); }
+@media (prefers-reduced-motion: reduce) { .is-pendurado .rp__carimbo { animation: none; opacity: 1; } }
 .ag-done .ag-note { text-align: center; max-width: 52ch; }
 .ag-done__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.5rem; }
 .ag-done__more { display: flex; gap: .6rem; align-items: center; margin-top: 1.25rem; color: var(--noz); font-size: .9375rem; }

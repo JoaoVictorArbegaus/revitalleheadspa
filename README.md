@@ -112,7 +112,7 @@ desabilitado (`api/docs/guia-frontend.md`).
 ## Personalizações locais
 
 - Landing e página de agendamento próprias da Revitalle em `web-cliente/` (React pré-renderizado).
-- Componentes adaptados de [kokonutui](https://kokonutui.com) (Card Flip, Carousel Cards, Background Paths, Particle Button, Slide Text Button) e [React Bits](https://reactbits.dev) (BorderGlow, CardNav), sob licença MIT, reescritos sem Tailwind, GSAP ou dependências novas.
+- Componentes adaptados de [kokonutui](https://kokonutui.com) (Card Flip, Carousel Cards, Background Paths, Particle Button, Slide Text Button, Receipt Printer, este como comprovante do agendamento, sem a opção de rasgar) e [React Bits](https://reactbits.dev) (BorderGlow, CardNav), sob licença MIT, reescritos sem Tailwind, GSAP ou dependências novas.
 
 ## Migrações próprias
 

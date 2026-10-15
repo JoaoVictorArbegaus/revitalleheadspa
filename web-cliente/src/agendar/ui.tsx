@@ -39,7 +39,6 @@ const caminhos = {
       <path d="M12 7.8v5M12 16.2h.01" />
     </>
   ),
-  baixar: <path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14" />,
 } as const;
 
 export function Icone({ nome, className = 'ico' }: { nome: keyof typeof caminhos; className?: string }) {
