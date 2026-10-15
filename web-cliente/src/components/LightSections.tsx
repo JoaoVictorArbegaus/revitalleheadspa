@@ -1,6 +1,6 @@
 import { useRef, type PointerEvent, type ReactNode } from 'react';
 import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react';
-import { AGENDAR_HREF, etapas, pilares, servicos, whatsapp } from '../content/site';
+import { AGENDAR_HREF, agendarServico, etapas, pilares, servicos, whatsapp } from '../content/site';
 import { BorderGlowLayers, borderGlowMove } from './BorderGlow';
 import { FlipCard } from './FlipCard';
 import { FlowLines } from './FlowLines';
@@ -75,7 +75,7 @@ function ServiceFlip({ i, nome, descricao }: { i: number; nome: string; descrica
             <h3>{nome}</h3>
             <p>Escolha o dia e o horário na agenda online. Na primeira visita, o atendimento começa pela consulta.</p>
             <div className="service__actions">
-              <Button href={AGENDAR_HREF} arrow hoverText="Ver horários livres">
+              <Button href={agendarServico(nome)} arrow hoverText="Ver horários livres">
                 Agendar
               </Button>
               <Button
@@ -129,7 +129,7 @@ export function Services() {
                 primeiro passo antes de qualquer tratamento.
               </p>
             </div>
-            <Button href={AGENDAR_HREF} arrow hoverText="Ver horários livres">
+            <Button href={agendarServico('Consulta')} arrow hoverText="Ver horários livres">
               Agendar consulta
             </Button>
         </Glass>

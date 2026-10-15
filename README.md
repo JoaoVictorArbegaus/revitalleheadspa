@@ -37,10 +37,18 @@ API local (`localhost:8080`).
 ```bash
 cd web-cliente
 npm install
-npm run dev      # desenvolvimento em http://localhost:5173
+npm run dev      # http://localhost:5173 e /agendar/ (a agenda precisa do ambiente Docker de pé)
 npm run build    # typecheck, build e pré-renderização em dist/
 npm run preview  # serve dist/ em http://localhost:4173
 ```
+
+A página `/agendar/` é a segunda entrada do mesmo build (`agendar/index.html`,
+código em `src/agendar/`), também pré-renderizada. Ela segue o fluxo público do
+`api/docs/guia-frontend.md`: tratamento, dia e horário livre, nome e celular,
+resumo com ciência do aviso de privacidade e confirmação. Conflito de horário
+recarrega a agenda sem perder os dados; falha de rede ou `5xx` repete com a mesma
+`Chave-Idempotencia`. Os cartões de serviço da landing abrem a agenda já no
+tratamento (`/agendar/?servico=Hair%20Spa`, comparado sem acentos nem caixa).
 
 ### Rodar o web-admin
 
@@ -78,7 +86,7 @@ cp .env.example .env   # preencha nome, email e senha (12 a 72 bytes) do proprie
 docker compose up -d --build
 ```
 
-- Landing: `http://localhost:8081`; painel: `http://localhost:8081/admin/`; a API responde
+- Landing: `http://localhost:8081`; agendamento: `http://localhost:8081/agendar/`; painel: `http://localhost:8081/admin/`; a API responde
   em `http://localhost:8081/api/...` (a porta da API não é exposta).
 - Imagem `web` (`docker/web/Dockerfile`, contexto na raiz): builds da landing
   (pré-renderizada) e do painel, servidos por `nginx-unprivileged` na porta 8080, com
@@ -103,7 +111,7 @@ desabilitado (`api/docs/guia-frontend.md`).
 
 ## Personalizações locais
 
-- Landing própria da Revitalle em `web-cliente/` (React pré-renderizado).
+- Landing e página de agendamento próprias da Revitalle em `web-cliente/` (React pré-renderizado).
 - Componentes adaptados de [kokonutui](https://kokonutui.com) (Card Flip, Carousel Cards, Background Paths, Particle Button, Slide Text Button) e [React Bits](https://reactbits.dev) (BorderGlow, CardNav), sob licença MIT, reescritos sem Tailwind, GSAP ou dependências novas.
 
 ## Migrações próprias

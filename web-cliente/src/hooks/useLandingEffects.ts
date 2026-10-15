@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 
 export const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** Efeitos globais da landing. O conteúdo pré-renderizado é visível sem JS; estes efeitos só acrescentam movimento. */
-export function useLandingEffects() {
+/** Efeitos do vidro comuns às páginas: refração, cabeçalho que muda ao rolar e reflexo que segue o ponteiro. */
+export function useGlassEffects() {
   useEffect(() => {
     const doc = document.documentElement;
     const reduce = prefersReducedMotion();
@@ -24,6 +24,36 @@ export function useLandingEffects() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+
+    // Reflexo do vidro acompanhando o ponteiro.
+    let last: HTMLElement | null = null;
+    const onPointer = (e: PointerEvent) => {
+      const g = (e.target as Element).closest?.<HTMLElement>('.glass, .btn') ?? null;
+      if (last && last !== g) {
+        last.style.removeProperty('--mx');
+        last.style.removeProperty('--my');
+      }
+      last = g;
+      if (!g) return;
+      const r = g.getBoundingClientRect();
+      g.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`);
+      g.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`);
+    };
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (finePointer && !reduce) document.addEventListener('pointermove', onPointer, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('pointermove', onPointer);
+    };
+  }, []);
+}
+
+/** Efeitos globais da landing. O conteúdo pré-renderizado é visível sem JS; estes efeitos só acrescentam movimento. */
+export function useLandingEffects() {
+  useGlassEffects();
+  useEffect(() => {
+    const reduce = prefersReducedMotion();
 
     // Entradas no scroll, encadeadas por grupo.
     document.querySelectorAll('[data-reveal-group]').forEach((g) =>
@@ -46,27 +76,6 @@ export function useLandingEffects() {
       items.forEach((el) => el.classList.add('is-in'));
     }
 
-    // Reflexo do vidro acompanhando o ponteiro.
-    let last: HTMLElement | null = null;
-    const onPointer = (e: PointerEvent) => {
-      const g = (e.target as Element).closest?.<HTMLElement>('.glass, .btn') ?? null;
-      if (last && last !== g) {
-        last.style.removeProperty('--mx');
-        last.style.removeProperty('--my');
-      }
-      last = g;
-      if (!g) return;
-      const r = g.getBoundingClientRect();
-      g.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`);
-      g.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`);
-    };
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (finePointer && !reduce) document.addEventListener('pointermove', onPointer, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      document.removeEventListener('pointermove', onPointer);
-      io?.disconnect();
-    };
+    return () => io?.disconnect();
   }, []);
 }

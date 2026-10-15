@@ -7,6 +7,7 @@ WORKDIR /app
 COPY web-cliente/package.json web-cliente/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY web-cliente/index.html web-cliente/tsconfig.json web-cliente/vite.config.ts ./
+COPY web-cliente/agendar agendar
 COPY web-cliente/scripts scripts
 COPY web-cliente/src src
 COPY web-cliente/public public

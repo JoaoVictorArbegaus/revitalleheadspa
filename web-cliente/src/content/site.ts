@@ -17,6 +17,8 @@ export const contato = {
 };
 
 export const AGENDAR_HREF = '/agendar/';
+/** Abre a agenda já no tratamento (a página compara o nome sem acentos nem caixa). */
+export const agendarServico = (nome: string) => `${AGENDAR_HREF}?servico=${encodeURIComponent(nome)}`;
 
 export const navegacao = [
   { href: '#servicos', rotulo: 'Serviços' },
