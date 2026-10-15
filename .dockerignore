@@ -1,0 +1,11 @@
+# Contexto da imagem web (raiz): só o necessário para os builds dos frontends
+.git
+.claude
+.impeccable
+api
+**/node_modules
+**/dist
+**/dist-ssr
+web-cliente/design
+*.log
+.env

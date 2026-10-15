@@ -4,6 +4,8 @@ server {
     root /usr/share/nginx/html;
     index index.html;
     server_tokens off;
+    # redirecionamentos relativos: o nginx não conhece a porta pública (atrás do compose ou de um proxy)
+    absolute_redirect off;
 
     gzip on;
     gzip_vary on;
@@ -39,6 +41,17 @@ server {
         add_header Cache-Control "public, max-age=604800" always;
         include /etc/nginx/snippets/security-headers.conf;
         try_files $uri =404;
+    }
+
+    # Painel administrativo: SPA (rotas do cliente caem no index.html), fora dos buscadores.
+    location /admin/ {
+        add_header Cache-Control "no-cache" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
+        try_files $uri $uri/ /admin/index.html;
+    }
+    location = /admin {
+        return 301 /admin/;
     }
 
     # Páginas (/, /agendar/): sempre revalidadas, para novas versões aparecerem na hora.

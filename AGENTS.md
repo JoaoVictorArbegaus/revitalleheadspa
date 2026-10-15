@@ -7,7 +7,11 @@
   `design/briefing.md` e `design/referencias/`.
 - Rode `npm run build` em `web-cliente/` antes de concluir uma mudança de frontend:
   ele faz typecheck, build e pré-renderização.
-- `web-admin/` contém o painel administrativo.
+- `web-admin/` contém o painel administrativo (Vite, React, TypeScript, Tailwind e
+  shadcn/ui), servido em `/admin/`. Chamadas à API passam por `src/api/client.ts`
+  (sessão, CSRF e erros RFC 9457); tipos vêm de `src/api/schema.d.ts`, gerado do
+  OpenAPI. Mensagens de erro são escolhidas pelo `codigo` em `src/lib/erros.ts`.
+- Rode `npm run build` em `web-admin/` antes de concluir uma mudança no painel.
 - A stack de cada frontend está no `README.md` da raiz; não troque nem acrescente
   biblioteca de base sem registrar a decisão ali.
 - Os frontends consomem somente o contrato documentado em

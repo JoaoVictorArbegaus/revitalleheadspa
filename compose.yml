@@ -1,4 +1,4 @@
-# Ambiente local completo da Revitalle: PostgreSQL + API + web (landing).
+# Ambiente local completo da Revitalle: PostgreSQL + API + web (landing em / e painel em /admin/).
 # Só o web é exposto; a API é acessada pela mesma origem em /api, como em produção.
 # Credenciais do proprietário inicial vêm do .env (copie .env.example).
 name: revitalle
@@ -40,7 +40,8 @@ services:
 
   web:
     build:
-      context: ./web-cliente
+      context: .
+      dockerfile: docker/web/Dockerfile
     ports:
       - "8081:8080"
     depends_on:
