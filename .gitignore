@@ -15,3 +15,6 @@ dist-ssr/
 
 # Python
 __pycache__/
+
+# Segredos locais
+.env

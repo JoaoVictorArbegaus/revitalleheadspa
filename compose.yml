@@ -1,0 +1,51 @@
+# Ambiente local completo da Revitalle: PostgreSQL + API + web (landing).
+# Só o web é exposto; a API é acessada pela mesma origem em /api, como em produção.
+# Credenciais do proprietário inicial vêm do .env (copie .env.example).
+name: revitalle
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: service_scheduling
+      POSTGRES_USER: service_scheduling
+      POSTGRES_PASSWORD: service_scheduling
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U service_scheduling -d service_scheduling"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/service_scheduling
+      DATABASE_USERNAME: service_scheduling
+      DATABASE_PASSWORD: service_scheduling
+      BOOTSTRAP_PROPRIETARIO_NOME: ${BOOTSTRAP_PROPRIETARIO_NOME:?informe o nome do proprietario no .env}
+      BOOTSTRAP_PROPRIETARIO_EMAIL: ${BOOTSTRAP_PROPRIETARIO_EMAIL:?informe o email do proprietario no .env}
+      BOOTSTRAP_PROPRIETARIO_SENHA: ${BOOTSTRAP_PROPRIETARIO_SENHA:?informe a senha do proprietario no .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build:
+      context: ./web-cliente
+    ports:
+      - "8081:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

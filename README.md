@@ -42,6 +42,30 @@ npm run build    # typecheck, build e pré-renderização em dist/
 npm run preview  # serve dist/ em http://localhost:4173
 ```
 
+### Ambiente completo em Docker
+
+O `compose.yml` da raiz sobe PostgreSQL, API e o `web-cliente` servido por nginx, na
+mesma origem, como em produção:
+
+```bash
+cp .env.example .env   # preencha nome, email e senha (12 a 72 bytes) do proprietário inicial
+docker compose up -d --build
+```
+
+- Landing: `http://localhost:8081`; a API responde em `http://localhost:8081/api/...`
+  (a porta da API não é exposta).
+- Imagem do `web-cliente` (`web-cliente/Dockerfile`): build com Node e
+  pré-renderização, servida por `nginx-unprivileged` na porta 8080, com cache longo
+  em `/assets/`, gzip e cabeçalhos de segurança (`web-cliente/docker/`).
+- O nginx encaminha `/api/` para `API_UPSTREAM` (padrão `http://api:8080`) e
+  **sobrescreve** `X-Forwarded-*` com os dados da conexão; por isso, atrás dele, a API
+  pode usar `FORWARD_HEADERS_STRATEGY=NATIVE`.
+- HTTPS, domínio e certificados ficam na plataforma de hospedagem (pendente na C1).
+  O perfil `prod` da API exige cookies seguros, logo HTTPS na frente. Atrás de um
+  proxy com TLS, o nginx precisa repassar o `X-Forwarded-Proto` recebido da plataforma
+  em vez de `$scheme`.
+- `api/compose.yml` continua disponível para trabalhar só na API.
+
 Material de design (briefing, direção visual, referências e originais da
 cliente) fica em `web-cliente/design/`; as imagens otimizadas servidas pela página
 ficam em `web-cliente/public/img/`.
