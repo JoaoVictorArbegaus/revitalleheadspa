@@ -15,8 +15,10 @@ concluídas pertencem ao Git; requisitos e decisões pertencem ao `sdd_kit/`.
 
 ## Trabalho ativo
 
-- C1 em andamento: estrutura do repositório criada; configuração de ambientes,
-  hospedagem e validação de herança pendentes (ver `TASKS.md`).
+- C1 em andamento: ambiente de demonstração publicado na VPS com PostgreSQL e
+  segredos exclusivos, proxy HTTPS, certificado, healthchecks e backup diário;
+  auditoria final da herança e monitoramento com alertas permanecem pendentes
+  (ver `TASKS.md`).
 - Início do frontend: landing e agendamento em `web-cliente/`, painel em
   `web-admin/`. A stack do painel e da página de agendamento ainda não foi definida.
 

@@ -10,8 +10,9 @@ de trabalho concluído no Git.
 - F1, F2, B1, B2, B3, B4 e R1 foram concluídas e são preservadas no histórico do Git.
   R1 passou em `clean verify` com 68 testes, incluindo `ContratoDocumentacaoTest`, e
   os exemplos `.http` executaram contra a API em Docker Compose sem falhas.
-- Não há tarefa ativa. Tags e releases não são usadas (D-034); C1 é a derivação
-  por `git clone`, feita pelo responsável fora deste repositório quando houver uso.
+- C1 permanece ativa. A derivação e o ambiente de demonstração foram concluídos;
+  faltam a auditoria final da herança e monitoramento com alertas. Tags e releases
+  não são usadas (D-034).
 - Tarefas posteriores permanecem aguardando suas dependências; não devem ser
   iniciadas antecipadamente.
 
@@ -29,9 +30,11 @@ explicitamente liberado.
 - Feito: clone de `main`, repositório próprio `revitalleheadspa` com a API em
   `api/`, commit de origem no `README.md` da raiz, `upstream` sem push e pastas
   `web-cliente/` e `web-admin/`.
-- Pendente: banco, segredos, domínio e ambientes exclusivos; hospedagem, proxy,
-  certificados, backup e monitoramento; verificação de que nenhuma credencial ou
-  identidade herdada permanece; `clean verify` no novo repositório.
+- Feito: banco e segredos exclusivos; domínio e ambiente de demonstração;
+  hospedagem, proxy, certificado, healthchecks e backup diário; `clean verify`
+  com 68 testes no novo repositório.
+- Pendente: monitoramento com alertas e verificação final de que nenhuma
+  credencial ou identidade herdada permanece.
 
 ## Migrations
 
