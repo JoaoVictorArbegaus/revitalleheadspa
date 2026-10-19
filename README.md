@@ -95,7 +95,7 @@ docker compose up -d --build
 - O nginx encaminha `/api/` para `API_UPSTREAM` (padrão `http://api:8080`) e
   **sobrescreve** `X-Forwarded-*` com os dados da conexão; por isso, atrás dele, a API
   pode usar `FORWARD_HEADERS_STRATEGY=NATIVE`.
-- HTTPS, domínio e certificados ficam na plataforma de hospedagem (pendente na C1).
+- O domínio de produção é `https://revitalle.jksoftware.com.br/`; HTTPS e certificados ficam no proxy da plataforma.
   O perfil `prod` da API exige cookies seguros, logo HTTPS na frente. Atrás de um
   proxy com TLS, o nginx precisa repassar o `X-Forwarded-Proto` recebido da plataforma
   em vez de `$scheme`.
