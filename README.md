@@ -109,6 +109,24 @@ Os frontends são servidos no mesmo domínio da API, com `/api` encaminhado ao
 container da API: a sessão administrativa usa cookie e CSRF, e o CORS está
 desabilitado (`api/docs/guia-frontend.md`).
 
+### Produção
+
+O arquivo `compose.prod.yml` executa PostgreSQL, API e web sem publicar portas no
+host. Somente o serviço `web`, pelo alias `revitalle-web:8080`, participa da rede
+interna `revitalle_edge` usada pelo proxy reverso da plataforma. Cada release fica
+em um diretório imutável apontado por `current`.
+
+```bash
+cp .env.prod.example .env.prod
+# preencha os valores e proteja o arquivo com chmod 600
+docker compose --env-file .env.prod -f compose.prod.yml config --quiet
+docker compose --env-file .env.prod -f compose.prod.yml up -d --build
+```
+
+O banco usa o volume exclusivo `revitalle_postgres_data`. Nunca remova esse volume
+durante uma atualização. Após o primeiro acesso administrativo, esvazie
+`BOOTSTRAP_PROPRIETARIO_SENHA` em `.env.prod` e recrie somente o serviço `api`.
+
 ## Personalizações locais
 
 - Landing e página de agendamento próprias da Revitalle em `web-cliente/` (React pré-renderizado).

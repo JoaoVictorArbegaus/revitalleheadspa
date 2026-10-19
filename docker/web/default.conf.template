@@ -22,9 +22,11 @@ server {
         # pré-requisito para a API usar FORWARD_HEADERS_STRATEGY=NATIVE (ver api/README.md).
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
+        # O web não publica porta no host em produção: somente o proxy central,
+        # que substitui estes cabeçalhos, consegue alcançá-lo pela rede edge.
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Host $http_x_forwarded_host;
+        proxy_set_header X-Forwarded-Port $http_x_forwarded_port;
         proxy_set_header Forwarded "";
         client_max_body_size 1m;
         include /etc/nginx/snippets/security-headers.conf;

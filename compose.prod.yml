@@ -1,0 +1,124 @@
+name: revitalle
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: service_scheduling
+      POSTGRES_USER: revitalle
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?informe DATABASE_PASSWORD em .env.prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revitalle -d service_scheduling"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    image: revitalle-api:${RELEASE_ID:?informe RELEASE_ID em .env.prod}
+    build:
+      context: ./current/api
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/service_scheduling
+      DATABASE_USERNAME: revitalle
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?informe DATABASE_PASSWORD em .env.prod}
+      FORWARD_HEADERS_STRATEGY: NATIVE
+      BOOTSTRAP_PROPRIETARIO_NOME: ${BOOTSTRAP_PROPRIETARIO_NOME:-}
+      BOOTSTRAP_PROPRIETARIO_EMAIL: ${BOOTSTRAP_PROPRIETARIO_EMAIL:-}
+      BOOTSTRAP_PROPRIETARIO_SENHA: ${BOOTSTRAP_PROPRIETARIO_SENHA:-}
+      NEGOCIO_VERSAO_AVISO_PRIVACIDADE: ${NEGOCIO_VERSAO_AVISO_PRIVACIDADE:?informe a versao do aviso em .env.prod}
+      NEGOCIO_TEXTO_AVISO_PRIVACIDADE: ${NEGOCIO_TEXTO_AVISO_PRIVACIDADE:?informe o texto do aviso em .env.prod}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health/readiness >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    image: revitalle-web:${RELEASE_ID:?informe RELEASE_ID em .env.prod}
+    build:
+      context: ./current
+      dockerfile: docker/web/Dockerfile
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0755,noexec,nosuid,nodev
+      - /var/cache/nginx:uid=101,gid=101,mode=0755,noexec,nosuid,nodev
+      - /tmp:uid=101,gid=101,mode=0755,noexec,nosuid,nodev
+    environment:
+      API_UPSTREAM: http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "8080"
+    networks:
+      backend: {}
+      edge:
+        aliases:
+          - revitalle-web
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    name: revitalle_postgres_data
+
+networks:
+  backend:
+    internal: true
+  database:
+    internal: true
+  edge:
+    name: revitalle_edge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.23.17.0/24
